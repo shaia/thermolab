@@ -29,6 +29,8 @@ project:
       url: /en/
 site:
   template: book-theme
+  # Without an explicit site title the book theme's header falls back to "Made with MyST".
+  title: "ThermoLab — תרמו-מעבדה"
   options:
     hide_outline: false
     folders: true
