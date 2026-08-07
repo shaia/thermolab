@@ -31,6 +31,7 @@ QUESTION_TYPES = frozenset({"multiple-choice", "numeric", "prediction", "short-a
 EXAM_GLOB = "*-problems.md"
 OBJECTIVE_COMMENT_RE = re.compile(r"<!--\s*objectives:\s*(.+?)\s*-->")
 FORBIDDEN_SUBSTRINGS = ("answer_key", "instructor/")
+PROBLEM_HEADING_RE = re.compile(r"^##\s+Problem\s+(\d+)\b", re.MULTILINE)
 
 
 # ---------------------------------------------------------------------------
@@ -353,6 +354,63 @@ def check_answer_key_safety(root: Path) -> list[Finding]:
 
 
 # ---------------------------------------------------------------------------
+# Instructor solution coverage
+# ---------------------------------------------------------------------------
+
+
+def check_solution_coverage(root: Path, module: str | None = None) -> list[Finding]:
+    """Every problem set must have instructor solutions covering every problem in it.
+
+    Answer-key safety (above) guarantees solutions never reach the site; this is the other
+    half — that they exist at all. Without it a problem set can promise "solutions live with
+    the instructor material" while `instructor/` is empty, which is exactly what happened
+    after Milestone 1: nothing failed, because nothing was looking.
+
+    Only English problem sets are checked. Solutions are deliberately not translated — the
+    bilingual contract covers what students read, and the physics is the same in both.
+    """
+    findings: list[Finding] = []
+    exams_root = root / "content" / "en"
+    if not exams_root.exists():
+        return findings
+
+    for exam_path in sorted(exams_root.rglob(EXAM_GLOB)):
+        if "_build" in exam_path.parts:
+            continue
+        slug = exam_path.name[: -len("-problems.md")]
+        if module and slug != module:
+            continue
+
+        solution_path = root / "instructor" / "solutions" / f"{slug}.md"
+        if not solution_path.exists():
+            findings.append(
+                Finding(
+                    exam_path,
+                    None,
+                    "error",
+                    f"problem set has no instructor solutions — expected "
+                    f"instructor/solutions/{slug}.md",
+                )
+            )
+            continue
+
+        posed = set(PROBLEM_HEADING_RE.findall(exam_path.read_text(encoding="utf-8")))
+        solved = set(PROBLEM_HEADING_RE.findall(solution_path.read_text(encoding="utf-8")))
+        missing = sorted(posed - solved, key=int)
+        if missing:
+            findings.append(
+                Finding(
+                    solution_path,
+                    None,
+                    "error",
+                    f"solutions omit problem(s) {', '.join(missing)} posed in "
+                    f"{exam_path.name}",
+                )
+            )
+    return findings
+
+
+# ---------------------------------------------------------------------------
 # Orchestration
 # ---------------------------------------------------------------------------
 
@@ -375,6 +433,7 @@ def check(root: Path = ROOT, module: str | None = None) -> list[Finding]:
         findings.extend(check_quiz_schema(path, bank, misconception_ids))
 
     findings.extend(check_answer_key_safety(root))
+    findings.extend(check_solution_coverage(root, module))
 
     known_modules = collect_known_modules(root, quiz_banks)
     findings.extend(check_misconceptions(root, quiz_banks, known_modules))

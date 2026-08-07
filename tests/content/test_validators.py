@@ -479,6 +479,37 @@ class TestCheckAssessment:
         findings = check_assessment.check(tmp_path)
         assert has_error(findings, "instructor/")
 
+    def test_fails_on_problem_set_with_no_instructor_solutions(self, tmp_path):
+        write(
+            tmp_path / "content" / "en" / "04-demo-problems.md",
+            "# Problems\n\n## Problem 1 - one\n\nDo it.\n",
+        )
+        findings = check_assessment.check(tmp_path)
+        assert has_error(findings, "instructor/solutions/04-demo.md")
+
+    def test_fails_when_solutions_omit_a_posed_problem(self, tmp_path):
+        write(
+            tmp_path / "content" / "en" / "04-demo-problems.md",
+            "# Problems\n\n## Problem 1 - one\n\nDo it.\n\n## Problem 2 - two\n\nDo it too.\n",
+        )
+        write(
+            tmp_path / "instructor" / "solutions" / "04-demo.md",
+            "# Solutions\n\n## Problem 1 - one [10]\n\nHere it is.\n",
+        )
+        findings = check_assessment.check(tmp_path)
+        assert has_error(findings, "solutions omit problem(s) 2")
+
+    def test_passes_when_solutions_cover_every_problem(self, tmp_path):
+        write(
+            tmp_path / "content" / "en" / "04-demo-problems.md",
+            "# Problems\n\n## Problem 1 - one\n\nDo it.\n\n## Problem 2 - two\n\nDo it too.\n",
+        )
+        write(
+            tmp_path / "instructor" / "solutions" / "04-demo.md",
+            "# Solutions\n\n## Problem 1 - one [10]\n\nA.\n\n## Problem 2 - two [10]\n\nB.\n",
+        )
+        assert check_assessment.check(tmp_path) == []
+
     def test_warns_on_pending_misconception_not_yet_written(self, tmp_path):
         write(
             tmp_path / "assessment" / "misconceptions.yml",

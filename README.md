@@ -21,7 +21,7 @@ The guiding question, everywhere:
 | Assessment | `assessment/` | Quiz banks (YAML, bilingual), exam-style problems, misconception registry |
 | Animations | `media/render/` → `content/*/media/` | Simulation-rendered GIF demonstrations, language-neutral, embedded in both site copies |
 | Validation | `tests/`, `scripts/` | The scientific-accuracy framework, mechanized (see below) |
-| Instructor material | `instructor/` | Solutions, rubrics, diagnostics — never deployed (not yet authored) |
+| Instructor material | `instructor/` | Worked solutions and marking rubrics — never deployed |
 
 ## Quickstart
 
