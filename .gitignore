@@ -23,3 +23,8 @@ content/he/_build/
 # OS
 Thumbs.db
 .DS_Store
+# Generated media (rendered from media/render/*.py)
+content/en/media/
+content/he/media/
+content/en/_generated/
+content/he/_generated/

@@ -13,6 +13,10 @@ project:
     '\kB': 'k_{\mathrm{B}}'
   toc:
     - file: index.md
+    - title: Thermodynamics
+      children:
+        - file: thermodynamics/04-pressure.md
+        - file: thermodynamics/04-pressure-problems.md
     - title: Developer
       children:
         - file: dev/bidi-test.md
