@@ -18,6 +18,10 @@ project:
         - file: thermodynamics/04-pressure-problems.md
         - file: thermodynamics/05-work-paths.md
         - file: thermodynamics/05-work-paths-problems.md
+    - title: מכניקה סטטיסטית
+      children:
+        - file: statistical-mechanics/08-multiplicity.md
+        - file: statistical-mechanics/08-multiplicity-problems.md
     - title: פיתוח
       children:
         - file: dev/bidi-test.md

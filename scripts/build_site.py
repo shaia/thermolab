@@ -70,7 +70,29 @@ def build_language(lang: str) -> Path:
     return out
 
 
-def main() -> None:
+def build_jupyterlite() -> None:
+    """Bundle the notebooks into a browser-runnable JupyterLite app at _site/lite/.
+
+    This is what lets a reader open a laboratory without installing anything: Pyodide runs
+    the same `thermolab` code in the browser. It is a best-effort step — a missing or broken
+    JupyterLite must not fail the site build, since the pages themselves carry static
+    figures and local-run instructions either way.
+    """
+    print("[build_site] building JupyterLite bundle ...")
+    result = subprocess.run(
+        [sys.executable, "-m", "jupyter", "lite", "build"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        print("[build_site] JupyterLite build failed — the site is still usable:")
+        print((result.stderr or result.stdout).strip()[-800:])
+        return
+    print(f"[build_site] JupyterLite -> {SITE / 'lite'}")
+
+
+def main(skip_lite: bool = False) -> None:
     for path in generate_css():
         print(f"[build_site] stylesheet {path.relative_to(ROOT)}")
 
@@ -85,8 +107,12 @@ def main() -> None:
         print(f"[build_site] {lang}: {len(list((SITE / lang).rglob('*.html')))} pages")
 
     (SITE / "index.html").write_text(ROOT_REDIRECT, encoding="utf-8")
+
+    if not skip_lite:
+        build_jupyterlite()
+
     print(f"[build_site] done -> {SITE}  (serve with: python -m http.server -d _site)")
 
 
 if __name__ == "__main__":
-    main()
+    main(skip_lite="--no-lite" in sys.argv)

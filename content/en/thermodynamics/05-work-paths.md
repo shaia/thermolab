@@ -105,6 +105,14 @@ Around a closed loop $\oint dU = 0$, but $\oint \delta W \ne 0$. The shaded area
 work per cycle, and an engine is a device for collecting it.
 :::
 
+:::{admonition} Open the laboratory
+:class: tip
+Run it in your browser, no installation required:
+[laboratory 05 — work and thermodynamic paths](/lite/lab/index.html?path=en/labs/05-work-paths.ipynb).
+
+To run it locally instead: `uv run jupyter lab notebooks/en/labs/05-work-paths.ipynb`.
+:::
+
 Before reading the derivation, do three things in the notebook:
 
 - Draw any two different routes between the same endpoints and compare the work.

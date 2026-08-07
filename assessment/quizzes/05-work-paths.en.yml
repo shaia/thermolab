@@ -193,6 +193,37 @@ questions:
           It equals the *enclosed* area — the area under the upper branch minus the area under
           the lower one, since the return leg contributes with the opposite sign.
 
+  - id: Q-05-10
+    type: multiple-choice
+    objectives: [OBJ-05-3, OBJ-05-5]
+    misconception: adiabatic-constant-t
+    prompt: >-
+      A gas expands adiabatically and quasistatically. What happens to its temperature?
+    choices:
+      - text: It falls, because the gas does work on its surroundings with no heat flowing in to replace the energy.
+        correct: true
+        feedback: >-
+          Correct. Adiabatic means Q = 0, so the first law gives ΔU = W_on < 0 for an
+          expansion. The gas pays for the work out of its own internal energy, and for an
+          ideal gas that energy is the temperature.
+      - text: It stays constant, because "adiabatic" means no temperature change.
+        correct: false
+        feedback: >-
+          This confuses adiabatic with isothermal. Adiabatic constrains the *heat* (Q = 0);
+          isothermal constrains the *temperature*. They are different constraints, and for an
+          expanding gas they give opposite answers — which is exactly why the two curves in the
+          P-V plane have different slopes.
+      - text: It rises, because compression of the surroundings heats the gas.
+        correct: false
+        feedback: >-
+          The gas is expanding, not being compressed. An adiabatic *compression* does raise the
+          temperature, and that is how a diesel engine ignites its fuel.
+      - text: It stays constant, because no heat enters or leaves.
+        correct: false
+        feedback: >-
+          No heat crossing the boundary does not mean no energy crossing it. Work is the other
+          channel, and along an adiabat it is the only one.
+
   - id: Q-05-8
     type: prediction
     objectives: [OBJ-05-2]

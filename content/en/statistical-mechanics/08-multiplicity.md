@@ -422,6 +422,14 @@ exact consequences of the same combinatorics used throughout this module. The se
 this module has derived it, constrains the entropy of an *isolated total system*; it places no
 such requirement on any piece of that system considered on its own.
 
+Read that example for what it is: an arithmetic demonstration that the two statements are
+compatible, not a dynamical account of why $L$ would move. In this energy-free two-state model
+nothing couples $L$ to $R$, so the displacement of $L$ is stipulated rather than driven. A
+mechanism needs a conserved quantity the two subsystems actually exchange — energy in module
+11, particles in module 13 — and then the direction of the exchange is fixed by requiring the
+*total* multiplicity to increase. The arithmetic above is what makes room for a refrigerator:
+a subsystem's entropy may fall, provided something else pays more than the difference.
+
 **Full Stirling series.** The three-term approximation used above is the start of an asymptotic
 series, $\ln N! = N\ln N - N + \tfrac12\ln(2\pi N) + \tfrac{1}{12N} - \tfrac{1}{360N^3} +
 \cdots$. The series does not converge as $N\to\infty$ for fixed number of terms — it is an

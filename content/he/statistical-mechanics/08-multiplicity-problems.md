@@ -1,7 +1,7 @@
 ---
 title: דף שאלות — אנטרופיה וריבוי מצבים
 short_title: 08 · שאלות
-en_source_hash: PENDING
+en_source_hash: 2f102b62e4c9bceb37de1edbb7e8f0710be50133bbfca35f66b5e389edb7eb56
 ---
 
 # דף שאלות: אנטרופיה וריבוי מצבים

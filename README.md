@@ -33,11 +33,22 @@ npm install                               # mystmd (site builder)
 
 uv run pytest                             # physics test suite
 uv run python scripts/validate_all.py     # every validation layer
-uv run python scripts/build_site.py       # build both site copies -> _site/
+uv run python scripts/build_site.py       # build both site copies + JupyterLite -> _site/
 python -m http.server -d _site            # browse http://localhost:8000 (/en/ and /he/)
 
 uv run jupyter lab                        # work with the lab notebooks
 ```
+
+Other tools you will reach for while authoring:
+
+```powershell
+uv run python scripts/render_quizzes.py   # quiz banks -> site pages + notebook JSON
+uv run python scripts/sync_notebooks.py   # copy EN code cells into the HE notebooks
+uv run python scripts/stamp_hashes.py     # mark a finished translation as up to date
+uv run python media/render/render_pressure.py   # regenerate a module's animations
+```
+
+On Windows, `uv` may not be on PATH; call it as `& "$env:USERPROFILE\.local\bin\uv.exe"`.
 
 Live-preview a single language while writing: `cd content/en && npx myst start`.
 

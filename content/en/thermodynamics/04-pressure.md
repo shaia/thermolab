@@ -114,6 +114,15 @@ interparticle collisions, which is a different (and much slower) simulation. Be 
 any textbook figure that shows speeds "relaxing" in a non-interacting gas.
 :::
 
+:::{admonition} Open the laboratory
+:class: tip
+Run it in your browser, no installation required:
+[laboratory 04 — the microscopic origin of pressure](/lite/lab/index.html?path=en/labs/04-pressure.ipynb).
+Python takes a few seconds to start the first time.
+
+To run it locally instead: `uv run jupyter lab notebooks/en/labs/04-pressure.ipynb`.
+:::
+
 Run the laboratory now, then come back. Three things are worth doing before you read on:
 
 - Set $N = 20$ and watch the pressure trace. Then set $N = 2000$ and watch it again.
