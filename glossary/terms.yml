@@ -1,0 +1,166 @@
+# Canonical EN <-> HE physics glossary. The ONLY source of Hebrew terminology.
+# he_reject: common wrong/nonstandard spellings the glossary lint flags in Hebrew content.
+terms:
+  - key: thermodynamics
+    en: thermodynamics
+    he: תרמודינמיקה
+  - key: statistical-mechanics
+    en: statistical mechanics
+    he: מכניקה סטטיסטית
+  - key: temperature
+    en: temperature
+    he: טמפרטורה
+  - key: pressure
+    en: pressure
+    he: לחץ
+  - key: volume
+    en: volume
+    he: נפח
+  - key: heat
+    en: heat
+    he: חום
+  - key: work
+    en: work
+    he: עבודה
+  - key: internal-energy
+    en: internal energy
+    he: אנרגיה פנימית
+  - key: entropy
+    en: entropy
+    he: אנטרופיה
+    he_reject: [אנתרופיה]
+  - key: enthalpy
+    en: enthalpy
+    he: אנתלפיה
+  - key: free-energy
+    en: free energy
+    he: אנרגיה חופשית
+  - key: equilibrium
+    en: equilibrium
+    he: שיווי משקל
+    he_reject: [שווי משקל]
+  - key: thermal-equilibrium
+    en: thermal equilibrium
+    he: שיווי משקל תרמי
+  - key: state-variable
+    en: state variable
+    he: משתנה מצב
+  - key: state-function
+    en: state function
+    he: פונקציית מצב
+    he_reject: [פונקצית מצב]
+  - key: path-function
+    en: path function
+    he: פונקציית מסלול
+    he_reject: [פונקצית מסלול]
+  - key: equation-of-state
+    en: equation of state
+    he: משוואת מצב
+  - key: ideal-gas
+    en: ideal gas
+    he: גז אידיאלי
+    he_reject: [גז אידאלי]
+  - key: kinetic-theory
+    en: kinetic theory
+    he: תורה קינטית
+  - key: microstate
+    en: microstate
+    he: מיקרו-מצב
+    he_reject: [מיקרומצב]
+  - key: macrostate
+    en: macrostate
+    he: מאקרו-מצב
+    he_reject: [מקרומצב, מאקרומצב]
+  - key: multiplicity
+    en: multiplicity
+    he: ריבוי מצבים
+  - key: probability
+    en: probability
+    he: הסתברות
+  - key: probability-distribution
+    en: probability distribution
+    he: התפלגות הסתברות
+  - key: random-walk
+    en: random walk
+    he: הילוך אקראי
+    he_reject: [הליכה אקראית]
+  - key: fluctuation
+    en: fluctuation
+    he: פלוקטואציה
+    he_reject: [תנודה סטטיסטית]
+  - key: ensemble
+    en: ensemble
+    he: צבר
+    he_reject: [אנסמבל]
+  - key: canonical-ensemble
+    en: canonical ensemble
+    he: צבר קנוני
+  - key: microcanonical-ensemble
+    en: microcanonical ensemble
+    he: צבר מיקרו-קנוני
+  - key: partition-function
+    en: partition function
+    he: פונקציית החלוקה
+    he_reject: [פונקצית החלוקה]
+  - key: boltzmann-distribution
+    en: Boltzmann distribution
+    he: התפלגות בולצמן
+    he_reject: [התפלגות בולטזמן]
+  - key: heat-capacity
+    en: heat capacity
+    he: קיבול חום
+    he_reject: [קיבולת חום]
+  - key: adiabatic
+    en: adiabatic
+    he: אדיאבטי
+  - key: isothermal
+    en: isothermal
+    he: איזותרמי
+  - key: isobaric
+    en: isobaric
+    he: איזוברי
+  - key: quasistatic
+    en: quasistatic
+    he: כמו-סטטי
+    he_reject: [קוואזיסטטי, קוואזי-סטטי]
+  - key: reversible
+    en: reversible process
+    he: תהליך הפיך
+  - key: irreversible
+    en: irreversible process
+    he: תהליך בלתי הפיך
+    he_reject: [תהליך אי הפיך]
+  - key: heat-engine
+    en: heat engine
+    he: מנוע חום
+  - key: carnot-efficiency
+    en: Carnot efficiency
+    he: נצילות קרנו
+    he_reject: [יעילות קרנו]
+  - key: exact-differential
+    en: exact differential
+    he: דיפרנציאל מדויק
+  - key: inexact-differential
+    en: inexact differential
+    he: דיפרנציאל לא מדויק
+  - key: equipartition
+    en: equipartition theorem
+    he: משפט חלוקת האנרגיה השווה
+  - key: degrees-of-freedom
+    en: degrees of freedom
+    he: דרגות חופש
+  - key: mean-free-path
+    en: mean free path
+    he: מהלך חופשי ממוצע
+  - key: piston
+    en: piston
+    he: בוכנה
+  - key: elastic-collision
+    en: elastic collision
+    he: התנגשות אלסטית
+  - key: central-limit-theorem
+    en: central limit theorem
+    he: משפט הגבול המרכזי
+  - key: stirling-approximation
+    en: Stirling's approximation
+    he: קירוב סטירלינג

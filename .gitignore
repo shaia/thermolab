@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+
+# Node
+node_modules/
+
+# Build outputs
+_site/
+_build/
+content/en/_build/
+content/he/_build/
+.jupyterlite.doit.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+Thumbs.db
+.DS_Store
