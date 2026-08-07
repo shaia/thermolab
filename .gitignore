@@ -6,6 +6,7 @@ __pycache__/
 .pytest_cache/
 .hypothesis/
 .ruff_cache/
+.mypy_cache/
 
 # Node
 node_modules/
@@ -28,3 +29,18 @@ content/en/media/
 content/he/media/
 content/en/_generated/
 content/he/_generated/
+
+# Instructor-only material: worked solutions, marking rubrics, answer keys.
+# This repository is public — publishing these would hand students the answers.
+instructor/
+
+# Local agent/editor configuration
+.claude/
+.vscode/
+.idea/
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.log
