@@ -366,12 +366,19 @@ def check_solution_coverage(root: Path, module: str | None = None) -> list[Findi
     the instructor material" while `instructor/` is empty, which is exactly what happened
     after Milestone 1: nothing failed, because nothing was looking.
 
+    `instructor/` is gitignored — the repository is public, and publishing worked solutions
+    would hand students the answers — so a clone legitimately has no instructor tree at all.
+    When the directory is absent entirely this check stays silent, because "you are not an
+    instructor" is not a defect. It bites for anyone who has the tree, which is exactly the
+    person who can act on it. The cost of that trade-off is real and worth naming: an author
+    who deletes `instructor/` wholesale silences the check rather than failing it.
+
     Only English problem sets are checked. Solutions are deliberately not translated — the
     bilingual contract covers what students read, and the physics is the same in both.
     """
     findings: list[Finding] = []
     exams_root = root / "content" / "en"
-    if not exams_root.exists():
+    if not exams_root.exists() or not (root / "instructor").exists():
         return findings
 
     for exam_path in sorted(exams_root.rglob(EXAM_GLOB)):

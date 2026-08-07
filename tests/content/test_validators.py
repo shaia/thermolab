@@ -484,8 +484,18 @@ class TestCheckAssessment:
             tmp_path / "content" / "en" / "04-demo-problems.md",
             "# Problems\n\n## Problem 1 - one\n\nDo it.\n",
         )
+        write(tmp_path / "instructor" / "solutions" / "05-other.md", "# Solutions\n")
         findings = check_assessment.check(tmp_path)
         assert has_error(findings, "instructor/solutions/04-demo.md")
+
+    def test_stays_silent_when_there_is_no_instructor_tree_at_all(self, tmp_path):
+        # instructor/ is gitignored because the repo is public, so a clone has no such
+        # tree. Failing there would break validate_all.py for every non-instructor.
+        write(
+            tmp_path / "content" / "en" / "04-demo-problems.md",
+            "# Problems\n\n## Problem 1 - one\n\nDo it.\n",
+        )
+        assert check_assessment.check(tmp_path) == []
 
     def test_fails_when_solutions_omit_a_posed_problem(self, tmp_path):
         write(
