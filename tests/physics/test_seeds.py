@@ -36,6 +36,7 @@ def test_different_seeds_give_different_microstates():
 
 def test_measured_pressure_agrees_across_seeds_within_statistical_error():
     """The macroscopic answer is seed-independent even though every microstate differs."""
+
     def measure(rng: np.random.Generator) -> float:
         state = kinetics.initialise_gas(400, BOX_2D, 300.0, ARGON_MASS, rng)
         return kinetics.simulate(state, dt=kinetics.max_stable_dt(state), n_steps=6000).pressure()
@@ -50,9 +51,9 @@ def test_measured_pressure_agrees_across_seeds_within_statistical_error():
 def test_kinetic_temperature_is_seed_independent_by_construction():
     """Drift removal rescales to the requested temperature, so every seed starts identical."""
     study = seed_study(
-        lambda rng: kinetics.initialise_gas(
-            500, BOX_2D, 300.0, ARGON_MASS, rng
-        ).kinetic_temperature,
+        lambda rng: (
+            kinetics.initialise_gas(500, BOX_2D, 300.0, ARGON_MASS, rng).kinetic_temperature
+        ),
         n_seeds=6,
     )
 
@@ -62,7 +63,7 @@ def test_kinetic_temperature_is_seed_independent_by_construction():
 def test_two_box_equilibrium_occupancy_is_seed_independent():
     def mean_late_fraction(rng: np.random.Generator) -> float:
         occupancy = multiplicity.sample_two_box(300, n_steps=20_000, rng=rng)
-        return float(occupancy[len(occupancy) // 2:].mean() / 300)
+        return float(occupancy[len(occupancy) // 2 :].mean() / 300)
 
     study = seed_study(mean_late_fraction, n_seeds=8)
 

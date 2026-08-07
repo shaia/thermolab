@@ -76,8 +76,12 @@ def run_nbmake_stage(fast: bool, module: str | None) -> StageResult:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--fast", action="store_true", help="skip the nbmake notebook-execution stage")
-    parser.add_argument("--module", help="scope the notebook and content-lint stages to one module slug")
+    parser.add_argument(
+        "--fast", action="store_true", help="skip the nbmake notebook-execution stage"
+    )
+    parser.add_argument(
+        "--module", help="scope the notebook and content-lint stages to one module slug"
+    )
     args = parser.parse_args(argv)
 
     stages: list[StageResult] = []

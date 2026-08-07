@@ -32,8 +32,9 @@ def sampled_pressure(n_particles: int, rng: np.random.Generator, n_steps: int = 
     return kinetics.simulate(state, dt=kinetics.max_stable_dt(state), n_steps=n_steps).pressure()
 
 
-def relative_pressure_fluctuation(n_particles: int, n_samples: int = 24,
-                                  base_seed: int = 0) -> float:
+def relative_pressure_fluctuation(
+    n_particles: int, n_samples: int = 24, base_seed: int = 0
+) -> float:
     """Spread of the pressure across independent microstates, relative to its mean."""
     seeds = np.random.SeedSequence(base_seed).spawn(n_samples)
     pressures = np.array([sampled_pressure(n_particles, np.random.default_rng(s)) for s in seeds])
@@ -89,11 +90,13 @@ def test_odds_of_a_ten_percent_excess_fall_exponentially_in_system_size():
     the ratio near 1e-87; a mole makes it unreachable.
     """
     sizes = np.array([1000, 5000, 10_000])
-    log_ratios = np.array([
-        np.log(multiplicity.probability(int(n), int(0.6 * n)))
-        - np.log(multiplicity.probability(int(n), int(n) // 2))
-        for n in sizes
-    ])
+    log_ratios = np.array(
+        [
+            np.log(multiplicity.probability(int(n), int(0.6 * n)))
+            - np.log(multiplicity.probability(int(n), int(n) // 2))
+            for n in sizes
+        ]
+    )
 
     assert np.all(np.diff(log_ratios) < 0)
     assert np.allclose(log_ratios / sizes, -0.02, atol=2e-3)
@@ -106,7 +109,7 @@ def test_two_box_occupancy_settles_near_the_even_split():
     n_objects = 400
     occupancy = multiplicity.sample_two_box(n_objects, n_steps=40_000, rng=rng)
 
-    late = occupancy[len(occupancy) // 2:]
+    late = occupancy[len(occupancy) // 2 :]
     mean_fraction = late.mean() / n_objects
     spread_fraction = late.std() / n_objects
 
@@ -122,7 +125,7 @@ def test_two_box_equilibrium_spread_scales_as_one_over_sqrt_n():
     spreads = []
     for n in sizes:
         occupancy = multiplicity.sample_two_box(n, n_steps=60 * n, rng=rng, n_in_first_state=n // 2)
-        late = occupancy[len(occupancy) // 2:]
+        late = occupancy[len(occupancy) // 2 :]
         spreads.append(float(late.std() / n))
 
     assert scaling_exponent(sizes, spreads) == pytest.approx(-0.5, abs=0.12)

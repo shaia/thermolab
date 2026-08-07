@@ -33,7 +33,7 @@ from _content import (  # noqa: E402
     parse_frontmatter,
     sha256_normalized,
 )
-from _findings import Finding, report  # noqa: E402
+from _findings import Finding, ensure_stdout_can_print_unicode, report  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 CATEGORY_PREFIXES = ("missing", "stale", "mismatch")
@@ -75,7 +75,9 @@ def check_hash(he_path: Path, stored: object, en_path: Path, pending: bool) -> l
     if not stored:
         return [Finding(he_path, None, "error", "stale: missing en_source_hash")]
     if not isinstance(stored, str):
-        return [Finding(he_path, None, "error", f"stale: en_source_hash is not a string: {stored!r}")]
+        return [
+            Finding(he_path, None, "error", f"stale: en_source_hash is not a string: {stored!r}")
+        ]
     if stored == "PENDING":
         if pending:
             return [
@@ -91,7 +93,8 @@ def check_hash(he_path: Path, stored: object, en_path: Path, pending: bool) -> l
                 he_path,
                 None,
                 "error",
-                "stale: en_source_hash is PENDING but file is not listed in translation-pending.txt",
+                "stale: en_source_hash is PENDING but file is not listed in "
+                "translation-pending.txt",
             )
         ]
     expected = sha256_normalized(en_path.read_bytes())
@@ -101,7 +104,8 @@ def check_hash(he_path: Path, stored: object, en_path: Path, pending: bool) -> l
                 he_path,
                 None,
                 "error",
-                f"stale: en_source_hash mismatch (stored {stored[:12]}.., expected {expected[:12]}..)",
+                f"stale: en_source_hash mismatch "
+                f"(stored {stored[:12]}.., expected {expected[:12]}..)",
             )
         ]
     return []
@@ -124,11 +128,21 @@ def check_page_tree(root: Path, pending: set[str]) -> tuple[list[Finding], set[s
     required = en_tails - pending_tails
     for tail in sorted(required - he_tails):
         findings.append(
-            Finding(en_dir / tail, None, "error", f"missing: HE translation missing for content/en/{tail}")
+            Finding(
+                en_dir / tail,
+                None,
+                "error",
+                f"missing: HE translation missing for content/en/{tail}",
+            )
         )
     for tail in sorted(he_tails - en_tails):
         findings.append(
-            Finding(he_dir / tail, None, "error", f"mismatch: HE file has no EN source (content/he/{tail})")
+            Finding(
+                he_dir / tail,
+                None,
+                "error",
+                f"mismatch: HE file has no EN source (content/he/{tail})",
+            )
         )
 
     return findings, en_tails & he_tails
@@ -144,8 +158,12 @@ def check_page_pair(root: Path, tail: str, pending_tail: bool) -> list[Finding]:
         check_hash(he_path, he_frontmatter.get("en_source_hash"), en_path, pending=pending_tail)
     )
 
-    en_equations = Counter(normalize_equation(e) for e in extract_equations(en_path.read_text(encoding="utf-8")))
-    he_equations = Counter(normalize_equation(e) for e in extract_equations(he_path.read_text(encoding="utf-8")))
+    en_equations = Counter(
+        normalize_equation(e) for e in extract_equations(en_path.read_text(encoding="utf-8"))
+    )
+    he_equations = Counter(
+        normalize_equation(e) for e in extract_equations(he_path.read_text(encoding="utf-8"))
+    )
     for eq in sorted(set(en_equations) | set(he_equations)):
         en_n, he_n = en_equations.get(eq, 0), he_equations.get(eq, 0)
         if en_n != he_n:
@@ -173,8 +191,16 @@ def _cell_source(cell: dict) -> str:
 def check_notebook_tree(root: Path, pending: set[str]) -> tuple[list[Finding], set[str]]:
     en_dir = root / "notebooks" / "en"
     he_dir = root / "notebooks" / "he"
-    en_tails = {p.relative_to(en_dir).as_posix() for p in en_dir.rglob("*.ipynb")} if en_dir.exists() else set()
-    he_tails = {p.relative_to(he_dir).as_posix() for p in he_dir.rglob("*.ipynb")} if he_dir.exists() else set()
+    en_tails = (
+        {p.relative_to(en_dir).as_posix() for p in en_dir.rglob("*.ipynb")}
+        if en_dir.exists()
+        else set()
+    )
+    he_tails = (
+        {p.relative_to(he_dir).as_posix() for p in he_dir.rglob("*.ipynb")}
+        if he_dir.exists()
+        else set()
+    )
 
     pending_tails = {p[len("notebooks/en/") :] for p in pending if p.startswith("notebooks/en/")}
 
@@ -183,7 +209,10 @@ def check_notebook_tree(root: Path, pending: set[str]) -> tuple[list[Finding], s
     for tail in sorted(required - he_tails):
         findings.append(
             Finding(
-                en_dir / tail, None, "error", f"missing: HE notebook missing for notebooks/en/{tail}"
+                en_dir / tail,
+                None,
+                "error",
+                f"missing: HE notebook missing for notebooks/en/{tail}",
             )
         )
     for tail in sorted(he_tails - en_tails):
@@ -217,10 +246,12 @@ def check_notebook_pair(root: Path, tail: str, pending_tail: bool) -> list[Findi
             )
         )
     else:
-        for i, (en_src, he_src) in enumerate(zip(en_code, he_code)):
+        for i, (en_src, he_src) in enumerate(zip(en_code, he_code, strict=True)):
             if en_src != he_src:
                 findings.append(
-                    Finding(he_path, None, "error", f"mismatch: code cell {i} differs between EN and HE")
+                    Finding(
+                        he_path, None, "error", f"mismatch: code cell {i} differs between EN and HE"
+                    )
                 )
 
     stored = ((he_nb.get("metadata") or {}).get("thermolab") or {}).get("en_source_hash")
@@ -243,12 +274,20 @@ def check_quiz_pair(en_path: Path, he_path: Path) -> list[Finding]:
     for qid in sorted(en_qs.keys() - he_qs.keys()):
         findings.append(
             Finding(
-                he_path, None, "error", f"mismatch: question '{qid}' present in EN bank but missing in HE"
+                he_path,
+                None,
+                "error",
+                f"mismatch: question '{qid}' present in EN bank but missing in HE",
             )
         )
     for qid in sorted(he_qs.keys() - en_qs.keys()):
         findings.append(
-            Finding(he_path, None, "error", f"mismatch: question '{qid}' present in HE bank but missing in EN")
+            Finding(
+                he_path,
+                None,
+                "error",
+                f"mismatch: question '{qid}' present in HE bank but missing in EN",
+            )
         )
 
     for qid in sorted(en_qs.keys() & he_qs.keys()):
@@ -279,7 +318,9 @@ def check_quiz_pair(en_path: Path, he_path: Path) -> list[Finding]:
                     )
                 )
         elif qtype == "numeric":
-            if en_q.get("answer") != he_q.get("answer") or en_q.get("tolerance") != he_q.get("tolerance"):
+            if en_q.get("answer") != he_q.get("answer") or en_q.get("tolerance") != he_q.get(
+                "tolerance"
+            ):
                 findings.append(
                     Finding(
                         he_path,
@@ -303,7 +344,9 @@ def check_quiz_parity(root: Path) -> list[Finding]:
         module = en_path.name[: -len(".en.yml")]
         he_path = quiz_dir / f"{module}.he.yml"
         if not he_path.exists():
-            findings.append(Finding(en_path, None, "error", f"missing: HE quiz bank missing: {he_path.name}"))
+            findings.append(
+                Finding(en_path, None, "error", f"missing: HE quiz bank missing: {he_path.name}")
+            )
             continue
         findings.extend(check_quiz_pair(en_path, he_path))
 
@@ -311,7 +354,12 @@ def check_quiz_parity(root: Path) -> list[Finding]:
         module = he_path.name[: -len(".he.yml")]
         if not (quiz_dir / f"{module}.en.yml").exists():
             findings.append(
-                Finding(he_path, None, "error", f"mismatch: HE quiz bank has no EN source ({module}.en.yml)")
+                Finding(
+                    he_path,
+                    None,
+                    "error",
+                    f"mismatch: HE quiz bank has no EN source ({module}.en.yml)",
+                )
             )
     return findings
 
@@ -380,6 +428,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     findings = check()
     if args.json:
+        ensure_stdout_can_print_unicode()
         print(json.dumps(parity_json(findings), indent=2, ensure_ascii=False))
         return 1 if any(f.severity == "error" for f in findings) else 0
     return report(findings, as_json=False)

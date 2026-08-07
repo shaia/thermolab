@@ -127,6 +127,7 @@ where $\delta Q$ is positive when heat flows *into* the gas and $\delta W_{\math
 positive when work is done *on* the gas. Compressing a gas therefore does positive work on it;
 letting it expand does negative work on it.
 
+<!-- sign-convention-exception -->
 :::{admonition} Why the sign convention needs saying out loud
 :class: definition
 Many textbooks write $dU = \delta Q - \delta W$, where $W$ means work done *by* the system.

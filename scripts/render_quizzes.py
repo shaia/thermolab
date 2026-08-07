@@ -20,6 +20,7 @@ Run standalone (`python scripts/render_quizzes.py`) or import `check()` / `gener
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -56,16 +57,26 @@ def render_site_markdown(module: str, lang: str, bank: dict) -> str:
 
         if qtype == "multiple-choice":
             choices = question.get("choices") or []
-            for choice in choices:
-                lines.append(f"   - {choice.get('text', '')}")
+            # Options are lettered so the feedback can refer to them without repeating the
+            # whole option text, which made the disclosure block unreadable. The letters are
+            # Latin in both languages: they are labels, and a reader scanning back up the
+            # list matches shapes, not words.
+            labels = [chr(ord("A") + index) for index in range(len(choices))]
+            for label, choice in zip(labels, choices, strict=True):
+                lines.append(f"   {label}. {choice.get('text', '')}")
             lines.append("")
             lines.append(f"   :::{{dropdown}} {strings['check_answer']}")
-            correct = next((c for c in choices if c.get("correct")), None)
-            if correct is not None:
-                lines.append(f"   **{strings['correct_answer']}:** {correct.get('text', '')}")
+            correct_index = next(
+                (index for index, c in enumerate(choices) if c.get("correct")), None
+            )
+            if correct_index is not None:
+                lines.append(
+                    f"   **{strings['correct_answer']}: {labels[correct_index]}** — "
+                    f"{choices[correct_index].get('text', '')}"
+                )
                 lines.append("")
-            for choice in choices:
-                lines.append(f"   - {choice.get('text', '')}: {choice.get('feedback', '')}")
+            for label, choice in zip(labels, choices, strict=True):
+                lines.append(f"   - **{label}.** {choice.get('feedback', '')}")
             lines.append("   :::")
         elif qtype == "numeric":
             lines.append(f"   :::{{dropdown}} {strings['check_answer']}")
@@ -125,7 +136,18 @@ def render_module(root: Path, module: str, lang: str, bank: dict) -> list[Path]:
     site_dir = root / "content" / lang / "_generated"
     site_dir.mkdir(parents=True, exist_ok=True)
     site_path = site_dir / f"quiz-{module}.md"
-    site_path.write_text(render_site_markdown(module, lang, bank), encoding="utf-8", newline="\n")
+    body = render_site_markdown(module, lang, bank)
+
+    # Generated Hebrew pages carry the same `en_source_hash` stamp as hand-written ones, so
+    # check_parity.py can treat every page under content/he uniformly. The hash is of the
+    # generated English page, which is why the English language is rendered first.
+    if lang != "en":
+        english = root / "content" / "en" / "_generated" / f"quiz-{module}.md"
+        if english.exists():
+            digest = hashlib.sha256(english.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+            body = f"% en_source_hash: {digest}\n\n{body}"
+
+    site_path.write_text(body, encoding="utf-8", newline="\n")
     written.append(site_path)
 
     notebook_dir = root / "notebooks" / lang / "_quiz"
@@ -149,7 +171,9 @@ def generate(root: Path = ROOT) -> tuple[list[Path], list[Finding]]:
         try:
             module, lang, _ext = path.name.rsplit(".", 2)
         except ValueError:
-            findings.append(Finding(path, None, "error", f"unexpected quiz bank filename: {path.name}"))
+            findings.append(
+                Finding(path, None, "error", f"unexpected quiz bank filename: {path.name}")
+            )
             continue
         if lang not in UI_STRINGS:
             findings.append(Finding(path, None, "error", f"no UI strings for language '{lang}'"))

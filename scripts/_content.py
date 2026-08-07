@@ -35,6 +35,8 @@ _INLINE_CODE_RE = re.compile(r"`[^`\n]+`")
 _DISPLAY_MATH_RE = re.compile(r"\$\$(.*?)\$\$", re.DOTALL)
 _INLINE_MATH_RE = re.compile(r"(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)", re.DOTALL)
 _DIRECTIVE_NAME_RE = re.compile(r"\{[\w-]+\}")
+# Slugs, ids and file paths: two or more ASCII word-runs joined by -, _, . or /.
+_IDENTIFIER_RE = re.compile(r"[A-Za-z0-9]+(?:[-_./][A-Za-z0-9]+)+")
 
 
 def is_content_path(path: Path) -> bool:
@@ -167,7 +169,9 @@ def _overlaps_any(span: tuple[int, int], others: list[tuple[int, int]]) -> bool:
 
 def _code_spans(text: str) -> list[tuple[int, int]]:
     spans = [m.span() for m in _CODE_FENCE_RE.finditer(text)]
-    spans += [m.span() for m in _INLINE_CODE_RE.finditer(text) if not _overlaps_any(m.span(), spans)]
+    spans += [
+        m.span() for m in _INLINE_CODE_RE.finditer(text) if not _overlaps_any(m.span(), spans)
+    ]
     return spans
 
 
@@ -201,17 +205,30 @@ def normalize_equation(raw: str) -> str:
 
 
 def mask_non_prose(text: str) -> str:
-    """Blank out fenced/inline code, math, MyST labels, and directive names, replacing
-    each masked character with a space (newlines are preserved) so glossary term
-    matching only sees prose while line numbers stay accurate.
+    """Blank out everything that is not prose, replacing each masked character with a
+    space (newlines are preserved) so glossary matching sees only prose while line
+    numbers stay accurate.
+
+    Masked: fenced and inline code, math, MyST labels, directive names, and
+    identifier-like tokens — slugs, ids and file paths such as `04-pressure`,
+    `heat-temperature-same` or `../media/pressure-impacts.gif`. Those legitimately
+    contain English words in every language's copy of a page, so flagging them would
+    make the glossary check cry wolf on every file and train authors to ignore it.
     """
     code_spans = _code_spans(text)
     math_spans = [(s, e) for s, e, _, _ in iter_math_spans(text)]
     label_spans = [m.span() for m in re.finditer(_LABEL_RE.pattern, text, re.MULTILINE)]
     directive_spans = [m.span() for m in _DIRECTIVE_NAME_RE.finditer(text)]
+    identifier_spans = [m.span() for m in _IDENTIFIER_RE.finditer(text)]
 
     chars = list(text)
-    for start, end in (*code_spans, *math_spans, *label_spans, *directive_spans):
+    for start, end in (
+        *code_spans,
+        *math_spans,
+        *label_spans,
+        *directive_spans,
+        *identifier_spans,
+    ):
         for idx in range(start, end):
             if chars[idx] != "\n":
                 chars[idx] = " "

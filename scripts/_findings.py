@@ -9,6 +9,7 @@ about content, glossaries, or quizzes; it only formats what the checkers found.
 from __future__ import annotations
 
 import json
+import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -43,12 +44,26 @@ class Finding:
         return f"{self.severity.upper():7} {location}: {self.message}"
 
 
+def ensure_stdout_can_print_unicode() -> None:
+    """Some Windows terminals leave stdout on a legacy code page (cp1252) that cannot
+    represent Hebrew text, which would otherwise crash `print()` mid-report. Since
+    this project's content is bilingual EN/HE by design, replace unencodable
+    characters instead of raising — best effort, and a no-op on streams that don't
+    support reconfiguring (e.g. already redirected to something unusual).
+    """
+    try:
+        sys.stdout.reconfigure(errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
+
 def report(findings: Sequence[Finding], as_json: bool) -> int:
     """Print `findings` and return the process exit code.
 
     Only "error" severity fails the build (return 1); warnings are surfaced but never
     fail it, mirroring how ruff/pytest already behave in this project's toolchain.
     """
+    ensure_stdout_can_print_unicode()
     if as_json:
         print(json.dumps([f.to_json() for f in findings], indent=2, ensure_ascii=False))
     else:

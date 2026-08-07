@@ -21,8 +21,9 @@ ARGON_MASS = 39.948 * 1.66053906660e-27
 BOX_2D = (1e-6, 1e-6)
 
 
-def measure_pressure(rng: np.random.Generator, n_particles: int = 400,
-                     temperature: float = 300.0) -> float:
+def measure_pressure(
+    rng: np.random.Generator, n_particles: int = 400, temperature: float = 300.0
+) -> float:
     state = kinetics.initialise_gas(n_particles, BOX_2D, temperature, ARGON_MASS, rng)
     result = kinetics.simulate(state, dt=kinetics.max_stable_dt(state), n_steps=4000)
     return result.pressure()
@@ -194,9 +195,7 @@ def test_entropy_becomes_extensive_in_the_thermodynamic_limit():
     # Stronger than "it shrinks": the size of the violation is the predicted correction,
     # [ln(pi N)/2 - ln 2] / (2 N ln 2), so we are seeing the known sub-leading term and not
     # some numerical artefact.
-    predicted = [
-        (0.5 * np.log(np.pi * n) - np.log(2.0)) / (2.0 * n * np.log(2.0)) for n in sizes
-    ]
+    predicted = [(0.5 * np.log(np.pi * n) - np.log(2.0)) / (2.0 * n * np.log(2.0)) for n in sizes]
     assert np.allclose(deviations, predicted, rtol=0.05)
 
 
@@ -230,6 +229,4 @@ def test_ideal_gas_law_is_consistent_between_modules():
     assert kinetics.ideal_gas_pressure(500, 300.0, 1e-3) == pytest.approx(
         paths.ideal_gas_pressure(500, 300.0, 1e-3)
     )
-    assert paths.ideal_gas_temperature(500, 1e5, 1e-3) == pytest.approx(
-        1e5 * 1e-3 / (500 * K_B)
-    )
+    assert paths.ideal_gas_temperature(500, 1e5, 1e-3) == pytest.approx(1e5 * 1e-3 / (500 * K_B))

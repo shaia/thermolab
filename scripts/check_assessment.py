@@ -45,19 +45,24 @@ def check_multiple_choice(path: Path, qid: str, choices: object) -> list[Finding
     correct_count = 0
     for i, choice in enumerate(choices):
         if not isinstance(choice, dict) or "text" not in choice or "correct" not in choice:
-            findings.append(Finding(path, None, "error", f"question '{qid}' choice {i} missing text/correct"))
+            findings.append(
+                Finding(path, None, "error", f"question '{qid}' choice {i} missing text/correct")
+            )
             continue
         if choice.get("correct"):
             correct_count += 1
         if not choice.get("feedback"):
-            findings.append(Finding(path, None, "error", f"question '{qid}' choice {i} missing feedback"))
+            findings.append(
+                Finding(path, None, "error", f"question '{qid}' choice {i} missing feedback")
+            )
     if correct_count != 1:
         findings.append(
             Finding(
                 path,
                 None,
                 "error",
-                f"multiple-choice question '{qid}' has {correct_count} correct choices, expected exactly 1",
+                f"multiple-choice question '{qid}' has {correct_count} correct choices, "
+                f"expected exactly 1",
             )
         )
     return findings
@@ -85,27 +90,44 @@ def check_quiz_schema(path: Path, bank: dict, misconception_ids: set[str]) -> li
 
         qtype = question.get("type")
         if qtype not in QUESTION_TYPES:
-            findings.append(Finding(path, None, "error", f"question '{qid}' has invalid type {qtype!r}"))
+            findings.append(
+                Finding(path, None, "error", f"question '{qid}' has invalid type {qtype!r}")
+            )
         if not question.get("prompt"):
             findings.append(Finding(path, None, "error", f"question '{qid}' missing prompt"))
         objectives = question.get("objectives")
         if not isinstance(objectives, list) or not objectives:
-            findings.append(Finding(path, None, "error", f"question '{qid}' objectives must be a non-empty list"))
+            findings.append(
+                Finding(
+                    path, None, "error", f"question '{qid}' objectives must be a non-empty list"
+                )
+            )
 
         misconception = question.get("misconception")
         if misconception and misconception not in misconception_ids:
             findings.append(
-                Finding(path, None, "error", f"question '{qid}' references unknown misconception id '{misconception}'")
+                Finding(
+                    path,
+                    None,
+                    "error",
+                    f"question '{qid}' references unknown misconception id '{misconception}'",
+                )
             )
 
         if qtype == "multiple-choice":
             findings.extend(check_multiple_choice(path, qid, question.get("choices")))
         elif qtype == "numeric":
             if question.get("answer") is None or question.get("tolerance") is None:
-                findings.append(Finding(path, None, "error", f"numeric question '{qid}' needs answer and tolerance"))
+                findings.append(
+                    Finding(
+                        path, None, "error", f"numeric question '{qid}' needs answer and tolerance"
+                    )
+                )
         elif qtype in ("prediction", "short-answer"):
             if not question.get("discussion"):
-                findings.append(Finding(path, None, "error", f"question '{qid}' ({qtype}) needs discussion"))
+                findings.append(
+                    Finding(path, None, "error", f"question '{qid}' ({qtype}) needs discussion")
+                )
     return findings
 
 
@@ -189,7 +211,8 @@ def check_objective_coverage(
                     page_path,
                     None,
                     "error",
-                    f"objective '{oid}' ({lang}, module {slug}) is not covered by any quiz or exam question",
+                    f"objective '{oid}' ({lang}, module {slug}) is not covered by any "
+                    f"quiz or exam question",
                 )
             )
 
@@ -197,7 +220,9 @@ def check_objective_coverage(
         if oid not in declared:
             for source in sources:
                 findings.append(
-                    Finding(source, None, "error", f"references unknown objective id '{oid}' ({lang})")
+                    Finding(
+                        source, None, "error", f"references unknown objective id '{oid}' ({lang})"
+                    )
                 )
 
     return findings
@@ -226,7 +251,9 @@ def collect_known_modules(root: Path, quiz_banks: dict[Path, dict]) -> set[str]:
     return modules  # type: ignore[return-value]
 
 
-def check_misconceptions(root: Path, quiz_banks: dict[Path, dict], known_modules: set[str]) -> list[Finding]:
+def check_misconceptions(
+    root: Path, quiz_banks: dict[Path, dict], known_modules: set[str]
+) -> list[Finding]:
     path = root / "assessment" / "misconceptions.yml"
     entries, findings = load_misconceptions(root)
     if not entries:
@@ -261,12 +288,25 @@ def check_misconceptions(root: Path, quiz_banks: dict[Path, dict], known_modules
                 )
             if mid not in referenced_ids:
                 findings.append(
-                    Finding(path, None, "error", f"misconception '{mid}' is addressed but no quiz question references it")
+                    Finding(
+                        path,
+                        None,
+                        "error",
+                        f"misconception '{mid}' is addressed but no quiz question references it",
+                    )
                 )
         elif status == "pending":
-            findings.append(
-                Finding(path, None, "warning", f"misconception '{mid}' is pending (assigned_module: {assigned_module})")
-            )
+            if mid in referenced_ids:
+                message = (
+                    f"misconception '{mid}' is pending but a quiz question already "
+                    f"references it — consider flipping status to addressed"
+                )
+            else:
+                message = (
+                    f"misconception '{mid}' is pending — module '{assigned_module}' "
+                    f"still owes a quiz question referencing it"
+                )
+            findings.append(Finding(path, None, "warning", message))
     return findings
 
 
@@ -291,7 +331,13 @@ def check_answer_key_safety(root: Path) -> list[Finding]:
             low = line.lower()
             if "answer_key" in low:
                 findings.append(
-                    Finding(path, lineno, "error", "content file contains 'answer_key' — solutions must never reach the built site")
+                    Finding(
+                        path,
+                        lineno,
+                        "error",
+                        "content file contains 'answer_key' — solutions must never reach "
+                        "the built site",
+                    )
                 )
             if "instructor/" in low:
                 findings.append(
@@ -299,7 +345,8 @@ def check_answer_key_safety(root: Path) -> list[Finding]:
                         path,
                         lineno,
                         "error",
-                        "content file references instructor/ — solutions/rubrics must never be included in content",
+                        "content file references instructor/ — solutions/rubrics must "
+                        "never be included in content",
                     )
                 )
     return findings

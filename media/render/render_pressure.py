@@ -122,7 +122,9 @@ def render_fluctuations_shrink(n_frames: int = 120) -> None:
             impulses.append(float(run.impulses.sum()))
         times = np.arange(1, n_frames + 1) * dt * steps_per_frame
         running = np.cumsum(impulses) / (times * state.wall_measure)
-        traces.append((times * 1e9, running / kinetics.ideal_gas_pressure(n_particles, 300.0, AREA)))
+        traces.append(
+            (times * 1e9, running / kinetics.ideal_gas_pressure(n_particles, 300.0, AREA))
+        )
 
     fig, axes = plt.subplots(1, 3, figsize=(9.5, 3.0), dpi=110, sharey=True)
     lines = []
@@ -142,7 +144,10 @@ def render_fluctuations_shrink(n_frames: int = 120) -> None:
             line.set_data(t[:frame], y[:frame])
         return lines
 
-    save(FuncAnimation(fig, update, frames=n_frames, blit=False, interval=50), "pressure-fluctuations")
+    save(
+        FuncAnimation(fig, update, frames=n_frames, blit=False, interval=50),
+        "pressure-fluctuations",
+    )
     plt.close(fig)
 
 

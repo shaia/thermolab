@@ -53,7 +53,9 @@ def load_glossary(path: Path = GLOSSARY_PATH) -> tuple[list[GlossaryTerm], list[
         he = entry.get("he")
         if not he:
             findings.append(
-                Finding(path, None, "error", f"glossary term '{key}' is missing a Hebrew (he) value")
+                Finding(
+                    path, None, "error", f"glossary term '{key}' is missing a Hebrew (he) value"
+                )
             )
         terms.append(
             GlossaryTerm(

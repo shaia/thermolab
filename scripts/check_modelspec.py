@@ -98,7 +98,8 @@ def check_labels(page: ContentPage, slug: str) -> list[Finding]:
                 page.path,
                 None,
                 "error",
-                f"required labels out of order: found {in_document_order}, expected {present_required}",
+                f"required labels out of order: found {in_document_order}, "
+                f"expected {present_required}",
             )
         )
 
@@ -121,12 +122,16 @@ def check_labels(page: ContentPage, slug: str) -> list[Finding]:
 def check_objectives(page: ContentPage) -> list[Finding]:
     objectives = page.frontmatter.get("objectives")
     if not isinstance(objectives, list) or len(objectives) == 0:
-        return [Finding(page.path, None, "error", "front matter objectives: must be a non-empty list")]
+        return [
+            Finding(page.path, None, "error", "front matter objectives: must be a non-empty list")
+        ]
     findings: list[Finding] = []
     for i, objective in enumerate(objectives):
         if not isinstance(objective, dict) or "id" not in objective or "text" not in objective:
             findings.append(
-                Finding(page.path, None, "error", f"objectives[{i}] must be a mapping with id and text")
+                Finding(
+                    page.path, None, "error", f"objectives[{i}] must be a mapping with id and text"
+                )
             )
     return findings
 
