@@ -13,15 +13,15 @@ The guiding question, everywhere:
 ## What's here
 
 | Piece | Where | What it is |
-|---|---|---|
+| --- | --- | --- |
 | Course text (EN) | `content/en/` | MyST Markdown site — the source of truth |
 | Course text (HE) | `content/he/` | Full Hebrew mirror (RTL), kept in lockstep by tooling |
 | Laboratories | `notebooks/{en,he}/labs/` | Interactive Jupyter notebooks (ipywidgets) |
 | Physics engine | `src/thermolab/` | Plain, readable, vectorized NumPy — every model the course uses |
 | Assessment | `assessment/` | Quiz banks (YAML, bilingual), exam-style problems, misconception registry |
-| Videos | `media/` | Simulation-rendered demonstrations with EN/HE subtitles |
+| Animations | `media/render/` → `content/*/media/` | Simulation-rendered GIF demonstrations, language-neutral, embedded in both site copies |
 | Validation | `tests/`, `scripts/` | The scientific-accuracy framework, mechanized (see below) |
-| Instructor material | `instructor/` | Solutions, rubrics, diagnostics — never deployed |
+| Instructor material | `instructor/` | Solutions, rubrics, diagnostics — never deployed (not yet authored) |
 
 ## Quickstart
 
