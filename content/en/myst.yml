@@ -17,6 +17,8 @@ project:
       children:
         - file: thermodynamics/04-pressure.md
         - file: thermodynamics/04-pressure-problems.md
+        - file: thermodynamics/05-work-paths.md
+        - file: thermodynamics/05-work-paths-problems.md
     - title: Developer
       children:
         - file: dev/bidi-test.md
