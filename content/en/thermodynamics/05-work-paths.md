@@ -86,23 +86,25 @@ it with other routes between the same two endpoints.
 Here is the comparison the module is about. Two routes leave the same point and arrive at the
 same point. The bars track the work accumulating along each one:
 
-:::{figure} ../media/paths-two-routes.gif
+:::{figure} ../media/paths-two-routes.mp4
 :alt: Two routes traced between identical endpoints in the P-V plane, with bars showing the work accumulating differently along each.
 :width: 100%
 
-Identical endpoints, identical final state — and two different bills. Nothing about the
-endpoints could have told you this; only the route does.
+Two routes traced between identical endpoints in the pressure–volume plane, with bars tracking
+the work accumulating along each. Identical endpoints, identical final state — and two
+different bills. Nothing about the endpoints could have told you this; only the route does.
 :::
 
 And here is why engines can exist at all. A cycle brings the gas back to precisely where it
 started, so every state function returns to its value. The enclosed area does not:
 
-:::{figure} ../media/paths-cycle.gif
+:::{figure} ../media/paths-cycle.mp4
 :alt: A rectangular cycle traced repeatedly in the P-V plane with the enclosed area shaded.
 :width: 70%
 
-Around a closed loop $\oint dU = 0$, but $\oint \delta W \ne 0$. The shaded area is the net
-work per cycle, and an engine is a device for collecting it.
+A rectangular cycle traced repeatedly in the pressure–volume plane, with the enclosed area
+shading in. Around a closed loop $\oint dU = 0$, but $\oint \delta W \ne 0$. The shaded area is
+the net work per cycle, and an engine is a device for collecting it.
 :::
 
 :::{admonition} Open the laboratory

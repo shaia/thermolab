@@ -12,6 +12,12 @@ project:
     '\kB': 'k_{\mathrm{B}}'
   toc:
     - file: index.md
+    - title: יסודות
+      children:
+        - file: foundations/00-orientation.md
+        - file: foundations/00-orientation-problems.md
+        - file: foundations/math-refresher.md
+        - file: conventions.md
     - title: תרמודינמיקה
       children:
         - file: thermodynamics/04-pressure.md

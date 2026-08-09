@@ -63,7 +63,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("paths", nargs="*", help="specific Hebrew pages; default is all of them")
     args = parser.parse_args(argv)
 
-    targets = [Path(p).resolve() for p in args.paths] or sorted(HE_ROOT.rglob("*.md"))
+    # `_build` holds the downloaded MyST theme, whose node_modules carry thousands of READMEs.
+    # Walking them buried the real output in "no en_source_hash field" lines.
+    targets = [Path(p).resolve() for p in args.paths] or sorted(
+        p for p in HE_ROOT.rglob("*.md") if "_build" not in p.parts
+    )
     messages = [m for p in targets if (m := stamp(p, args.pending))]
     for message in messages:
         print(message)

@@ -10,8 +10,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import kinetics, multiplicity
-from thermolab.validation import scaling_exponent
+from thermolab import kinetics, multiplicity, sampling
+from thermolab.validation import relative_error, scaling_exponent
 
 pytestmark = pytest.mark.large_n
 
@@ -115,6 +115,52 @@ def test_two_box_occupancy_settles_near_the_even_split():
 
     assert mean_fraction == pytest.approx(0.5, abs=0.02)
     assert spread_fraction < 0.05
+
+
+def test_relative_spread_of_a_sample_average_falls_as_one_over_sqrt_n():
+    """The same law as the pressure fluctuation, stripped of all physics.
+
+    Dice have no energy, no container and no dynamics, so an N^(-1/2) here can only come from
+    independence plus the additivity of variance — which is exactly the module's derivation.
+    """
+    rng = np.random.default_rng(2718)
+    sizes = [4, 16, 64, 256, 1024]
+    spreads = [sampling.relative_spread_of_average(n, n_samples=800, rng=rng) for n in sizes]
+
+    exponent = scaling_exponent(sizes, spreads)
+
+    assert exponent == pytest.approx(-0.5, abs=0.06), (
+        f"fitted exponent {exponent:.3f} from spreads {spreads}"
+    )
+
+
+def test_sample_average_spread_matches_the_predicted_coefficient():
+    """Not just the exponent: the prefactor is σ₁/μ₁, measured to a few percent."""
+    rng = np.random.default_rng(31415)
+
+    for n in (25, 400):
+        measured = sampling.relative_spread_of_average(n, n_samples=2000, rng=rng)
+        assert relative_error(measured, sampling.predicted_relative_spread(n)) < 0.1
+
+
+def test_the_sum_gets_noisier_while_the_average_gets_steadier():
+    """The distinction the module's third prediction is built on.
+
+    Absolute scatter of the sum grows as sqrt(N); relative scatter of the average falls as
+    1/sqrt(N). Both come from the same line of algebra, and confusing them is the usual error.
+    """
+    rng = np.random.default_rng(9001)
+    sizes = [16, 64, 256, 1024]
+
+    absolute_sum_spreads = []
+    relative_average_spreads = []
+    for n in sizes:
+        averages = sampling.sample_averages(n, 800, rng)
+        absolute_sum_spreads.append(float((n * averages).std(ddof=1)))
+        relative_average_spreads.append(float(averages.std(ddof=1) / averages.mean()))
+
+    assert scaling_exponent(sizes, absolute_sum_spreads) == pytest.approx(0.5, abs=0.06)
+    assert scaling_exponent(sizes, relative_average_spreads) == pytest.approx(-0.5, abs=0.06)
 
 
 @pytest.mark.slow

@@ -7,9 +7,10 @@ loudly even when the number looks plausible.
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
-from thermolab import kinetics, multiplicity, paths
+from thermolab import forms, kinetics, multiplicity, paths, sampling
 from thermolab.units import K_B_Q, Quantity
 
 pytestmark = pytest.mark.dimensional
@@ -65,11 +66,53 @@ def test_entropy_has_energy_per_temperature():
         (paths.ideal_gas_pressure(1000, 300.0, 1e-3), float),
         (paths.isothermal_work_on_gas(1000, 300.0, 1e-3, 2e-3), float),
         (multiplicity.entropy(100, 50), float),
+        (sampling.die_mean(6), float),
+        (sampling.die_variance(6), float),
+        (sampling.predicted_relative_spread(100), float),
     ],
 )
 def test_library_functions_return_plain_si_floats(value, expected_dimension):
     """The library itself stays unit-free by design; pint lives in the tests only."""
     assert isinstance(value, expected_dimension)
+
+
+def test_both_terms_of_a_one_form_must_carry_the_same_dimensions():
+    """M dx + N dy is only meaningful when the two products agree — the rule behind δW = -P dV.
+
+    Adding a pressure-times-volume to a temperature-times-entropy works because both are
+    energies; adding a pressure to an energy would not, and pint says so.
+    """
+    m_dx = Quantity(1e5, "Pa") * Quantity(1e-3, "m**3")
+    n_dy = Quantity(2.0, "J / K") * Quantity(0.5, "K")
+
+    assert m_dx.check("[energy]")
+    assert n_dy.check("[energy]")
+    assert (m_dx + n_dy).check("[energy]")
+
+
+def test_a_relative_spread_is_dimensionless_and_survives_a_change_of_units():
+    """σ carries the units of the quantity; σ/μ does not — the only scale-free "steadiness".
+
+    Re-expressing every measurement in different units multiplies both σ and μ by the same
+    factor, so the ratio is untouched. This is why the course compares fractional differences
+    and never absolute ones.
+    """
+    rng = np.random.default_rng(4)
+    averages = sampling.sample_averages(n_per_sample=32, n_samples=500, rng=rng)
+    rescaled = 1.609344 * averages  # the same readings, quoted in another unit
+
+    original = averages.std(ddof=1) / averages.mean()
+    converted = rescaled.std(ddof=1) / rescaled.mean()
+
+    assert converted == pytest.approx(original, rel=1e-12)
+
+
+def test_line_integral_returns_a_plain_float():
+    """`forms` is pure mathematics on plain numbers; units live in the physics that uses it."""
+    x = np.linspace(0.0, 1.0, 65)
+    value = forms.line_integral(lambda x, y: y, lambda x, y: np.zeros_like(x), x, x)
+
+    assert isinstance(value, float)
 
 
 def test_multiplicity_is_dimensionless():

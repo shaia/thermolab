@@ -3,8 +3,8 @@
 Animations are produced from `thermolab` itself, so what a student watches is the same model
 they can read, run and test — never a hand-drawn impression of it.
 
-Output is animated GIF via matplotlib's Pillow writer, which needs no ffmpeg and plays
-everywhere. The animations carry no words, so the same file serves both language sites; the
+Output is MP4, written by `_common.save`; see that module for why, and for the constraints the
+format brings. The animations carry no words, so the same file serves both language sites; the
 caption that explains each one is ordinary translated page prose rather than a subtitle track
 that could silently drift from the text around it.
 
@@ -13,42 +13,23 @@ Run:  uv run python media/render/render_pressure.py
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import matplotlib
 
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
-from matplotlib.animation import FuncAnimation, PillowWriter  # noqa: E402
+from matplotlib.animation import FuncAnimation  # noqa: E402
 
+from _common import DPI, save  # noqa: E402
 from thermolab import kinetics  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[2]
-LANGUAGES = ("en", "he")
 ARGON_MASS = 39.948 * 1.66053906660e-27
 BOX = (1e-6, 1e-6)
 AREA = float(np.prod(BOX))
 
 
-def output_paths(name: str) -> list[Path]:
-    """The same file in each language project — MyST resolves images inside its own tree."""
-    return [ROOT / "content" / lang / "media" / f"{name}.gif" for lang in LANGUAGES]
-
-
-def save(animation: FuncAnimation, name: str, fps: int = 20) -> None:
-    targets = output_paths(name)
-    first = targets[0]
-    first.parent.mkdir(parents=True, exist_ok=True)
-    animation.save(first, writer=PillowWriter(fps=fps))
-    for other in targets[1:]:
-        other.parent.mkdir(parents=True, exist_ok=True)
-        other.write_bytes(first.read_bytes())
-    print(f"[render] {name}.gif -> {', '.join(str(p.relative_to(ROOT)) for p in targets)}")
-
-
-def render_impacts_to_pressure(n_particles: int = 60, n_frames: int = 150) -> None:
+def render_impacts_to_pressure(n_particles: int = 60, n_frames: int = 300) -> None:
     """Particles bouncing beside the running average of the pressure they produce.
 
     The point of the pairing: the left panel never settles down, and the right panel does.
@@ -72,7 +53,7 @@ def render_impacts_to_pressure(n_particles: int = 60, n_frames: int = 150) -> No
     running = np.cumsum(impulses) / (times * state.wall_measure)
     predicted = kinetics.ideal_gas_pressure(n_particles, 300.0, AREA)
 
-    fig, (left, right) = plt.subplots(1, 2, figsize=(8.5, 3.6), dpi=110)
+    fig, (left, right) = plt.subplots(1, 2, figsize=(8.5, 3.6), dpi=DPI)
     micron = 1e6
 
     dots = left.scatter([], [], s=14, color="#2563eb")
@@ -96,11 +77,11 @@ def render_impacts_to_pressure(n_particles: int = 60, n_frames: int = 150) -> No
         trace.set_data(times[:frame] * 1e9, running[:frame])
         return dots, trace
 
-    save(FuncAnimation(fig, update, frames=n_frames, blit=False, interval=50), "pressure-impacts")
+    save(FuncAnimation(fig, update, frames=n_frames, blit=False), fig, "pressure-impacts")
     plt.close(fig)
 
 
-def render_fluctuations_shrink(n_frames: int = 120) -> None:
+def render_fluctuations_shrink(n_frames: int = 180) -> None:
     """The same measurement at three particle numbers, on a shared fractional scale.
 
     Plotting P/P_predicted rather than P is what makes the comparison honest: the three runs
@@ -126,7 +107,7 @@ def render_fluctuations_shrink(n_frames: int = 120) -> None:
             (times * 1e9, running / kinetics.ideal_gas_pressure(n_particles, 300.0, AREA))
         )
 
-    fig, axes = plt.subplots(1, 3, figsize=(9.5, 3.0), dpi=110, sharey=True)
+    fig, axes = plt.subplots(1, 3, figsize=(9.5, 3.0), dpi=DPI, sharey=True)
     lines = []
     for ax, n_particles, (t, _) in zip(axes, sizes, traces, strict=True):
         (line,) = ax.plot([], [], lw=1.2, color="#2563eb")
@@ -145,7 +126,8 @@ def render_fluctuations_shrink(n_frames: int = 120) -> None:
         return lines
 
     save(
-        FuncAnimation(fig, update, frames=n_frames, blit=False, interval=50),
+        FuncAnimation(fig, update, frames=n_frames, blit=False),
+        fig,
         "pressure-fluctuations",
     )
     plt.close(fig)

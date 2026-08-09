@@ -1,5 +1,5 @@
 """EN/HE parity checks: tree completeness, hash staleness, equation identity,
-notebook code-cell identity, quiz-bank identity, and video-subtitle completeness.
+notebook code-cell identity, quiz-bank identity, figure targets, and media-tree agreement.
 
 English is the source of truth (`.claude/CLAUDE.md`); every HE artifact either
 mirrors its EN source exactly (equations, notebook code) or carries a hash proving
@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -26,8 +27,10 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _content import (  # noqa: E402
+    LANGS,
     content_root,
     extract_equations,
+    iter_content_pages,
     iter_markdown,
     normalize_equation,
     parse_frontmatter,
@@ -365,20 +368,61 @@ def check_quiz_parity(root: Path) -> list[Finding]:
 
 
 # ---------------------------------------------------------------------------
-# Video subtitles
+# Media: figure targets resolve, and both language trees hold the same files
 # ---------------------------------------------------------------------------
 
+FIGURE_TARGET_RE = re.compile(r"^:{3,}\{(?:figure|image)\}\s*(\S+)\s*$", re.MULTILINE)
+MEDIA_SUFFIXES = frozenset({".gif", ".mp4", ".png", ".jpg", ".jpeg", ".svg", ".webp"})
 
-def check_video_subtitles(root: Path) -> list[Finding]:
+
+def check_figure_targets(root: Path) -> list[Finding]:
+    """Every {figure}/{image} target must exist on disk.
+
+    Without this a renamed or re-encoded animation leaves the page pointing at a file that is
+    no longer there: mystmd emits the broken URL without complaint, the reader sees an empty
+    box, and every other validator stays green. Renaming media is exactly what this project
+    does whenever a render script changes format, so the gap was worth closing.
+    """
     findings: list[Finding] = []
-    videos_dir = root / "media" / "videos"
-    if not videos_dir.exists():
-        return findings
-    for webm in sorted(videos_dir.glob("*.webm")):
-        for lang in ("en", "he"):
-            vtt = videos_dir / f"{webm.stem}.{lang}.vtt"
-            if not vtt.exists():
-                findings.append(Finding(webm, None, "error", f"missing: subtitle file {vtt.name}"))
+    for page in iter_content_pages(root):
+        for match in FIGURE_TARGET_RE.finditer(page.text):
+            target = match.group(1)
+            if "://" in target or target.startswith("#"):
+                continue
+            resolved = (page.path.parent / target).resolve()
+            if not resolved.exists():
+                line = page.text[: match.start()].count("\n") + 1
+                findings.append(
+                    Finding(page.path, line, "error", f"missing: figure target {target}")
+                )
+    return findings
+
+
+def check_media_trees(root: Path) -> list[Finding]:
+    """The two language media trees must hold the same filenames.
+
+    The render scripts encode once and copy the bytes into each tree, so they agree only as
+    long as that copy completes. An interrupted render would leave English with an animation
+    Hebrew lacks, and nothing else would notice.
+    """
+    names = {}
+    for lang in LANGS:
+        media_dir = root / "content" / lang / "media"
+        names[lang] = {
+            p.name for p in media_dir.glob("*") if p.suffix.lower() in MEDIA_SUFFIXES
+        } if media_dir.exists() else set()
+
+    findings: list[Finding] = []
+    for lang, other in (("en", "he"), ("he", "en")):
+        for name in sorted(names[lang] - names[other]):
+            findings.append(
+                Finding(
+                    root / "content" / lang / "media" / name,
+                    None,
+                    "error",
+                    f"mismatch: {name} exists in {lang} but not in {other}",
+                )
+            )
     return findings
 
 
@@ -404,7 +448,8 @@ def check(root: Path = ROOT) -> list[Finding]:
         findings.extend(check_notebook_pair(root, tail, pending_tail=tail in pending_nb_tails))
 
     findings.extend(check_quiz_parity(root))
-    findings.extend(check_video_subtitles(root))
+    findings.extend(check_figure_targets(root))
+    findings.extend(check_media_trees(root))
     return findings
 
 

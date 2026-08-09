@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import kinetics, paths
+from thermolab import forms, kinetics, paths, sampling
 from thermolab.validation import convergence_study, relative_error
 
 pytestmark = pytest.mark.convergence
@@ -83,6 +83,43 @@ def test_measured_pressure_is_independent_of_the_time_step(divisor):
     refined = kinetics.simulate(state, dt=dt_max / divisor, n_steps=2000 * divisor).pressure()
 
     assert relative_error(refined, reference) < 1e-9
+
+
+def test_line_integral_quadrature_converges_at_second_order():
+    """`forms.line_integral` is the trapezoid rule, so refining the sampling must give O(h^2).
+
+    Integrating y dx along the parabola y = x^2 from (0,0) to (1,1) has the exact value 1/3.
+    """
+
+    def integrate(points: int) -> float:
+        x = np.linspace(0.0, 1.0, points)
+        return forms.line_integral(lambda x, y: y, lambda x, y: np.zeros_like(x), x, x**2)
+
+    study = convergence_study(integrate, refinements=[17, 33, 65, 129, 257], exact=1.0 / 3.0)
+
+    assert study.observed_order == pytest.approx(2.0, abs=0.2)
+    assert study.errors[-1] < study.errors[0]
+
+
+def test_measured_spread_approaches_the_analytic_value_as_repetitions_grow():
+    """Statistical convergence: more repetitions estimate the same spread more precisely.
+
+    The quantity being estimated is fixed by N; what shrinks is our uncertainty about it, so
+    the error is averaged over several seeds to keep the trend from being one lucky draw.
+    """
+    predicted = sampling.predicted_relative_spread(64)
+
+    errors = []
+    for n_samples in (50, 200, 800, 3200):
+        seeds = np.random.SeedSequence(12345).spawn(6)
+        measured = [
+            sampling.relative_spread_of_average(64, n_samples, np.random.default_rng(s))
+            for s in seeds
+        ]
+        errors.append(float(np.mean([relative_error(m, predicted) for m in measured])))
+
+    assert errors[-1] < errors[0]
+    assert errors[-1] < 0.05
 
 
 def test_pressure_estimate_settles_as_the_averaging_window_grows():

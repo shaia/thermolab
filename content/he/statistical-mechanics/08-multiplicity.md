@@ -2,7 +2,7 @@
 title: אנטרופיה וריבוי מצבים
 short_title: 08 · ריבוי מצבים
 module: 08-multiplicity
-en_source_hash: e93d7071e04e37505f75850f0d5dd7967a522953ab1a3d9915708f219873ae13
+en_source_hash: 4517c5afcfbe223d8a8da811cbecfe8319c91b8fe4a7be9c71f2018c68c951e7
 objectives:
   - id: OBJ-08-1
     text: להסביר מדוע הנטייה של מערכת מבודדת לכיוון שיווי משקל היא טענה על ספירת מיקרו-מצבים, ולא חוק מכני, ומדוע דינמיקה הפיכה בזמן עקבית לחלוטין עמה.
@@ -94,7 +94,7 @@ objectives:
 לחלוקה השווה ונשאר שם. מימין, התפלגות ריבוי המצבים $\Omega(N,n)/\Omega(N,N/2)$ עצמה, כפי
 שנראית כש-$N$ גדל — אותה צורה בכל פעם, רק צרה יותר.
 
-:::{figure} ../media/multiplicity-two-box.gif
+:::{figure} ../media/multiplicity-two-box.mp4
 :alt: מאתיים עצמים קופצים בין שתי קופסאות, אחד בכל פעם; אכלוס הקופסה הראשונה מתחיל בקיצון ומתייצב קרוב לחלוקה השווה.
 :width: 100%
 
@@ -104,7 +104,7 @@ objectives:
 שם.
 :::
 
-:::{figure} ../media/multiplicity-peak.gif
+:::{figure} ../media/multiplicity-peak.mp4
 :alt: התפלגות ריבוי המצבים היחסית כתלות בשיעור האכלוס החלקי, מצטמצמת בחדות ככל ש-N גדל מכמה עצמים בודדים עד כמה מאות.
 :width: 100%
 

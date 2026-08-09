@@ -96,7 +96,7 @@ second box; watch how quickly the occupancy settles near the even split and then
 On the right, the multiplicity distribution $\Omega(N,n)/\Omega(N,N/2)$ itself, shown as $N$
 grows — the same shape every time, only narrower.
 
-:::{figure} ../media/multiplicity-two-box.gif
+:::{figure} ../media/multiplicity-two-box.mp4
 :alt: Two hundred objects hopping between two boxes, one at a time; the occupancy of the first box starts at the extreme and settles near the even split.
 :width: 100%
 
@@ -106,7 +106,7 @@ and staying there — not because anything forbids it from wandering back, but b
 of the accessible microstates put it there.
 :::
 
-:::{figure} ../media/multiplicity-peak.gif
+:::{figure} ../media/multiplicity-peak.mp4
 :alt: The relative multiplicity distribution as a function of fractional occupancy, narrowing sharply as N grows from a few objects to several hundred.
 :width: 100%
 

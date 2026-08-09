@@ -1,15 +1,13 @@
 """Render the demonstration animations for module 05 (work and thermodynamic paths).
 
-Same approach as the module 04 renderer: animations come from `thermolab` itself, are written
-as GIFs (no ffmpeg required), and contain no words, so one file serves both language sites and
-the explanation stays in translated page prose.
+Same approach as the module 04 renderer: animations come from `thermolab` itself, are written as
+MP4 by `_common.save`, and contain no words, so one file serves both language sites and the
+explanation stays in translated page prose.
 
 Run:  uv run python media/render/render_paths.py
 """
 
 from __future__ import annotations
-
-from pathlib import Path
 
 import matplotlib
 
@@ -17,12 +15,10 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
-from matplotlib.animation import FuncAnimation, PillowWriter  # noqa: E402
+from matplotlib.animation import FuncAnimation  # noqa: E402
 
+from _common import DPI, save  # noqa: E402
 from thermolab import paths  # noqa: E402
-
-ROOT = Path(__file__).resolve().parents[2]
-LANGUAGES = ("en", "he")
 
 N_PARTICLES = 1000
 TEMPERATURE = 300.0
@@ -31,18 +27,7 @@ P1 = paths.ideal_gas_pressure(N_PARTICLES, TEMPERATURE, V1)
 P2 = paths.ideal_gas_pressure(N_PARTICLES, TEMPERATURE, V2)
 
 
-def save(animation: FuncAnimation, name: str, fps: int = 20) -> None:
-    targets = [ROOT / "content" / lang / "media" / f"{name}.gif" for lang in LANGUAGES]
-    first = targets[0]
-    first.parent.mkdir(parents=True, exist_ok=True)
-    animation.save(first, writer=PillowWriter(fps=fps))
-    for other in targets[1:]:
-        other.parent.mkdir(parents=True, exist_ok=True)
-        other.write_bytes(first.read_bytes())
-    print(f"[render] {name}.gif -> {', '.join(str(p.relative_to(ROOT)) for p in targets)}")
-
-
-def render_two_routes(n_frames: int = 120) -> None:
+def render_two_routes(n_frames: int = 180) -> None:
     """Two routes traced out side by side, with the accumulating work shown as it grows.
 
     Both journeys start and finish at the same points, and the running totals separate as they
@@ -63,7 +48,7 @@ def render_two_routes(n_frames: int = 120) -> None:
     fractions = np.linspace(0.02, 1.0, n_frames)
     works = [[partial_work(route, f) for f in fractions] for route, _ in routes]
 
-    fig, (plane, bars) = plt.subplots(1, 2, figsize=(9, 3.8), dpi=110)
+    fig, (plane, bars) = plt.subplots(1, 2, figsize=(9, 3.8), dpi=DPI)
 
     plane.plot([V1 * 1e3, V2 * 1e3], [P1, P2], "ko", ms=7, zorder=5)
     plane.set_xlim(0.9 * V1 * 1e3, 1.05 * V2 * 1e3)
@@ -89,11 +74,11 @@ def render_two_routes(n_frames: int = 120) -> None:
             rectangle.set_height(series[frame])
         return [*curves, *rectangles]
 
-    save(FuncAnimation(fig, update, frames=n_frames, blit=False, interval=50), "paths-two-routes")
+    save(FuncAnimation(fig, update, frames=n_frames, blit=False), fig, "paths-two-routes")
     plt.close(fig)
 
 
-def render_cycle(n_frames: int = 120) -> None:
+def render_cycle(n_frames: int = 180) -> None:
     """A rectangular cycle traced repeatedly, with the enclosed area filling in.
 
     The state returns to where it began every lap; the shaded area does not vanish. That gap
@@ -106,7 +91,7 @@ def render_cycle(n_frames: int = 120) -> None:
         paths.isochoric_path(V1, P2, P1, n_points=n_frames // 4 + 1),
     )
 
-    fig, ax = plt.subplots(figsize=(5.2, 4.0), dpi=110)
+    fig, ax = plt.subplots(figsize=(5.2, 4.0), dpi=DPI)
     ax.set_xlim(0.9 * V1 * 1e3, 1.08 * V2 * 1e3)
     ax.set_ylim(0.85 * P2, 1.12 * P1)
     ax.set_xlabel("volume (L)")
@@ -128,7 +113,7 @@ def render_cycle(n_frames: int = 120) -> None:
         shading[0] = ax.fill(volumes * 1e3, pressures, alpha=0.18, color="#7c3aed")[0]
         return curve, marker, shading[0]
 
-    save(FuncAnimation(fig, update, frames=n_frames, blit=False, interval=50), "paths-cycle")
+    save(FuncAnimation(fig, update, frames=n_frames, blit=False), fig, "paths-cycle")
     plt.close(fig)
 
 

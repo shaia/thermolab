@@ -3,6 +3,10 @@
 # (b) a quiz/exam distractor built on the wrong model.
 # status: pending | addressed (check_assessment.py verifies addressed ones).
 misconceptions:
+  - id: lln-compensation
+    statement: "The law of large numbers works because later outcomes compensate earlier deviations."
+    assigned_module: 00-orientation
+    status: addressed
   - id: heat-temperature-same
     statement: "Heat and temperature are the same kind of quantity."
     assigned_module: 04-pressure

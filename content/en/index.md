@@ -21,14 +21,19 @@ Every module follows the same climb:
 :::{note} Conventions used everywhere
 The first law is always written $dU = \dbar Q + \dbar \Won$ — work done **on** the system.
 Heat and work carry $\dbar$ (inexact differentials) because they are path functions, not
-properties of a state. Units are SI and $\kB$ is always explicit.
+properties of a state. Units are SI and $\kB$ is always explicit. The full list is on the
+[conventions](conventions.md) page.
 :::
 
 ## Modules
 
 The course has an orientation module, twelve core modules and six advanced modules.
-Currently available (vertical-slice prototypes):
+Currently available:
 
-- **Microscopic origin of pressure** — how steady pressure emerges from violent, irregular collisions.
-- **Work and thermodynamic paths** — why work depends on the road taken, not just the endpoints.
-- **Entropy and multiplicity** — why an isolated gas almost never gathers in one corner.
+- **[Orientation](foundations/00-orientation.md)** — how many unpredictable things add up to a reliable one. Start here.
+- **[Microscopic origin of pressure](thermodynamics/04-pressure.md)** — how steady pressure emerges from violent, irregular collisions.
+- **[Work and thermodynamic paths](thermodynamics/05-work-paths.md)** — why work depends on the road taken, not just the endpoints.
+- **[Entropy and multiplicity](statistical-mechanics/08-multiplicity.md)** — why an isolated gas almost never gathers in one corner.
+
+Two reference pages sit outside the sequence and are meant to be returned to:
+[conventions](conventions.md) and the [mathematics refresher](foundations/math-refresher.md).

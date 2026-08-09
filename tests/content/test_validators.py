@@ -20,6 +20,7 @@ import check_assessment  # noqa: E402
 import check_glossary  # noqa: E402
 import check_modelspec  # noqa: E402
 import check_parity  # noqa: E402
+
 from _content import sha256_normalized  # noqa: E402
 
 
@@ -350,11 +351,46 @@ class TestCheckParity:
         assert has_error(findings, "present in EN bank but missing in HE")
         assert has_error(findings, "present in HE bank but missing in EN")
 
-    def test_fails_on_missing_video_subtitle(self, tmp_path):
-        write(tmp_path / "media" / "videos" / "intro.en.vtt", "WEBVTT\n")
-        (tmp_path / "media" / "videos" / "intro.webm").write_bytes(b"\x00")
+    def test_fails_on_figure_pointing_at_a_missing_file(self, tmp_path):
+        # The failure mode of any media rename: mystmd emits the dead URL silently and the
+        # reader gets an empty box, so nothing but this check would catch it.
+        write(
+            tmp_path / "content" / "en" / "page.md",
+            "# Page\n\n:::{figure} ../media/gone.mp4\n:alt: a\n:::\n",
+        )
         findings = check_parity.check(tmp_path)
-        assert has_error(findings, "missing: subtitle file intro.he.vtt")
+        assert has_error(findings, "missing: figure target ../media/gone.mp4")
+
+    def test_passes_when_figure_target_exists(self, tmp_path):
+        media = tmp_path / "content" / "media"
+        media.mkdir(parents=True)
+        (media / "there.mp4").write_bytes(b"\x00")
+        write(
+            tmp_path / "content" / "en" / "page.md",
+            "# Page\n\n:::{figure} ../media/there.mp4\n:alt: a\n:::\n",
+        )
+        assert not has_error(check_parity.check(tmp_path), "figure target")
+
+    def test_ignores_remote_figure_urls(self, tmp_path):
+        write(
+            tmp_path / "content" / "en" / "page.md",
+            "# Page\n\n:::{figure} https://example.org/x.png\n:alt: a\n:::\n",
+        )
+        assert not has_error(check_parity.check(tmp_path), "figure target")
+
+    def test_fails_when_media_trees_disagree(self, tmp_path):
+        (tmp_path / "content" / "en" / "media").mkdir(parents=True)
+        (tmp_path / "content" / "he" / "media").mkdir(parents=True)
+        (tmp_path / "content" / "en" / "media" / "solo.mp4").write_bytes(b"\x00")
+        findings = check_parity.check(tmp_path)
+        assert has_error(findings, "mismatch: solo.mp4 exists in en but not in he")
+
+    def test_passes_when_media_trees_agree(self, tmp_path):
+        for lang in ("en", "he"):
+            media = tmp_path / "content" / lang / "media"
+            media.mkdir(parents=True)
+            (media / "both.mp4").write_bytes(b"\x00")
+        assert not has_error(check_parity.check(tmp_path), "exists in")
 
 
 # ---------------------------------------------------------------------------
@@ -465,6 +501,58 @@ class TestCheckAssessment:
         findings = check_assessment.check(tmp_path)
         assert not has_error(findings, "'OBJ-1' (en, module 04-demo) is not covered")
         assert has_error(findings, "'OBJ-1' (he, module 04-demo) is not covered")
+
+    def test_scoped_run_does_not_blame_other_modules_misconceptions(self, tmp_path):
+        """A --module run must still read every bank when checking misconception coverage.
+
+        Otherwise every *other* module's addressed misconception looks unreferenced, and an
+        author scoping the lint to their own module learns to skim past real errors.
+        """
+        write(
+            tmp_path / "assessment" / "misconceptions.yml",
+            "misconceptions:\n"
+            "  - id: mine\n    statement: s\n    assigned_module: 04-demo\n    status: addressed\n"
+            "  - id: theirs\n    statement: s\n    assigned_module: 05-other\n"
+            "    status: addressed\n",
+        )
+        for slug, mid in (("04-demo", "mine"), ("05-other", "theirs")):
+            write(
+                tmp_path / "content" / "en" / f"{slug}.md",
+                good_module_page(slug, objectives=("OBJ-1",)),
+            )
+            write(
+                tmp_path / "assessment" / "quizzes" / f"{slug}.en.yml",
+                f"module: {slug}\nquestions:\n"
+                f"  - id: Q1\n    type: numeric\n    prompt: p\n    objectives: [OBJ-1]\n"
+                f"    misconception: {mid}\n    answer: 1\n    tolerance: 0.1\n",
+            )
+
+        findings = check_assessment.check(tmp_path, module="04-demo")
+
+        assert not has_error(findings, "'theirs' is addressed but no quiz question")
+        assert not has_error(findings, "'mine' is addressed but no quiz question")
+
+    def test_scoped_run_still_reports_its_own_uncovered_misconception(self, tmp_path):
+        """The narrowing must not become a way to hide the scoped module's own gap."""
+        write(
+            tmp_path / "assessment" / "misconceptions.yml",
+            "misconceptions:\n"
+            "  - id: mine\n    statement: s\n    assigned_module: 04-demo\n    status: addressed\n",
+        )
+        write(
+            tmp_path / "content" / "en" / "04-demo.md",
+            good_module_page("04-demo", objectives=("OBJ-1",)),
+        )
+        write(
+            tmp_path / "assessment" / "quizzes" / "04-demo.en.yml",
+            "module: 04-demo\nquestions:\n"
+            "  - id: Q1\n    type: numeric\n    prompt: p\n    objectives: [OBJ-1]\n"
+            "    answer: 1\n    tolerance: 0.1\n",
+        )
+
+        findings = check_assessment.check(tmp_path, module="04-demo")
+
+        assert has_error(findings, "'mine' is addressed but no quiz question references it")
 
     def test_fails_on_answer_key_string_in_content(self, tmp_path):
         write(tmp_path / "content" / "en" / "page.md", "See the answer_key for solutions.\n")

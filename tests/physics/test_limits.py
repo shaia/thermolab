@@ -11,7 +11,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import kinetics, multiplicity, paths
+from thermolab import forms, kinetics, multiplicity, paths, sampling
 from thermolab.constants import K_B
 from thermolab.validation import relative_error, seed_study
 
@@ -230,3 +230,72 @@ def test_ideal_gas_law_is_consistent_between_modules():
         paths.ideal_gas_pressure(500, 300.0, 1e-3)
     )
     assert paths.ideal_gas_temperature(500, 1e5, 1e-3) == pytest.approx(1e5 * 1e-3 / (500 * K_B))
+
+
+def test_die_mean_and_variance_match_the_hand_calculation():
+    """μ = 7/2 and σ² = 35/12 are the numbers a student works out by summing six terms."""
+    assert sampling.die_mean(6) == pytest.approx(3.5, rel=1e-12)
+    assert sampling.die_variance(6) == pytest.approx(35.0 / 12.0, rel=1e-12)
+
+    faces = np.arange(1, 7, dtype=float)
+    assert sampling.die_mean(6) == pytest.approx(float(faces.mean()))
+    assert sampling.die_variance(6) == pytest.approx(float(((faces - faces.mean()) ** 2).mean()))
+
+
+def test_a_one_faced_die_has_no_spread_at_all():
+    """The degenerate limit: a certain outcome has zero variance, so nothing to average away."""
+    assert sampling.die_variance(1) == 0.0
+    assert sampling.die_relative_spread(1) == 0.0
+    assert sampling.predicted_relative_spread(1000, n_faces=1) == 0.0
+
+
+def test_sample_average_converges_on_the_die_mean():
+    """The law of large numbers as the module states it, with an error bar attached."""
+    study = seed_study(
+        lambda rng: float(sampling.sample_averages(2000, 20, rng).mean()), n_seeds=8
+    )
+
+    assert study.agrees_with(sampling.die_mean(6), n_sigma=3.0), (
+        f"measured {study.mean:.5g} +/- {study.standard_error:.2g}"
+    )
+
+
+def test_single_die_relative_spread_is_the_coefficient_of_the_law():
+    """σ₁/μ₁ ≈ 0.488 is the number in front of N^(-1/2), not a fitted fudge factor."""
+    assert sampling.die_relative_spread(6) == pytest.approx(np.sqrt(35.0 / 12.0) / 3.5, rel=1e-12)
+    assert sampling.predicted_relative_spread(100) == pytest.approx(
+        sampling.die_relative_spread(6) / 10.0, rel=1e-12
+    )
+
+
+def test_inexact_form_gives_a_different_answer_on_every_route():
+    """ω = y dx is not the differential of anything, and three routes prove it by disagreeing.
+
+    Same start, same finish, three answers — 0, 1/2 and 1. This is the mathematics that
+    module 5 will meet again as "work is a path function".
+    """
+    m, n = (lambda x, y: y), (lambda x, y: np.zeros_like(x))
+    t = np.linspace(0.0, 1.0, 801)
+    zero, one = np.zeros_like(t), np.ones_like(t)
+
+    along_the_diagonal = forms.line_integral(m, n, t, t)
+    across_then_up = forms.line_integral(m, n, t, zero) + forms.line_integral(m, n, one, t)
+    up_then_across = forms.line_integral(m, n, zero, t) + forms.line_integral(m, n, t, one)
+
+    assert along_the_diagonal == pytest.approx(0.5, abs=1e-9)
+    assert across_then_up == pytest.approx(0.0, abs=1e-9)
+    assert up_then_across == pytest.approx(1.0, abs=1e-9)
+
+
+def test_mixed_partials_decide_exactness_without_integrating():
+    """The criterion agrees with the integrals above: ω₁ is exact, ω₂ is not."""
+    x = np.linspace(0.2, 2.0, 25)
+    y = np.linspace(0.3, 1.7, 25)
+
+    exact_gap = forms.mixed_partials_gap(lambda x, y: y, lambda x, y: x, x, y)
+    inexact_gap = forms.mixed_partials_gap(lambda x, y: y, lambda x, y: np.zeros_like(x), x, y)
+
+    assert np.allclose(exact_gap, 0.0, atol=1e-8)
+    assert np.allclose(inexact_gap, 1.0, atol=1e-8)
+    assert forms.is_exact(lambda x, y: y, lambda x, y: x, x, y)
+    assert not forms.is_exact(lambda x, y: y, lambda x, y: np.zeros_like(x), x, y)

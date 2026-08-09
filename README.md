@@ -19,7 +19,7 @@ The guiding question, everywhere:
 | Laboratories | `notebooks/{en,he}/labs/` | Interactive Jupyter notebooks (ipywidgets) |
 | Physics engine | `src/thermolab/` | Plain, readable, vectorized NumPy — every model the course uses |
 | Assessment | `assessment/` | Quiz banks (YAML, bilingual), exam-style problems, misconception registry |
-| Animations | `media/render/` → `content/*/media/` | Simulation-rendered GIF demonstrations, language-neutral, embedded in both site copies |
+| Animations | `media/render/` → `content/*/media/` | Simulation-rendered MP4 demonstrations, language-neutral, embedded in both site copies |
 | Validation | `tests/`, `scripts/` | The scientific-accuracy framework, mechanized (see below) |
 | Instructor material | `instructor/` | Worked solutions and marking rubrics — never deployed |
 
@@ -33,11 +33,50 @@ npm install                               # mystmd (site builder)
 
 uv run pytest                             # physics test suite
 uv run python scripts/validate_all.py     # every validation layer
-uv run python scripts/build_site.py       # build both site copies + JupyterLite -> _site/
-python -m http.server -d _site            # browse http://localhost:8000 (/en/ and /he/)
+.\build.ps1 -Serve                        # complete build -> _site/, then serve it
+                                          # (bash: ./build.sh --serve)
 
 uv run jupyter lab                        # work with the lab notebooks
 ```
+
+`build.ps1` (PowerShell) and `build.sh` (bash) are the same wrapper and take the same options
+under each shell's spelling. Either one runs every generation step in order — stylesheets,
+quizzes, animations, both MyST projects, then the JupyterLite app — and reports a per-stage
+summary. Useful flags: `-NoMedia` / `--no-media` (skip the slow animation render),
+`-NoLite` / `--no-lite`, `-Port <n>` / `--port <n>`.
+
+The interactive laboratories are served from `_site/lite/`, so they only work in a build of
+the whole site. `npx myst start` previews a single language and has no `/lite` route: the
+laboratory links on module pages return "Document Not Found" there by design.
+
+## Publishing
+
+`.github/workflows/pages.yml` publishes the site to GitHub Pages on every push to `master`;
+pull requests run the same build and validation without deploying. Nothing is committed by the
+workflow — the whole site is rebuilt from source each time, because the animations, the
+generated quiz includes and the JupyterLite bundle are all gitignored.
+
+The site is served under a path prefix on a project Pages site
+(`https://<user>.github.io/<repo>/`). `actions/configure-pages` reports that prefix and the
+workflow passes it to the build, which turns it into `BASE_URL=<prefix>/<lang>` for each MyST
+project. Reproduce the deployed layout locally with `.\build.ps1 -BasePath /<repo>`
+(`./build.sh --base-path /<repo>`) — note the result must then be served *from* that path, not
+from the root. Moving to a custom domain later needs no change here: the reported prefix
+becomes `/` and the build falls back to root-relative output.
+
+Two things make the browser laboratories work once published, and both are easy to break:
+
+- Pyodide has no access to this repository, so `scripts/build_site.py` builds the `thermolab`
+  wheel into `dist/` and JupyterLite's `PipliteAddon` indexes it into the bundle. The first
+  cell of every laboratory notebook installs it — with `deps=False`, because Pyodide supplies
+  its own older builds of NumPy, SciPy and matplotlib. The wheel's `requires-python` upper
+  bound must admit the CPython that Pyodide runs (3.14 today).
+- MyST rewrites the `/lite/…` laboratory links into `<prefix>/<lang>/lite/…`, where no bundle
+  exists. The build writes a relative redirect at that address rather than duplicating the
+  70 MB bundle per language. `verify_lite` fails the build if a laboratory link, its notebook
+  or the wheel is missing, so neither can regress silently.
+
+One-time setup on a fresh fork: repo Settings → Pages → Source = **GitHub Actions**.
 
 Other tools you will reach for while authoring:
 

@@ -22,6 +22,7 @@ import check_assessment  # noqa: E402
 import check_glossary  # noqa: E402
 import check_modelspec  # noqa: E402
 import check_parity  # noqa: E402
+
 from _findings import report  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -253,12 +253,21 @@ def collect_known_modules(root: Path, quiz_banks: dict[Path, dict]) -> set[str]:
 
 
 def check_misconceptions(
-    root: Path, quiz_banks: dict[Path, dict], known_modules: set[str]
+    root: Path, quiz_banks: dict[Path, dict], known_modules: set[str], module: str | None = None
 ) -> list[Finding]:
+    """Check the registry against the quiz banks.
+
+    `quiz_banks` must be *every* bank even on a scoped run: coverage is a whole-repo
+    invariant, and collecting references from one module's banks alone would report every
+    other module's addressed misconception as unreferenced. `module` narrows which entries
+    are reported on, not which banks are consulted.
+    """
     path = root / "assessment" / "misconceptions.yml"
     entries, findings = load_misconceptions(root)
     if not entries:
         return findings
+    if module:
+        entries = [entry for entry in entries if entry.get("assigned_module") == module]
 
     referenced_ids: set[str] = set()
     for bank in quiz_banks.values():
@@ -427,23 +436,27 @@ def check(root: Path = ROOT, module: str | None = None) -> list[Finding]:
 
     quizzes_dir = root / "assessment" / "quizzes"
     quiz_paths = sorted(quizzes_dir.glob("*.yml")) if quizzes_dir.exists() else []
-    if module:
-        quiz_paths = [p for p in quiz_paths if p.name.startswith(f"{module}.")]
 
     misconception_entries, _ = load_misconceptions(root)
     misconception_ids = {entry.get("id") for entry in misconception_entries if entry.get("id")}
 
-    quiz_banks: dict[Path, dict] = {}
-    for path in quiz_paths:
-        bank = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        quiz_banks[path] = bank
+    all_quiz_banks: dict[Path, dict] = {
+        path: yaml.safe_load(path.read_text(encoding="utf-8")) or {} for path in quiz_paths
+    }
+    quiz_banks = {
+        path: bank
+        for path, bank in all_quiz_banks.items()
+        if not module or path.name.startswith(f"{module}.")
+    }
+    for path, bank in quiz_banks.items():
         findings.extend(check_quiz_schema(path, bank, misconception_ids))
 
     findings.extend(check_answer_key_safety(root))
     findings.extend(check_solution_coverage(root, module))
 
-    known_modules = collect_known_modules(root, quiz_banks)
-    findings.extend(check_misconceptions(root, quiz_banks, known_modules))
+    # Every bank, not the scoped subset — see check_misconceptions.
+    known_modules = collect_known_modules(root, all_quiz_banks)
+    findings.extend(check_misconceptions(root, all_quiz_banks, known_modules, module))
 
     for lang in LANGS:
         findings.extend(check_objective_coverage(root, lang, module, quiz_banks))

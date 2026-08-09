@@ -325,3 +325,69 @@ terms:
   - key: asymptotic
     en: asymptotic
     he: אסימפטוטי
+  - key: random-variable
+    en: random variable
+    he: משתנה מקרי
+  - key: expectation
+    en: expectation
+    he: תוחלת
+  - key: variance
+    en: variance
+    he: שונות
+  - key: independence
+    en: independence
+    he: אי-תלות
+    he_reject: [עצמאות]
+  - key: law-of-large-numbers
+    en: law of large numbers
+    he: חוק המספרים הגדולים
+  - key: sample-mean
+    en: sample mean
+    he: ממוצע מדגם
+  - key: die
+    en: die
+    he: קובייה
+    he_reject: [קוביה]
+  - key: dimensionless
+    en: dimensionless
+    he: חסר ממד
+  - key: relative-error
+    en: relative error
+    he: שגיאה יחסית
+  - key: partial-derivative
+    en: partial derivative
+    he: נגזרת חלקית
+  - key: total-differential
+    en: total differential
+    he: דיפרנציאל שלם
+    he_reject: [דיפרנציאל מלא]
+  - key: mixed-partials
+    en: mixed partial derivatives
+    he: נגזרות מעורבות
+  - key: line-integral
+    en: line integral
+    he: אינטגרל קווי
+  - key: potential-function
+    en: potential function
+    he: פונקציה פוטנציאלית
+    he_reject: [פונקצית פוטנציאל]
+  - key: dimensional-analysis
+    en: dimensional analysis
+    he: ניתוח ממדי
+    he_reject: [אנליזה ממדית]
+  - key: sign-convention
+    en: sign convention
+    he: מוסכמת סימנים
+  - key: boltzmann-constant
+    en: Boltzmann constant
+    he: קבוע בולצמן
+    he_reject: [קבוע בולטזמן]
+  - key: first-law
+    en: first law of thermodynamics
+    he: החוק הראשון של התרמודינמיקה
+  - key: chebyshev-inequality
+    en: Chebyshev's inequality
+    he: אי-שוויון צ'בישב
+  - key: markov-inequality
+    en: Markov's inequality
+    he: אי-שוויון מרקוב

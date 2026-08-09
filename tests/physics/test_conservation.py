@@ -12,7 +12,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from thermolab import kinetics, multiplicity
+from thermolab import forms, kinetics, multiplicity, sampling
 
 pytestmark = pytest.mark.conservation
 
@@ -92,3 +92,60 @@ def test_removing_drift_preserves_the_requested_temperature():
     assert state.kinetic_temperature == pytest.approx(300.0, rel=1e-12)
     drift_tolerance = 1e-9 * np.abs(state.velocities).max()
     assert np.allclose(state.velocities.mean(axis=0), 0.0, atol=drift_tolerance)
+
+
+@given(
+    n_rolls=st.integers(min_value=1, max_value=500),
+    n_faces=st.integers(min_value=1, max_value=20),
+    seed=st.integers(min_value=0, max_value=2**31 - 1),
+)
+@settings(max_examples=25, deadline=None)
+def test_every_roll_lands_on_a_real_face(n_rolls, n_faces, seed):
+    """Probability's version of a conservation law: the outcomes account for every trial."""
+    rng = np.random.default_rng(seed)
+    rolls = sampling.roll_dice(n_rolls, rng, n_faces)
+
+    assert rolls.size == n_rolls
+    assert np.all(rolls >= 1)
+    assert np.all(rolls <= n_faces)
+    assert int(np.bincount(rolls, minlength=n_faces + 1).sum()) == n_rolls
+
+
+def test_running_average_ends_on_the_plain_mean():
+    """The last point of the settling curve is the ordinary average — no drift, no bias."""
+    rng = np.random.default_rng(17)
+    rolls = sampling.roll_dice(2000, rng)
+
+    curve = sampling.running_average(rolls)
+
+    assert curve[-1] == pytest.approx(float(rolls.mean()), rel=1e-12)
+    assert curve[0] == pytest.approx(float(rolls[0]), rel=1e-12)
+
+
+def test_integral_of_an_exact_form_depends_only_on_the_endpoints():
+    """d(xy) = y dx + x dy, so three different routes to (1,1) must all return f(1,1) - f(0,0).
+
+    This is the mathematical skeleton of "internal energy is a state function": what makes ΔU
+    route-blind is exactness, nothing physical.
+    """
+    m, n = (lambda x, y: y), (lambda x, y: x)
+    t = np.linspace(0.0, 1.0, 401)
+    zero, one = np.zeros_like(t), np.ones_like(t)
+
+    diagonal = forms.line_integral(m, n, t, t)
+    along_x_then_y = forms.line_integral(m, n, t, zero) + forms.line_integral(m, n, one, t)
+    via_a_curve = forms.line_integral(m, n, t, t**2)
+
+    expected = 1.0 * 1.0 - 0.0  # f(1,1) - f(0,0) with f = xy
+    for value in (diagonal, along_x_then_y, via_a_curve):
+        assert value == pytest.approx(expected, abs=1e-9)
+
+
+def test_an_exact_form_integrates_to_zero_around_a_closed_loop():
+    """The other face of path-independence: no energy can be extracted from a cycle of ΔU."""
+    m, n = (lambda x, y: y), (lambda x, y: x)
+    angle = np.linspace(0.0, 2.0 * np.pi, 2001)
+
+    loop = forms.line_integral(m, n, 2.0 + np.cos(angle), 1.0 + np.sin(angle))
+
+    assert loop == pytest.approx(0.0, abs=1e-9)

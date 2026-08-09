@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import kinetics, multiplicity
+from thermolab import kinetics, multiplicity, sampling
 from thermolab.validation import seed_study
 
 pytestmark = pytest.mark.seed_independence
@@ -82,6 +82,61 @@ def test_maxwell_boltzmann_variance_is_seed_independent():
     )
 
     assert study.agrees_with(expected, n_sigma=4.0)
+
+
+def test_same_seed_reproduces_the_same_rolls():
+    """The first thing the orientation lab asks a student to check about randomness here."""
+    a = sampling.roll_dice(500, np.random.default_rng(23))
+    b = sampling.roll_dice(500, np.random.default_rng(23))
+    c = sampling.roll_dice(500, np.random.default_rng(24))
+
+    assert np.array_equal(a, b)
+    assert not np.array_equal(a, c)
+
+
+def test_measured_spread_of_the_average_agrees_across_seeds():
+    """A different stream of random numbers must not change the physics being measured."""
+    study = seed_study(lambda rng: sampling.relative_spread_of_average(64, 1500, rng), n_seeds=8)
+
+    assert study.agrees_with(sampling.predicted_relative_spread(64), n_sigma=3.0), (
+        f"measured {study.mean:.5g} +/- {study.standard_error:.2g}, "
+        f"expected {sampling.predicted_relative_spread(64):.5g}"
+    )
+
+
+def test_two_independent_seed_families_give_the_same_spread():
+    """Reproducibility across whole seed families, not just within one."""
+    first = seed_study(
+        lambda rng: sampling.relative_spread_of_average(100, 1200, rng), n_seeds=6, base_seed=1
+    )
+    second = seed_study(
+        lambda rng: sampling.relative_spread_of_average(100, 1200, rng), n_seeds=6, base_seed=999
+    )
+
+    combined = np.hypot(first.standard_error, second.standard_error)
+    assert abs(first.mean - second.mean) <= 3.0 * combined
+
+
+def test_conditioning_on_a_lucky_start_does_not_bias_what_follows():
+    """The falsifying experiment for "later rolls compensate earlier ones".
+
+    Keep only the runs whose first ten rolls averaged well above 3.5, then look at the *next*
+    rolls of those same runs. If the dice compensated, this conditioned mean would sit below
+    3.5. It does not: convergence works by dilution, not by correction.
+    """
+
+    def mean_of_rolls_after_a_hot_start(rng: np.random.Generator) -> float:
+        rolls = sampling.roll_dice(10, rng, n_faces=6)
+        while rolls.mean() <= 4.5:  # keep drawing until this run starts hot
+            rolls = sampling.roll_dice(10, rng, n_faces=6)
+        return float(sampling.roll_dice(4000, rng, n_faces=6).mean())
+
+    study = seed_study(mean_of_rolls_after_a_hot_start, n_seeds=12)
+
+    assert study.agrees_with(sampling.die_mean(6), n_sigma=3.0), (
+        f"rolls after a hot start averaged {study.mean:.4g} +/- {study.standard_error:.2g}; "
+        "a compensating die would sit below 3.5"
+    )
 
 
 def test_seed_study_detects_a_genuinely_biased_measurement():
