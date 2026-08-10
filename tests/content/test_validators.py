@@ -19,6 +19,7 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 import check_assessment  # noqa: E402
 import check_glossary  # noqa: E402
 import check_modelspec  # noqa: E402
+import check_notebooks  # noqa: E402
 import check_parity  # noqa: E402
 
 from _content import sha256_normalized  # noqa: E402
@@ -663,3 +664,101 @@ class TestCheckAssessment:
         )
         findings = check_assessment.check(tmp_path, module="04-demo")
         assert not has_error(findings, "mc-1")
+
+    def test_fails_on_latex_math_in_quiz_prompt(self, tmp_path):
+        """Banks are plain ASCII: a `$…$` here lands in a parity-checked generated page."""
+        write(
+            tmp_path / "assessment" / "quizzes" / "04-demo.en.yml",
+            "module: 04-demo\nquestions:\n"
+            "  - id: Q1\n    type: numeric\n    prompt: 'estimate $N^{-1/2}$'\n"
+            "    objectives: [OBJ-1]\n    answer: 1\n    tolerance: 0.1\n",
+        )
+        findings = check_assessment.check(tmp_path)
+        assert has_error(findings, "prompt contains '$'")
+
+    def test_fails_on_latex_math_in_choice_feedback(self, tmp_path):
+        """The rule covers every authored string, not just the prompt."""
+        write(
+            tmp_path / "assessment" / "quizzes" / "04-demo.en.yml",
+            "module: 04-demo\nquestions:\n"
+            "  - id: Q1\n    type: multiple-choice\n    prompt: p\n    objectives: [OBJ-1]\n"
+            "    choices:\n"
+            "      - text: A\n        correct: true\n        feedback: 'because $x$'\n"
+            "      - text: B\n        correct: false\n        feedback: f\n",
+        )
+        findings = check_assessment.check(tmp_path)
+        assert has_error(findings, "choices[0].feedback contains '$'")
+
+    def test_passes_on_ascii_math(self, tmp_path):
+        write(
+            tmp_path / "assessment" / "quizzes" / "04-demo.en.yml",
+            "module: 04-demo\nquestions:\n"
+            "  - id: Q1\n    type: numeric\n    prompt: 'estimate N^(-1/2)'\n"
+            "    objectives: [OBJ-1]\n    answer: 1\n    tolerance: 0.1\n",
+        )
+        findings = check_assessment.check(tmp_path)
+        assert not has_error(findings, "contains '$'")
+
+
+# ---------------------------------------------------------------------------
+# check_notebooks.py
+# ---------------------------------------------------------------------------
+
+CANONICAL_BOOTSTRAP = (
+    "try:\n"
+    "    import piplite\n"
+    "except ImportError:\n"
+    "    pass\n"
+    "else:\n"
+    '    await piplite.install(["pint", "ipywidgets", "jupyterquiz"])\n'
+    '    await piplite.install("thermolab", deps=False)\n'
+)
+
+
+class TestCheckNotebooks:
+    def test_empty_repo_returns_no_findings(self, tmp_path):
+        assert check_notebooks.check(tmp_path) == []
+
+    def test_passes_on_canonical_bootstrap(self, tmp_path):
+        write_notebook(
+            tmp_path / "notebooks" / "en" / "labs" / "04-demo.ipynb",
+            [CANONICAL_BOOTSTRAP, "import numpy as np"],
+        )
+        assert check_notebooks.check(tmp_path) == []
+
+    def test_fails_when_bootstrap_is_missing_entirely(self, tmp_path):
+        write_notebook(
+            tmp_path / "notebooks" / "en" / "labs" / "04-demo.ipynb", ["import numpy as np"]
+        )
+        findings = check_notebooks.check(tmp_path)
+        assert has_error(findings, "first code cell is not the JupyterLite bootstrap")
+
+    def test_fails_when_thermolab_is_installed_with_its_dependency_graph(self, tmp_path):
+        """The real defect: deps come from PyPI, which has no WebAssembly wheels."""
+        write_notebook(
+            tmp_path / "notebooks" / "en" / "labs" / "04-demo.ipynb",
+            [
+                "try:\n    import piplite\nexcept ImportError:\n    pass\n"
+                'else:\n    await piplite.install("thermolab", keep_going=True)\n'
+            ],
+        )
+        findings = check_notebooks.check(tmp_path)
+        assert has_error(findings, "deps=False")
+        assert has_error(findings, "pint, ipywidgets, jupyterquiz")
+
+    def test_fails_when_a_pure_python_dependency_is_dropped(self, tmp_path):
+        write_notebook(
+            tmp_path / "notebooks" / "he" / "labs" / "04-demo.ipynb",
+            [CANONICAL_BOOTSTRAP.replace('"jupyterquiz"', '"nothing"')],
+        )
+        findings = check_notebooks.check(tmp_path)
+        assert has_error(findings, "does not install jupyterquiz")
+
+    def test_checks_both_languages(self, tmp_path):
+        write_notebook(
+            tmp_path / "notebooks" / "en" / "labs" / "04-demo.ipynb", [CANONICAL_BOOTSTRAP]
+        )
+        write_notebook(tmp_path / "notebooks" / "he" / "labs" / "04-demo.ipynb", ["import numpy"])
+        findings = check_notebooks.check(tmp_path)
+        assert len(findings) == 1
+        assert "he" in str(findings[0].path)

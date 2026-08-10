@@ -1,5 +1,5 @@
 """Run the full content-validation pipeline in one command: ruff, the fast pytest
-suite, notebook execution, then all four content checkers.
+suite, notebook execution, then all five content checkers.
 
 Every stage always runs to completion — a failing stage does not stop the ones after
 it — so a single invocation reports everything wrong at once instead of one failure
@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import check_assessment  # noqa: E402
 import check_glossary  # noqa: E402
 import check_modelspec  # noqa: E402
+import check_notebooks  # noqa: E402
 import check_parity  # noqa: E402
 
 from _findings import report  # noqa: E402
@@ -96,6 +97,7 @@ def main(argv: list[str] | None = None) -> int:
     stages.append(run_nbmake_stage(args.fast, args.module))
 
     stages.append(run_check_stage("check_modelspec", check_modelspec.check(module=args.module)))
+    stages.append(run_check_stage("check_notebooks", check_notebooks.check()))
     stages.append(run_check_stage("check_glossary", check_glossary.check()))
     stages.append(run_check_stage("check_assessment", check_assessment.check(module=args.module)))
     stages.append(run_check_stage("check_parity", check_parity.check()))

@@ -69,6 +69,40 @@ def check_multiple_choice(path: Path, qid: str, choices: object) -> list[Finding
     return findings
 
 
+def check_ascii_math(path: Path, qid: str, question: dict) -> list[Finding]:
+    """Quiz text is plain ASCII math — `N^(-1/2)`, not `$N^{-1/2}$`.
+
+    Not a style rule. `render_quizzes.py` writes these strings into real page pairs under
+    `content/*/_generated/`, so a `$…$` here becomes an entry in `check_parity`'s equation
+    multiset that the other language must then reproduce character for character — and
+    `check_sign_convention` scans those generated pages too. Keeping the banks ASCII keeps a
+    whole class of parity failures from existing.
+    """
+    fields: list[tuple[str, object]] = [
+        ("prompt", question.get("prompt")),
+        ("feedback", question.get("feedback")),
+        ("discussion", question.get("discussion")),
+    ]
+    choices = question.get("choices")
+    if isinstance(choices, list):
+        for i, choice in enumerate(choices):
+            if isinstance(choice, dict):
+                fields.append((f"choices[{i}].text", choice.get("text")))
+                fields.append((f"choices[{i}].feedback", choice.get("feedback")))
+
+    return [
+        Finding(
+            path,
+            None,
+            "error",
+            f"question '{qid}' {name} contains '$' — quiz banks use plain ASCII math "
+            f"(N^(-1/2), not $N^{{-1/2}}$), because the rendered pages are parity-checked",
+        )
+        for name, value in fields
+        if isinstance(value, str) and "$" in value
+    ]
+
+
 def check_quiz_schema(path: Path, bank: dict, misconception_ids: set[str]) -> list[Finding]:
     findings: list[Finding] = []
     if not bank.get("module"):
@@ -103,6 +137,8 @@ def check_quiz_schema(path: Path, bank: dict, misconception_ids: set[str]) -> li
                     path, None, "error", f"question '{qid}' objectives must be a non-empty list"
                 )
             )
+
+        findings.extend(check_ascii_math(path, qid, question))
 
         misconception = question.get("misconception")
         if misconception and misconception not in misconception_ids:
