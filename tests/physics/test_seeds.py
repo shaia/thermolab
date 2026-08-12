@@ -10,7 +10,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import kinetics, multiplicity, sampling
+from thermolab import equilibrium, kinetics, multiplicity, sampling
+from thermolab.constants import K_B
 from thermolab.validation import seed_study
 
 pytestmark = pytest.mark.seed_independence
@@ -137,6 +138,37 @@ def test_conditioning_on_a_lucky_start_does_not_bias_what_follows():
         f"rolls after a hot start averaged {study.mean:.4g} +/- {study.standard_error:.2g}; "
         "a compensating die would sit below 3.5"
     )
+
+
+def test_same_seed_reproduces_the_same_exchange_trajectory():
+    state = equilibrium.from_temperatures(200, 80, 400.0, 300.0, 15.0 * K_B)
+    a = equilibrium.simulate_energy_exchange(state, 500, np.random.default_rng(4))
+    b = equilibrium.simulate_energy_exchange(state, 500, np.random.default_rng(4))
+
+    assert np.array_equal(a.q_a, b.q_a)
+
+
+def test_different_seeds_give_different_exchange_trajectories():
+    state = equilibrium.from_temperatures(200, 80, 400.0, 300.0, 15.0 * K_B)
+    a = equilibrium.simulate_energy_exchange(state, 500, np.random.default_rng(1))
+    b = equilibrium.simulate_energy_exchange(state, 500, np.random.default_rng(2))
+
+    assert not np.array_equal(a.q_a, b.q_a)
+
+
+def test_relaxation_gap_agrees_across_seeds_within_statistical_error():
+    """The macroscopic relaxation curve is seed-independent even though every trajectory differs."""
+    quantum = 20.0 * K_B
+    state = equilibrium.from_temperatures(150, 50, 500.0, 250.0, quantum)
+    checkpoint = int(equilibrium.relaxation_time(state))
+    predicted = float(equilibrium.predicted_relaxation(state, np.array([checkpoint]))[0])
+
+    def measure(rng: np.random.Generator) -> float:
+        result = equilibrium.simulate_energy_exchange(state, checkpoint, rng)
+        return float(result.temperature_a[-1] - result.temperature_b[-1])
+
+    study = seed_study(measure, n_seeds=10)
+    assert study.agrees_with(predicted, n_sigma=3.5)
 
 
 def test_seed_study_detects_a_genuinely_biased_measurement():

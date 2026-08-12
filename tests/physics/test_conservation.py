@@ -12,7 +12,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from thermolab import forms, kinetics, multiplicity, sampling
+from thermolab import equilibrium, forms, kinetics, multiplicity, sampling
 
 pytestmark = pytest.mark.conservation
 
@@ -139,6 +139,27 @@ def test_integral_of_an_exact_form_depends_only_on_the_endpoints():
     expected = 1.0 * 1.0 - 0.0  # f(1,1) - f(0,0) with f = xy
     for value in (diagonal, along_x_then_y, via_a_curve):
         assert value == pytest.approx(expected, abs=1e-9)
+
+
+@given(
+    n_a=st.integers(min_value=1, max_value=500),
+    n_b=st.integers(min_value=1, max_value=500),
+    q_a=st.integers(min_value=1, max_value=2000),
+    q_b=st.integers(min_value=0, max_value=2000),
+    n_steps=st.integers(min_value=1, max_value=300),
+    seed=st.integers(min_value=0, max_value=2**31 - 1),
+)
+@settings(max_examples=25, deadline=None)
+def test_energy_exchange_conserves_total_quanta(n_a, n_b, q_a, q_b, n_steps, seed):
+    """Every step only relabels one quantum's owner, so q_a + q_b must never move."""
+    state = equilibrium.TwoBodyState(n_a=n_a, n_b=n_b, q_a=q_a, q_b=q_b, quantum=1.0)
+    rng = np.random.default_rng(seed)
+
+    result = equilibrium.simulate_energy_exchange(state, n_steps, rng)
+
+    assert np.all(result.q_a + result.q_b == state.total_quanta)
+    assert np.all(result.q_a >= 0)
+    assert np.all(result.q_a <= state.total_quanta)
 
 
 def test_an_exact_form_integrates_to_zero_around_a_closed_loop():

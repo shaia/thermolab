@@ -22,7 +22,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _content import LANGS, iter_content_pages  # noqa: E402
+from _content import LANGS, iter_content_pages, load_pending  # noqa: E402
 from _findings import Finding, report  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -198,11 +198,14 @@ def check_objective_coverage(
     findings: list[Finding] = []
 
     declared: dict[str, tuple[Path, str]] = {}
+    en_module_pages: dict[str, str] = {}
     for page in iter_content_pages(root):
-        if page.lang != lang:
-            continue
         slug = page.frontmatter.get("module")
         if not isinstance(slug, str) or not slug:
+            continue
+        if page.lang == "en":
+            en_module_pages[slug] = page.rel_path
+        if page.lang != lang:
             continue
         if module and slug != module:
             continue
@@ -225,21 +228,25 @@ def check_objective_coverage(
                 continue
             declared[oid] = (page.path, slug)
 
-    referenced: dict[str, list[Path]] = {}
+    pending = load_pending(root)
+
+    referenced: dict[str, list[tuple[Path, str | None]]] = {}
     for quiz_path, bank in quiz_banks.items():
         if not quiz_path.name.endswith(f".{lang}.yml"):
             continue
-        if module and bank.get("module") != module:
+        bank_module = bank.get("module")
+        if module and bank_module != module:
             continue
         for question in bank.get("questions") or []:
             for oid in question.get("objectives") or []:
-                referenced.setdefault(oid, []).append(quiz_path)
+                referenced.setdefault(oid, []).append((quiz_path, bank_module))
 
     for exam_path in iter_exam_files(root, lang):
         if module and exam_path.stem != f"{module}-problems":
             continue
+        exam_module = exam_path.stem.removesuffix("-problems")
         for oid in exam_objective_ids(exam_path):
-            referenced.setdefault(oid, []).append(exam_path)
+            referenced.setdefault(oid, []).append((exam_path, exam_module))
 
     for oid, (page_path, slug) in declared.items():
         if oid not in referenced:
@@ -254,13 +261,32 @@ def check_objective_coverage(
             )
 
     for oid, sources in referenced.items():
-        if oid not in declared:
-            for source in sources:
+        if oid in declared:
+            continue
+        for source, slug in sources:
+            # A non-English quiz/exam can legitimately outrun its own-language module
+            # page when that page is still on translation-pending.txt (see
+            # .claude/skills/new-module/SKILL.md: quiz banks land in both languages
+            # immediately, but the Hebrew page itself waits for /translate-sync).
+            # Downgrade to a warning instead of silencing it outright, so the gap
+            # stays visible until the translation lands.
+            en_page = en_module_pages.get(slug) if slug else None
+            if lang != "en" and en_page is not None and en_page in pending:
                 findings.append(
                     Finding(
-                        source, None, "error", f"references unknown objective id '{oid}' ({lang})"
+                        source,
+                        None,
+                        "warning",
+                        f"references objective id '{oid}' ({lang}) whose module page is "
+                        f"still pending translation (module {slug})",
                     )
                 )
+                continue
+            findings.append(
+                Finding(
+                    source, None, "error", f"references unknown objective id '{oid}' ({lang})"
+                )
+            )
 
     return findings
 

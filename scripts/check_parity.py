@@ -32,6 +32,7 @@ from _content import (  # noqa: E402
     extract_equations,
     iter_content_pages,
     iter_markdown,
+    load_pending,
     normalize_equation,
     parse_frontmatter,
     sha256_normalized,
@@ -45,18 +46,6 @@ CATEGORY_PREFIXES = ("missing", "stale", "mismatch")
 # ---------------------------------------------------------------------------
 # translation-pending.txt
 # ---------------------------------------------------------------------------
-
-
-def load_pending(root: Path) -> set[str]:
-    path = root / "translation-pending.txt"
-    if not path.exists():
-        return set()
-    pending: set[str] = set()
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.split("#", 1)[0].strip()
-        if line:
-            pending.add(line.replace("\\", "/"))
-    return pending
 
 
 def en_to_he(en_relpath: str) -> str:

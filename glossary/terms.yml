@@ -110,6 +110,15 @@ terms:
     en: heat capacity
     he: קיבול חום
     he_reject: [קיבולת חום]
+  - key: thermal-contact
+    en: thermal contact
+    he: מגע תרמי
+  - key: relaxation-time
+    en: relaxation time
+    he: זמן רלקסציה
+  - key: energy-quantum
+    en: energy quantum
+    he: קוונט אנרגיה
   - key: adiabatic
     en: adiabatic
     he: אדיאבטי
@@ -382,6 +391,9 @@ terms:
     en: Boltzmann constant
     he: קבוע בולצמן
     he_reject: [קבוע בולטזמן]
+  - key: zeroth-law
+    en: zeroth law of thermodynamics
+    he: החוק האפס של התרמודינמיקה
   - key: first-law
     en: first law of thermodynamics
     he: החוק הראשון של התרמודינמיקה

@@ -482,6 +482,48 @@ class TestCheckAssessment:
         findings = check_assessment.check(tmp_path)
         assert has_error(findings, "unknown objective id 'OBJ-999'")
 
+    def test_hebrew_quiz_referencing_pending_module_is_a_warning_not_an_error(self, tmp_path):
+        # A module scaffolded per .claude/skills/new-module/SKILL.md gets both quiz
+        # banks immediately but defers its Hebrew page to /translate-sync -- the
+        # resulting "unknown objective" on the Hebrew side is expected, not a bug,
+        # as long as the EN page is listed in translation-pending.txt.
+        write(
+            tmp_path / "content" / "en" / "04-demo.md",
+            good_module_page("04-demo", objectives=("OBJ-1",)),
+        )
+        write(
+            tmp_path / "assessment" / "quizzes" / "04-demo.en.yml",
+            "module: 04-demo\nquestions:\n"
+            "  - id: Q1\n    type: numeric\n    prompt: p\n    objectives: [OBJ-1]\n"
+            "    answer: 1\n    tolerance: 0.1\n",
+        )
+        write(
+            tmp_path / "assessment" / "quizzes" / "04-demo.he.yml",
+            "module: 04-demo\nquestions:\n"
+            "  - id: Q1\n    type: numeric\n    prompt: p\n    objectives: [OBJ-1]\n"
+            "    answer: 1\n    tolerance: 0.1\n",
+        )
+        write(tmp_path / "translation-pending.txt", "content/en/04-demo.md\n")
+        findings = check_assessment.check(tmp_path)
+        assert not has_error(findings, "unknown objective id 'OBJ-1'")
+        assert has_warning(findings, "pending translation")
+
+    def test_hebrew_quiz_referencing_non_pending_module_still_fails(self, tmp_path):
+        # Same shape, but the EN page is NOT listed as pending -- a Hebrew bank must
+        # not get a free pass just because no Hebrew page exists yet.
+        write(
+            tmp_path / "content" / "en" / "04-demo.md",
+            good_module_page("04-demo", objectives=("OBJ-1",)),
+        )
+        write(
+            tmp_path / "assessment" / "quizzes" / "04-demo.he.yml",
+            "module: 04-demo\nquestions:\n"
+            "  - id: Q1\n    type: numeric\n    prompt: p\n    objectives: [OBJ-1]\n"
+            "    answer: 1\n    tolerance: 0.1\n",
+        )
+        findings = check_assessment.check(tmp_path)
+        assert has_error(findings, "unknown objective id 'OBJ-1'")
+
     def test_hebrew_coverage_fails_independently_of_english(self, tmp_path):
         # EN has the page + a quiz covering OBJ-1; HE has the page but no quiz/exam
         # yet, so HE coverage must fail even though EN passes.

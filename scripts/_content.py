@@ -264,6 +264,24 @@ def content_root(root: Path, lang: str) -> Path:
     return root / "content" / lang
 
 
+def load_pending(root: Path) -> set[str]:
+    """Repo-relative EN paths listed in `translation-pending.txt` (comments stripped).
+
+    Shared by `check_parity` (hash-staleness downgrade) and `check_assessment`
+    (objective-coverage downgrade) so a module deliberately scaffolded with its
+    Hebrew page deferred doesn't trip either check while it's on the list.
+    """
+    path = root / "translation-pending.txt"
+    if not path.exists():
+        return set()
+    pending: set[str] = set()
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if line:
+            pending.add(line.replace("\\", "/"))
+    return pending
+
+
 def iter_content_pages(root: Path) -> Iterator[ContentPage]:
     """Yield every content/<lang>/**/*.md page (both languages), parsed once."""
     for lang in LANGS:

@@ -10,7 +10,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import forms, kinetics, paths, sampling
+from thermolab import equilibrium, forms, kinetics, paths, sampling
+from thermolab.constants import K_B
 from thermolab.validation import convergence_study, relative_error
 
 pytestmark = pytest.mark.convergence
@@ -120,6 +121,34 @@ def test_measured_spread_approaches_the_analytic_value_as_repetitions_grow():
 
     assert errors[-1] < errors[0]
     assert errors[-1] < 0.05
+
+
+def test_time_averaged_temperature_settles_onto_equilibrium_as_the_window_grows():
+    """A longer time-average after the pair has relaxed is a better estimate of T_eq.
+
+    Same idea as the pressure-averaging-window test below, applied to a single long exchange
+    trajectory instead of many short ones: once burned past several relaxation times, the
+    running mean of T_A should keep tightening onto T_eq = (C_A T_A + C_B T_B)/(C_A+C_B).
+    """
+    quantum = 20.0 * K_B
+    state = equilibrium.from_temperatures(150, 50, 500.0, 250.0, quantum)
+    tau = equilibrium.relaxation_time(state)
+    target = equilibrium.equilibrium_temperature(
+        state.heat_capacity_a, state.temperature_a, state.heat_capacity_b, state.temperature_b
+    )
+    burn_in = int(6 * tau)
+
+    rng = np.random.default_rng(21)
+    result = equilibrium.simulate_energy_exchange(state, burn_in + 40000, rng)
+    post_equilibrium = result.temperature_a[burn_in:]
+
+    errors = [
+        relative_error(float(post_equilibrium[:window].mean()), target)
+        for window in (500, 2000, 8000, 40000)
+    ]
+
+    assert errors[-1] < errors[0]
+    assert errors[-1] < 0.01
 
 
 def test_pressure_estimate_settles_as_the_averaging_window_grows():

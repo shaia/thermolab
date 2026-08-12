@@ -51,3 +51,11 @@ misconceptions:
     statement: "Negative temperature means colder than absolute zero."
     assigned_module: unassigned   # ensembles/paramagnet module, beyond Milestone 1
     status: pending
+  - id: instant-equilibrium
+    statement: "Two bodies placed in contact reach the same temperature instantly."
+    assigned_module: 01-equilibrium
+    status: addressed
+  - id: equal-weight-equilibrium
+    statement: "The equilibrium temperature of two bodies in contact is always the simple average of their starting temperatures, regardless of their sizes."
+    assigned_module: 01-equilibrium
+    status: addressed

@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import forms, kinetics, multiplicity, paths, sampling
+from thermolab import equilibrium, forms, kinetics, multiplicity, paths, sampling
 from thermolab.units import K_B_Q, Quantity
 
 pytestmark = pytest.mark.dimensional
@@ -69,6 +69,7 @@ def test_entropy_has_energy_per_temperature():
         (sampling.die_mean(6), float),
         (sampling.die_variance(6), float),
         (sampling.predicted_relative_spread(100), float),
+        (equilibrium.equilibrium_temperature(150.0, 500.0, 50.0, 250.0), float),
     ],
 )
 def test_library_functions_return_plain_si_floats(value, expected_dimension):
@@ -119,3 +120,27 @@ def test_multiplicity_is_dimensionless():
     """Ω counts microstates — a pure number, whatever the system."""
     assert isinstance(multiplicity.multiplicity(20, 10), float)
     assert multiplicity.multiplicity(20, 10) > 1.0
+
+
+def test_equilibrium_temperature_has_temperature_dimensions():
+    """T_eq = (C_A T_A + C_B T_B) / (C_A + C_B): energy over heat capacity, back to temperature."""
+    c_a = Quantity(2.0, "J/K")
+    c_b = Quantity(5.0, "J/K")
+    t_a = Quantity(400.0, "K")
+    t_b = Quantity(300.0, "K")
+    t_eq = (c_a * t_a + c_b * t_b) / (c_a + c_b)
+    assert t_eq.check("[temperature]")
+
+
+def test_heat_capacity_of_an_einstein_solid_is_energy_per_temperature():
+    """C = n k_B in the model's classical limit -- a count of oscillators times k_B."""
+    n_oscillators = 300
+    heat_capacity = n_oscillators * K_B_Q
+    assert heat_capacity.check("[energy] / [temperature]")
+
+
+def test_quantum_times_quanta_count_is_an_energy():
+    """E = q * quantum -- a dimensionless count of quanta times one quantum's energy."""
+    quantum = Quantity(2.76e-22, "J")
+    n_quanta = 500
+    assert (n_quanta * quantum).check("[energy]")

@@ -21,6 +21,8 @@ project:
         - file: conventions.md
     - title: Thermodynamics
       children:
+        - file: thermodynamics/01-equilibrium.md
+        - file: thermodynamics/01-equilibrium-problems.md
         - file: thermodynamics/04-pressure.md
         - file: thermodynamics/04-pressure-problems.md
         - file: thermodynamics/05-work-paths.md

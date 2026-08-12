@@ -10,7 +10,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import kinetics, multiplicity, sampling
+from thermolab import equilibrium, kinetics, multiplicity, sampling
+from thermolab.constants import K_B
 from thermolab.validation import relative_error, scaling_exponent
 
 pytestmark = pytest.mark.large_n
@@ -161,6 +162,38 @@ def test_the_sum_gets_noisier_while_the_average_gets_steadier():
 
     assert scaling_exponent(sizes, absolute_sum_spreads) == pytest.approx(0.5, abs=0.06)
     assert scaling_exponent(sizes, relative_average_spreads) == pytest.approx(-0.5, abs=0.06)
+
+
+def _relative_spread_of_gap_after_one_tau(n_a: int, n_b: int, n_samples: int, base_seed: int
+                                          ) -> float:
+    """Seed-to-seed relative spread of T_A - T_B, measured one relaxation time in.
+
+    Bigger bodies (more oscillators, hence more exchanged quanta Q) should make the outcome
+    at a fixed *fraction* of the relaxation time more predictable, the same steadying every
+    other module's large-N test measures -- here for the approach to equilibrium rather than
+    for a value already at equilibrium.
+    """
+    quantum = 20.0 * K_B
+    state = equilibrium.from_temperatures(n_a, n_b, 500.0, 250.0, quantum)
+    checkpoint = max(int(round(equilibrium.relaxation_time(state))), 1)
+    seeds = np.random.SeedSequence(base_seed).spawn(n_samples)
+    gaps = []
+    for s in seeds:
+        result = equilibrium.simulate_energy_exchange(state, checkpoint, np.random.default_rng(s))
+        gaps.append(float(result.temperature_a[-1] - result.temperature_b[-1]))
+    gaps = np.array(gaps)
+    return float(gaps.std(ddof=1) / abs(gaps.mean()))
+
+
+def test_equilibration_gets_more_predictable_as_the_bodies_grow():
+    """More oscillators (bigger C_A, C_B, more exchanged quanta) means less run-to-run scatter
+    in the temperature gap measured one relaxation time in -- the N^(-1/2)-flavoured steadying
+    this course keeps rediscovering, now for a relaxation process rather than a static average.
+    """
+    small = _relative_spread_of_gap_after_one_tau(30, 10, n_samples=20, base_seed=11)
+    large = _relative_spread_of_gap_after_one_tau(1000, 300, n_samples=20, base_seed=11)
+
+    assert large < small
 
 
 @pytest.mark.slow

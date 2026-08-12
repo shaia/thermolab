@@ -1,0 +1,146 @@
+[
+  {
+    "question": "Body A is in thermal equilibrium with body C, and body B is separately in thermal equilibrium with body C. What can you conclude about A and B?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "A and B are in thermal equilibrium with each other -- this is exactly what the zeroth law asserts.",
+        "correct": true,
+        "feedback": "Right. This is precisely why a single calibrated thermometer (playing the role of C) can be trusted on any two objects it touches in turn -- without the zeroth law, matching thermometer readings on two objects would say nothing about whether those two objects agree with each other."
+      },
+      {
+        "answer": "Nothing follows -- equilibrium is not guaranteed to be transitive.",
+        "correct": false,
+        "feedback": "This is exactly what the zeroth law rules out. It is stated as an empirical axiom precisely because transitivity is not logically forced by anything more basic -- it is a fact about how real thermal contact behaves."
+      },
+      {
+        "answer": "A and B must have the same heat capacity.",
+        "correct": false,
+        "feedback": "Heat capacity plays no role here. Two bodies can be at the same temperature while having wildly different heat capacities -- that is exactly why the equilibrium temperature of a pair is a heat-capacity-weighted average, not a statement about C_A and C_B being equal."
+      },
+      {
+        "answer": "A and B are each in equilibrium with C, but a thermometer might read differently on A than on B.",
+        "correct": false,
+        "feedback": "A properly calibrated thermometer reads the same value on any two bodies at the same temperature. That consistency is exactly what the zeroth law guarantees, not something it leaves open."
+      }
+    ]
+  },
+  {
+    "question": "Two identical metal blocks, one hot and one cold, are pressed together and then isolated from everything else. True or false: they reach the same temperature the instant they touch.",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "False -- the temperatures approach each other smoothly, over a relaxation time set by the heat capacities and the quality of the contact.",
+        "correct": true,
+        "feedback": "Right. Real thermal contact has a finite conductance kappa, so the gap T_A - T_B decays as exp(-t/tau) rather than collapsing to zero the instant the blocks touch."
+      },
+      {
+        "answer": "True -- contact alone is enough to equalize temperature immediately.",
+        "correct": false,
+        "feedback": "This ignores that heat has to actually flow across the contact, at a rate set by kappa. No real contact has infinite conductance, so equilibration always takes a finite relaxation time tau, however short that time may be."
+      },
+      {
+        "answer": "True, but only if the two blocks are made of the same material.",
+        "correct": false,
+        "feedback": "Matching materials does not remove the need for heat to flow across the contact at a finite rate. It might shorten tau, but it cannot make it exactly zero."
+      },
+      {
+        "answer": "False -- but only because the blocks are solid; liquids and gases would equalize instantly.",
+        "correct": false,
+        "feedback": "Every phase of matter transfers heat at a finite rate. Liquids and gases can equilibrate faster once convection helps, but \"instantly\" is never physically achieved by any phase."
+      }
+    ]
+  },
+  {
+    "question": "Body A has heat capacity 300 J/K and starts at 80 C. Body B has heat capacity 900 J/K and starts at 20 C. The pair is isolated together. Find the equilibrium temperature in degrees C.",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          34.5,
+          35.5
+        ],
+        "correct": true,
+        "feedback": "T_eq = (C_A T_A + C_B T_B)/(C_A + C_B) = (300*80 + 900*20)/1200 = 42000/1200 = 35 C. Body B has three times the heat capacity of A, so the equilibrium sits three-quarters of the way from A's starting value to B's -- much closer to 20 C than to the plain midpoint, 50 C."
+      }
+    ]
+  },
+  {
+    "question": "Two bodies with very different heat capacities are brought into contact and allowed to reach equilibrium. Which statement is correct?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "T_eq is the heat-capacity-weighted average of the two starting temperatures, so the body with the larger C pulls T_eq closer to its own starting value.",
+        "correct": true,
+        "feedback": "Correct: T_eq = (C_A T_A + C_B T_B)/(C_A+C_B). A larger C_A means body A's temperature has to move less to conserve the pair's total energy -- the same way a larger mass moves less in a lopsided lever balance."
+      },
+      {
+        "answer": "T_eq is always exactly the arithmetic mean of T_A and T_B, regardless of the two heat capacities.",
+        "correct": false,
+        "feedback": "This holds only in the special case C_A = C_B. In general each body's starting temperature is weighted by its own heat capacity, not counted equally."
+      },
+      {
+        "answer": "T_eq equals whichever starting temperature belongs to the body with the larger heat capacity.",
+        "correct": false,
+        "feedback": "This overcorrects. The larger-C body pulls T_eq toward itself but does not fix it exactly there, unless its heat capacity is effectively infinite compared with the other body's."
+      },
+      {
+        "answer": "T_eq depends only on which body started hotter, not on the two heat capacities.",
+        "correct": false,
+        "feedback": "T_eq always lies between T_A(0) and T_B(0), but exactly where within that range depends on the ratio C_A:C_B, not merely on which body was hotter."
+      }
+    ]
+  },
+  {
+    "question": "Two bodies start with a temperature gap of 100 K. About how large is the gap after exactly one relaxation time tau has passed?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "About 37 K -- a factor of 1/e smaller than the initial gap.",
+        "correct": true,
+        "feedback": "Right. T_A(t) - T_B(t) = (T_A(0) - T_B(0)) exp(-t/tau), and exp(-1) = 0.368, so after one tau the gap has fallen to about 37% of its starting value -- that ratio is exactly how tau is defined."
+      },
+      {
+        "answer": "0 K -- equilibrium is essentially reached after one relaxation time.",
+        "correct": false,
+        "feedback": "One relaxation time shrinks the gap by a factor of about 1/e, not to zero. The exponential never formally reaches zero; after several tau the gap becomes negligible, but tau itself is not \"arrival\"."
+      },
+      {
+        "answer": "50 K -- one relaxation time halves the gap.",
+        "correct": false,
+        "feedback": "Halving the gap takes ln(2)*tau, about 0.69 tau, not exactly one tau. tau is defined by the 1/e factor, not by a factor of one half."
+      },
+      {
+        "answer": "Still 100 K or larger -- the gap does not start shrinking until several relaxation times have passed.",
+        "correct": false,
+        "feedback": "The gap shrinks continuously from the very first instant; there is no delay before the decay begins."
+      }
+    ]
+  },
+  {
+    "question": "In which situation would this module's discrete energy-exchange model be least trustworthy for predicting the approach to equilibrium?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Two bodies both close to absolute zero.",
+        "correct": true,
+        "feedback": "Right. At low temperature the oscillators leave the classical, high-temperature equipartition regime that T = (quanta x quantum)/(n k_B) relies on, and quantum statistics take over -- exactly the model's stated failure mode."
+      },
+      {
+        "answer": "Two bodies at very different starting temperatures, both well above their characteristic quantum scale.",
+        "correct": false,
+        "feedback": "A large starting gap is exactly what this module's derivation handles -- the exponential relaxation law was derived for an arbitrary T_A(0)-T_B(0), and the model stays valid as long as both bodies sit in the classical regime."
+      },
+      {
+        "answer": "Two bodies of very different sizes (large N_A, small N_B).",
+        "correct": false,
+        "feedback": "Unequal sizes are exactly what makes the heat-capacity-weighted T_eq formula interesting; the model handles N_A != N_B without any special treatment, as long as both are individually large enough to be called macroscopic."
+      },
+      {
+        "answer": "Two bodies made of the same material.",
+        "correct": false,
+        "feedback": "Matching materials is not a failure mode of anything in this model -- if anything it makes the shared-quantum-size assumption easiest to justify."
+      }
+    ]
+  }
+]

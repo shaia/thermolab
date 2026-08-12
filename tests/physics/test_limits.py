@@ -11,7 +11,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import forms, kinetics, multiplicity, paths, sampling
+from thermolab import equilibrium, forms, kinetics, multiplicity, paths, sampling
 from thermolab.constants import K_B
 from thermolab.validation import relative_error, seed_study
 
@@ -299,3 +299,48 @@ def test_mixed_partials_decide_exactness_without_integrating():
     assert np.allclose(inexact_gap, 1.0, atol=1e-8)
     assert forms.is_exact(lambda x, y: y, lambda x, y: x, x, y)
     assert not forms.is_exact(lambda x, y: y, lambda x, y: np.zeros_like(x), x, y)
+
+
+EQUILIBRIUM_QUANTUM = 20.0 * K_B
+
+
+def make_equilibrium_state():
+    """A modest pair whose relaxation time (~4400 steps) keeps the tests below quick."""
+    return equilibrium.from_temperatures(150, 50, 500.0, 250.0, EQUILIBRIUM_QUANTUM)
+
+
+def test_equilibrium_temperature_matches_simple_known_cases():
+    """Equal heat capacities give the plain average; a dominant one pulls T_eq toward itself."""
+    assert equilibrium.equilibrium_temperature(5.0, 400.0, 5.0, 300.0) == pytest.approx(350.0)
+    assert equilibrium.equilibrium_temperature(1e6, 400.0, 1.0, 100.0) == pytest.approx(
+        400.0, rel=1e-4
+    )
+
+
+def test_long_run_average_temperature_reaches_the_equilibrium_temperature():
+    """The point of the module: a random exchange settles at (C_A T_A + C_B T_B)/(C_A+C_B)."""
+    state = make_equilibrium_state()
+    target = equilibrium.equilibrium_temperature(
+        state.heat_capacity_a, state.temperature_a, state.heat_capacity_b, state.temperature_b
+    )
+    n_steps = int(8 * equilibrium.relaxation_time(state))
+
+    def measure(rng: np.random.Generator) -> float:
+        return float(equilibrium.simulate_energy_exchange(state, n_steps, rng).temperature_a[-1])
+
+    study = seed_study(measure, n_seeds=12)
+    assert study.agrees_with(target, n_sigma=3.5)
+
+
+def test_mean_trajectory_matches_the_predicted_relaxation_curve():
+    """The stochastic exchange's mean gap at one relaxation time matches the closed form exactly."""
+    state = make_equilibrium_state()
+    checkpoint = int(equilibrium.relaxation_time(state))
+    predicted = float(equilibrium.predicted_relaxation(state, np.array([checkpoint]))[0])
+
+    def measure(rng: np.random.Generator) -> float:
+        result = equilibrium.simulate_energy_exchange(state, checkpoint, rng)
+        return float(result.temperature_a[-1] - result.temperature_b[-1])
+
+    study = seed_study(measure, n_seeds=16)
+    assert study.agrees_with(predicted, n_sigma=3.5)
