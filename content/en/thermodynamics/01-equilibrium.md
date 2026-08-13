@@ -61,8 +61,8 @@ Commit to an answer for each of these *before* running anything. Write them down
    the final equilibrium temperature change? Does the *time* it takes to get there change?
 
 :::{note} Why we ask first
-Question 3 is deliberately the same shape as a question module 4 asked about pressure: does
-equilibrium mean the microscopic activity has stopped, or only that it has balanced?
+Question 3 is deliberately the same shape as a question module 4 will ask about pressure:
+does equilibrium mean the microscopic activity has stopped, or only that it has balanced?
 Committing to an answer first is the only way to notice which intuition the derivation below
 is about to correct.
 :::
@@ -100,8 +100,8 @@ comparison is fair:
 The same relaxation, run at three system sizes, each drawn as $(T_A - T_B)/(T_{A,0} -
 T_{B,0})$ against the analytic prediction (dashed). The scatter around the smooth curve does
 not come from anything getting gentler — it shrinks because there are more energy quanta to
-average over, the same phenomenon module 4 met as pressure fluctuations and module 8 met as
-the multiplicity peak.
+average over, the same phenomenon that will return in module 4 as pressure fluctuations and
+in module 8 as the multiplicity peak.
 :::
 
 :::{admonition} Model specification
@@ -304,6 +304,10 @@ which this module deliberately does not model. Agreement here supports the macro
 plausibility; it does not prove the law the way the ODE derivation does.
 :::
 
+The one check no simulation can supply is a real thermal contact, which is what Part 6 of the
+laboratory asks for: a mug of hot water, a kitchen thermometer, a reading every couple of
+minutes, and a $\tau$ fitted in minutes rather than in steps.
+
 (01-equilibrium-transfer)=
 ## Transfer the idea
 
@@ -326,6 +330,23 @@ throughout physics and beyond it.
   temperature with a time constant set by its thermal mass and insulation — the same $\tau =
   C/\kappa$ structure, now with one "body" (outdoors) so large that its own temperature barely
   moves.
+
+The two Einstein solids themselves also come back, three times, each visit settling something
+this module has to leave open:
+
+- **The entropy ledger (module 9).** The very trajectories the laboratory generates here are
+  replayed there with an entropy ledger attached, hop by hop. That ledger answers the question
+  this module poses and cannot yet answer: energy conservation fixes *where* the pair may
+  settle, but says nothing about why it settles *there* rather than at some other balance. The
+  answer is that the pair's total entropy climbs while a temperature difference remains and
+  stops climbing exactly when that difference vanishes.
+- **The partition function (module 12).** The same oscillators are handed to the machinery of
+  the canonical ensemble, and the temperature map used throughout this module,
+  $T = q\,\varepsilon/(n k_B)$, drops out of the partition function $Z$ alone — the same
+  number, reached from a direction that assumes no equipartition.
+- **Heat capacity that varies (module 16).** The Einstein solid's $C_V(T)$ is derived there,
+  which is what finally pays off the constant-$C$ approximation box above: it says how large
+  that approximation's error is, and at what temperature the approximation stops being safe.
 
 :::{admonition} A word on relaxation time
 :class: definition
