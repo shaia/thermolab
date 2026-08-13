@@ -191,7 +191,7 @@ scripts, the library is physics only.
 
 | Module | Plan | Content built |
 |---|---|---|
-| 00, 01, 04, 05, 08 | as-built + gap list | yes (01 HE mirror pending) |
+| 00, 01, 04, 05, 08 | as-built + gap list | yes |
 | 02, 03, 06, 07, 09–12 | full specification | no |
 | 13–18 | full specification | no |
 

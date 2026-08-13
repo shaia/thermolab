@@ -53,40 +53,58 @@ twice (mechanism ≠ real conduction; `from_temperatures` rounding), *numerical-
 *definition* (relaxation time). Both registry misconceptions are staged as designed:
 `instant-equilibrium` (predict Q3, falsified by the finite-tau relaxation the lab measures,
 distractor in `Q-01-2`) and `equal-weight-equilibrium` (predict Q1, falsified by the lab's
-Part 2 unequal-size measurement, distractor in `Q-01-4`). The lab (5 parts) runs relaxation,
-measures T_eq against the weighted average, fits the spread-vs-$Q$ exponent (~ -0.5), re-runs
-the suite's own assertions in Part 4, and ends with sliders plus a reflection cell. The quiz
-bank (`Q-01-1..8`: MC, numeric, prediction, short-answer) covers every objective; the problem
-set (6, objective-tagged) spans zeroth-law reading, calorimetry, the tau derivation, forensic
-cooling, model breakdown, and a computational finale on `thermolab.equilibrium`. Media:
+Part 2 unequal-size measurement, distractor in `Q-01-4`). Transfer carries seven targets: four
+real-world (calorimetry, forensic cooling, RC discharge, building heat loss) and three C4c
+forward pointers into 09, 12, and 16. The lab (6 parts) runs relaxation, measures T_eq against
+the weighted average, fits the spread-vs-$Q$ exponent (~ -0.5), re-runs the suite's own
+assertions in Part 4, opens the sliders with a reflection cell, and closes on a
+mug-of-hot-water cooling curve the reader logs and fits by hand. The quiz bank (`Q-01-1..8`:
+MC, numeric, prediction, short-answer) covers every objective; the problem set (6,
+objective-tagged) spans zeroth-law reading, calorimetry, the tau derivation, forensic cooling,
+model breakdown, and a computational finale on `thermolab.equilibrium`. Media:
 `render_equilibrium.py` renders `equilibrium-relaxation.mp4` and
 `equilibrium-fluctuations.mp4` from the library itself, language-neutral (generated
-`content/*/media/` is gitignored by design).
+`content/*/media/` is gitignored by design). The HE family is complete — page, problems, and
+lab notebook mirrored beside the quiz bank under `en_source_hash` stamps — so the module
+satisfies invariant 6 outright.
 
-**Gap list**
+**Gap list, as resolved**
 
-1. **Hebrew mirror pending (tracked).** `translation-pending.txt` lists this module's page,
-   problems, and lab; only the quiz bank (`01-equilibrium.he.yml`) is mirrored. Close by
-   translating all three using `glossary/terms.yml` terminology only (keys already present:
-   `equilibrium`, `thermal-equilibrium`, `zeroth-law`, `relaxation-time`, `energy-quantum`,
-   `thermal-contact`), stamping each with its `en_source_hash`, and deleting the three lines
-   from `translation-pending.txt` so `check_parity.py` goes green.
-2. **Brainstorm-row shortfall: systems, boundaries, state variables.** The page treats system
-   and boundary only operationally (model spec, derive) — no open/closed/isolated wall
-   taxonomy, and "state variable" never appears. Decide: a short definitions passage in 01,
-   or explicit deferral to 02 (which owns intensive/extensive); record the outcome in §7.
-3. **Forward-pointer seeds owed to the C4c spiral.** The transfer section's four targets are
-   all real-world; none seeds 09 (entropy will answer the puzzle's own question), none seeds
-   12 ($Z$ recomputes the $T = q\,\varepsilon/(n \kB)$ map), and 16 appears only in the
-   derive-section approximation box. Add transfer bullets.
-4. **Cross-reference tense.** The page cites modules 4 and 8 in past tense ("module 4
-   asked", "module 4 met… module 8 met") though both come later — reword as forward pointers.
-5. **Real-experiment counterpart absent.** The natural cheap pairing (cooling curve of hot
-   water in a mug, fit tau) has no import cell in the lab; add one, or declare "none
-   practical" explicitly on the page.
+1. **Hebrew mirror.** Page, problems, and lab all mirrored on `glossary/terms.yml`
+   terminology: 9 MyST labels byte-identical and in EN order, every math span verbatim, each
+   epistemic box keeping its class, both `.mp4` targets unchanged under translated captions;
+   the notebook comes from `scripts/sync_notebooks.py`, code cells byte-copied and markdown
+   translated. Three pages stamped, `translation-pending.txt` emptied. Two traps worth
+   inheriting: `content/he/index.md` and the `content/he/myst.yml` TOC also need the module
+   and *no* validator checks either; and four terms with no glossary key — thermal
+   conductance, forensic cooling, discretisation, Einstein solid — were settled against the
+   existing mirrors' register rather than transliterated.
+2. **Systems, boundaries, state variables — deferred to 02.** Settled as a scope decision
+   rather than a page edit: the open/closed/isolated taxonomy and the state-variable
+   vocabulary travel with intensive/extensive and the equations of state that supply their
+   examples. 01 keeps system and boundary operational (model spec, derive). The glossary key
+   `state-variable` already exists, so 02 inherits terminology, not groundwork. Recorded in §7.
+3. **Forward-pointer seeds for the C4c spiral.** Three bullets inside the existing
+   `(01-equilibrium-transfer)=` section, no new labels: 09 replays these trajectories with an
+   entropy ledger and answers the question the puzzle poses but cannot settle; 12 recovers the
+   $T = q\,\varepsilon/(n \kB)$ map from $Z$ alone; 16 derives the Einstein $C_V(T)$ that pays
+   off the constant-$C$ approximation box. One nuance 09's plan inherits: the entropy claim is
+   worded as the *pair's total* entropy climbing and going stationary at equality, not as a
+   per-hop $\Delta S > 0$ — a single stochastic hop can lower it, and the stronger wording
+   would fail this page's own epistemic standard.
+4. **Cross-reference tense.** The two past-tense citations of modules 4 and 8 — the
+   predict-section note and the explore-section figure caption — point forward. Three further
+   references stand as written after review: "module 8 revisits", "(module 16 meets this for
+   solids at low temperature)", and the model spec's locative "exactly as in module 8".
+5. **Real-experiment counterpart.** Lab Part 6, "A real experiment: your own cooling curve":
+   a mug protocol, editable arrays whose placeholder values are labelled as invented so
+   nothing fabricated can pose as a measurement, and an `np.polyfit` straight line through the
+   logged gap for tau (numpy only — the Pyodide kernel has no scipy). The verify section ends
+   pointing at it. The page names evaporation and the mixed conduction/convection/radiation
+   channels, so the fitted conductance belongs to that mug in that room, not to water.
 
-**Validation gates:** the README per-module block with `--module 01-equilibrium`; until gap 1
-closes, `check_parity.py` correctly reports the three mirrors as PENDING.
+**Validation gates:** the README per-module block with `--module 01-equilibrium`; all eight
+`validate_all.py` stages run clean, `check_parity.py` at zero findings and zero warnings.
 
 ## 4. Library and tests
 
@@ -129,11 +147,11 @@ closes, `check_parity.py` correctly reports the three mirrors as PENDING.
 ## 6. Build order and validation gates
 
 Built — teaching slot 1, directly after 00; the library file, both misconception registry
-entries (`status: addressed`), and all glossary terms landed with it. **Remaining work
-item:** HE completion (§3 gap 1) — translate page + problems + lab, stamp `en_source_hash`,
-empty this module's lines from `translation-pending.txt`, then re-run the gates:
-`check_modelspec.py --module 01-equilibrium`, `check_assessment.py`, `check_glossary.py`,
-`check_parity.py`, `pytest tests/physics -q`, `validate_all.py --module 01-equilibrium`.
+entries (`status: addressed`), and all glossary terms landed with it. The artifact family is
+complete in both languages, and all eight `validate_all.py --module 01-equilibrium` stages are
+green — ruff, pytest, nbmake, `check_modelspec`, `check_notebooks`, `check_glossary`,
+`check_assessment`, `check_parity` — with `translation-pending.txt` holding nothing but its
+comment header, which is the release bar.
 
 ## 7. Deviations from the brainstorm
 
@@ -141,7 +159,12 @@ empty this module's lines from `translation-pending.txt`, then re-run the gates:
   solids to arm the 01 → 09 → 12 → 16 spiral (C4c) — additive, not a re-scope.
 - **Dynamics added:** Newton's cooling, $\tau$, and the exact discrete correspondence go
   beyond the row's static topic list — the module gains a "how fast", not just a "where".
-- **State-variable vocabulary deferred (pending §3 gap 2):** intensive/extensive and the
-  state-variable taxonomy sit naturally with equations of state in 02.
+- **State-variable vocabulary sits in 02:** intensive/extensive, the open/closed/isolated
+  wall taxonomy, and "state variable" itself travel with the equations of state that give
+  them examples; 01 uses system and boundary operationally only.
+- **A bench experiment inside a simulation lab:** the laboratory's last part is a cooling
+  curve the reader measures with a mug and a thermometer rather than a run of the model — a
+  break from the brainstorm's simulation-only notebook rhythm, taken in the direction its §5
+  "verify computationally … experimental data" line asks for.
 - **Media per C4d:** language-neutral MP4s rendered from the library by
   `render_equilibrium.py`; captions live in translated page prose, not burned into frames.
