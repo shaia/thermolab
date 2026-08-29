@@ -4,3 +4,6 @@ content/en/thermodynamics/01-equilibrium.md
 content/en/thermodynamics/01-equilibrium-problems.md
 notebooks/en/labs/01-equilibrium.ipynb
 content/en/index.md
+content/en/thermodynamics/02-equations-of-state.md
+content/en/thermodynamics/02-equations-of-state-problems.md
+notebooks/en/labs/02-equations-of-state.ipynb

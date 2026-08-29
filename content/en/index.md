@@ -32,6 +32,7 @@ Currently available:
 
 - **[Orientation](foundations/00-orientation.md)** — how many unpredictable things add up to a reliable one. Start here.
 - **[Thermal equilibrium](thermodynamics/01-equilibrium.md)** — what it means for two bodies to be "at the same temperature," and why heat stops flowing exactly there.
+- **[Equations of state](thermodynamics/02-equations-of-state.md)** — how pressure, volume and temperature are tied together, and why real gases eventually condense.
 - **[Microscopic origin of pressure](thermodynamics/04-pressure.md)** — how steady pressure emerges from violent, irregular collisions.
 - **[Work and thermodynamic paths](thermodynamics/05-work-paths.md)** — why work depends on the road taken, not just the endpoints.
 - **[Entropy and multiplicity](statistical-mechanics/08-multiplicity.md)** — why an isolated gas almost never gathers in one corner.

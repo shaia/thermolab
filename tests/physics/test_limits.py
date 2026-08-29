@@ -11,7 +11,15 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import equilibrium, forms, kinetics, multiplicity, paths, sampling
+from thermolab import (
+    equations_of_state,
+    equilibrium,
+    forms,
+    kinetics,
+    multiplicity,
+    paths,
+    sampling,
+)
 from thermolab.constants import K_B
 from thermolab.validation import relative_error, seed_study
 
@@ -344,3 +352,60 @@ def test_mean_trajectory_matches_the_predicted_relaxation_curve():
 
     study = seed_study(measure, n_seeds=16)
     assert study.agrees_with(predicted, n_sigma=3.5)
+
+
+ARGON_A = 3.736e-49  # Pa m^6, per molecule (argon a_molar / N_A**2)
+ARGON_B = 5.317e-29  # m^3, per molecule (argon b_molar / N_A)
+
+
+def test_van_der_waals_pressure_at_a_b_zero_matches_the_ideal_gas_law_exactly():
+    """At a = b = 0 the formula is read off paths.ideal_gas_pressure directly (see the
+    module's source), so this is a sanity check on that delegation rather than a limit."""
+    n_particles, temperature, volume = 1000, 300.0, 1e-3
+    ideal = paths.ideal_gas_pressure(n_particles, temperature, volume)
+
+    vdw = equations_of_state.van_der_waals_pressure(n_particles, temperature, volume, 0.0, 0.0)
+
+    assert relative_error(float(vdw), ideal) < 1e-12
+
+
+def test_van_der_waals_pressure_converges_to_the_ideal_gas_law_as_a_and_b_shrink():
+    """Real argon at STP-like density deviates from the ideal gas law by order 1e-3; shrinking
+    its a, b by successive decades should shrink that deviation by roughly the same factor --
+    the genuine a, b -> 0 limit, as opposed to the exact-zero sanity check above.
+    """
+    n_particles, temperature, volume = 5.0e22, 300.0, 2.0e-3
+    ideal = paths.ideal_gas_pressure(n_particles, temperature, volume)
+
+    errors = []
+    for factor in (1.0, 0.1, 0.01, 0.001):
+        vdw = equations_of_state.van_der_waals_pressure(
+            n_particles, temperature, volume, ARGON_A * factor, ARGON_B * factor
+        )
+        errors.append(relative_error(float(vdw), ideal))
+
+    assert errors == sorted(errors, reverse=True)  # monotonically shrinking
+    assert errors[0] < 1e-2  # real argon is already close to ideal at these conditions
+    assert errors[-1] < 1e-4  # a thousandth of its a, b is utterly negligible
+
+
+def test_critical_point_matches_known_argon_values():
+    """Argon's measured critical point is T_c = 150.9 K, P_c = 4.87 MPa (CRC values); the
+    molecule-scale a, b converted from the textbook molar constants should reproduce it."""
+    t_c, p_c, v_c = equations_of_state.critical_point(5.0e22, ARGON_A, ARGON_B)
+
+    assert relative_error(t_c, 150.9) < 0.02
+    assert relative_error(p_c, 4.87e6) < 0.02
+    assert v_c > 0.0
+
+
+def test_pressure_at_the_critical_point_equals_the_predicted_critical_pressure():
+    """The closed-form P_c must be exactly what the pressure formula gives at (T_c, V_c)."""
+    n_particles = 1000
+    t_c, p_c, v_c = equations_of_state.critical_point(n_particles, ARGON_A, ARGON_B)
+
+    pressure_here = equations_of_state.van_der_waals_pressure(
+        n_particles, t_c, v_c, ARGON_A, ARGON_B
+    )
+
+    assert relative_error(float(pressure_here), p_c) < 1e-10

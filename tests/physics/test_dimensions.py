@@ -10,7 +10,15 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import equilibrium, forms, kinetics, multiplicity, paths, sampling
+from thermolab import (
+    equations_of_state,
+    equilibrium,
+    forms,
+    kinetics,
+    multiplicity,
+    paths,
+    sampling,
+)
 from thermolab.units import K_B_Q, Quantity
 
 pytestmark = pytest.mark.dimensional
@@ -144,3 +152,38 @@ def test_quantum_times_quanta_count_is_an_energy():
     quantum = Quantity(2.76e-22, "J")
     n_quanta = 500
     assert (n_quanta * quantum).check("[energy]")
+
+
+def test_van_der_waals_pressure_has_pressure_dimensions():
+    """P = N k_B T/(V - N b) - a N^2/V^2: both terms must independently be a pressure."""
+    n = 1000
+    temperature = Quantity(300.0, "K")
+    volume = Quantity(1e-3, "m**3")
+    a = Quantity(3.736e-49, "Pa * m**6")
+    b = Quantity(5.317e-29, "m**3")
+
+    excluded_volume_term = n * K_B_Q * temperature / (volume - n * b)
+    attraction_term = a * n**2 / volume**2
+    assert excluded_volume_term.check("[pressure]")
+    assert attraction_term.check("[pressure]")
+    assert (excluded_volume_term - attraction_term).check("[pressure]")
+
+
+def test_critical_point_quantities_have_the_right_dimensions():
+    """T_c = 8a/(27 k_B b), P_c = a/(27 b^2), V_c = 3 N b -- one dimension check each."""
+    a = Quantity(3.736e-49, "Pa * m**6")
+    b = Quantity(5.317e-29, "m**3")
+    t_c = 8 * a / (27 * K_B_Q * b)
+    p_c = a / (27 * b**2)
+    v_c = 3 * 1000 * b
+    assert t_c.check("[temperature]")
+    assert p_c.check("[pressure]")
+    assert v_c.check("[volume]")
+
+
+def test_equations_of_state_functions_return_plain_si_floats():
+    """The library itself stays unit-free by design, same as every other module here."""
+    t_c, p_c, v_c = equations_of_state.critical_point(1000, 3.736e-49, 5.317e-29)
+    assert isinstance(t_c, float)
+    assert isinstance(p_c, float)
+    assert isinstance(v_c, float)

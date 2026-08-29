@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import equilibrium, forms, kinetics, paths, sampling
+from thermolab import equations_of_state, equilibrium, forms, kinetics, paths, sampling
 from thermolab.constants import K_B
 from thermolab.validation import convergence_study, relative_error
 
@@ -165,3 +165,26 @@ def test_pressure_estimate_settles_as_the_averaging_window_grows():
 
     assert errors[-1] < errors[0]
     assert errors[-1] < 0.05
+
+
+def test_pressure_derivative_at_the_critical_point_vanishes_at_second_order():
+    """dP/dV = 0 exactly at the critical volume; a central finite difference of a function
+    whose true derivative is exactly zero there must shrink as h^2 (the standard
+    central-difference truncation error) -- the same discretisation signature the quadrature
+    tests above check, applied to a derivative instead of an integral.
+    """
+    n_particles, a, b = 1000, 3.736e-49, 5.317e-29
+    t_c, _p_c, v_c = equations_of_state.critical_point(n_particles, a, b)
+
+    def central_difference(n: int) -> float:
+        h = v_c / n
+        p_plus = equations_of_state.van_der_waals_pressure(n_particles, t_c, v_c + h, a, b)
+        p_minus = equations_of_state.van_der_waals_pressure(n_particles, t_c, v_c - h, a, b)
+        return float((p_plus - p_minus) / (2.0 * h))
+
+    study = convergence_study(
+        central_difference, refinements=[100, 200, 400, 800, 1600], exact=0.0
+    )
+
+    assert study.observed_order == pytest.approx(2.0, abs=0.3)
+    assert study.errors[-1] < study.errors[0]

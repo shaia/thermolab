@@ -12,7 +12,8 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from thermolab import equilibrium, forms, kinetics, multiplicity, sampling
+from thermolab import equations_of_state, equilibrium, forms, kinetics, multiplicity, sampling
+from thermolab.validation import relative_error
 
 pytestmark = pytest.mark.conservation
 
@@ -170,3 +171,24 @@ def test_an_exact_form_integrates_to_zero_around_a_closed_loop():
     loop = forms.line_integral(m, n, 2.0 + np.cos(angle), 1.0 + np.sin(angle))
 
     assert loop == pytest.approx(0.0, abs=1e-9)
+
+
+def test_van_der_waals_pressure_is_invariant_under_simultaneous_n_v_scaling():
+    """Pressure is intensive: scaling N and V together at fixed T leaves P unchanged, exactly.
+
+    P = N k_B T/(V - N b) - a N^2/V^2 is homogeneous of degree zero in (N, V) at fixed T,
+    since every term is a ratio of something proportional to N (or N^2) over something
+    proportional to V (or V^2) -- the same invariance that makes pressure, unlike volume or
+    energy, an intensive state variable. It holds for the real-gas correction exactly as it
+    does for the ideal gas, since a and b are properties of the substance, not the sample.
+    """
+    a, b = 3.736e-49, 5.317e-29
+    temperature = 300.0
+    n_particles, volume = 1000, 1.0e-24  # well above the excluded volume N*b = 5.317e-26 m^3
+    base = equations_of_state.van_der_waals_pressure(n_particles, temperature, volume, a, b)
+
+    for factor in (2, 5, 50):
+        scaled = equations_of_state.van_der_waals_pressure(
+            factor * n_particles, temperature, factor * volume, a, b
+        )
+        assert relative_error(float(scaled), float(base)) < 1e-10

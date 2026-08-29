@@ -60,6 +60,15 @@ terms:
     en: ideal gas
     he: גז אידיאלי
     he_reject: [גז אידאלי]
+  - key: real-gas
+    en: real gas
+    he: גז ממשי
+  - key: van-der-waals
+    en: van der Waals
+    he: ואן דר ואלס
+  - key: critical-point
+    en: critical point
+    he: נקודה קריטית
   - key: kinetic-theory
     en: kinetic theory
     he: תורה קינטית
@@ -280,6 +289,9 @@ terms:
   - key: extensive
     en: extensive
     he: אקסטנסיבי
+  - key: intensive
+    en: intensive
+    he: אינטנסיבי
   - key: additive
     en: additive
     he: אדיטיבי

@@ -1,0 +1,172 @@
+[
+  {
+    "question": "A student claims that P V = N k_B T holds exactly for any gas at any density. Which observation most directly falsifies this claim?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Real gases condense into liquids at low temperature, which the ideal gas law -- having no way to distinguish one substance from another -- cannot predict.",
+        "correct": true,
+        "feedback": "Right. A law with no substance-specific constants in it cannot possibly predict that argon condenses at 87 K while helium stays gaseous down to 4 K. Something specific to each substance has to be missing."
+      },
+      {
+        "answer": "The ideal gas law uses k_B instead of R.",
+        "correct": false,
+        "feedback": "That is just a difference between a per-particle count N and a per-mole count n; the two forms are the same statement, R = N_A k_B. It says nothing about density."
+      },
+      {
+        "answer": "The ideal gas law does not apply to gases made of more than one atom per molecule.",
+        "correct": false,
+        "feedback": "It applies equally well to any dilute classical gas, monatomic or not -- the atom count inside a molecule is irrelevant to the derivation in module 4."
+      },
+      {
+        "answer": "The ideal gas law requires N to be measured in moles rather than as a particle count.",
+        "correct": false,
+        "feedback": "Either convention works; this course deliberately writes P V = N k_B T with N a plain particle count. Neither convention says anything about where the law breaks down."
+      }
+    ]
+  },
+  {
+    "question": "Real gas molecules attract each other weakly. Compared to the ideal-gas prediction N k_B T / V at the same N, V, T, does this attraction raise or lower the pressure, and why?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "It lowers the pressure -- a molecule approaching the wall is pulled backward by the neighbours behind it, so it delivers less momentum than it would feeling no attraction at all.",
+        "correct": true,
+        "feedback": "Correct. Deep in the gas the pull is symmetric and cancels; only near the wall, where there are neighbours on one side and none on the other, does the attraction have a net effect -- and it points away from the wall."
+      },
+      {
+        "answer": "It raises the pressure -- attraction pulls more molecules toward the wall, so more collisions occur.",
+        "correct": false,
+        "feedback": "Attraction does not increase the collision rate; it reduces the momentum each near-wall collision delivers, by pulling the incoming molecule back."
+      },
+      {
+        "answer": "It raises the pressure -- attracted molecules move faster, striking harder.",
+        "correct": false,
+        "feedback": "Attraction slows a molecule down as it approaches the wall (it is being pulled back toward the gas it came from), not sped up."
+      },
+      {
+        "answer": "It has no effect -- attraction only matters once the gas has condensed into a liquid.",
+        "correct": false,
+        "feedback": "The correction is present at any density, though it is small when the gas is dilute. It is exactly this small, everywhere-present correction that eventually adds up to a condensation transition at low enough temperature."
+      }
+    ]
+  },
+  {
+    "question": "In the van der Waals equation, the ideal gas law's volume V is replaced by V - N b, where b is one molecule's excluded volume. Why is it N b rather than just b?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Each of the N molecules independently excludes a volume b from the space available to the others, so the total excluded volume scales with N.",
+        "correct": true,
+        "feedback": "Exactly -- doubling the number of molecules at fixed b doubles how much room they collectively take up, so the correction has to grow with N, not stay fixed."
+      },
+      {
+        "answer": "b already accounts for the volume excluded by the whole sample of gas, whatever N is.",
+        "correct": false,
+        "feedback": "b is defined per molecule. If it already summed over the whole sample it would have to depend on N, which would make it a property of the sample rather than of the substance."
+      },
+      {
+        "answer": "The excluded volume should be divided among the N particles, giving b/N.",
+        "correct": false,
+        "feedback": "This has the scaling backwards: it would make the excluded-volume correction shrink as more molecules are added, when in fact more molecules exclude more total volume."
+      },
+      {
+        "answer": "The excluded volume can be dropped entirely from the van der Waals equation.",
+        "correct": false,
+        "feedback": "Dropping it removes exactly the term that keeps the pressure from becoming infinite as V shrinks toward zero -- and, as the Advanced section shows, removing it also removes the equation's critical point entirely."
+      }
+    ]
+  },
+  {
+    "question": "Using P = N k_B T/(V - N b) - a N^2/V^2 for argon (a = 3.736e-49 Pa m^6, b = 5.317e-29 m^3, k_B = 1.381e-23 J/K) at N = 5.0e22, V = 2.0e-3 m^3, T = 300 K, the van der Waals pressure differs from the ideal-gas pressure N k_B T/V by roughly what fraction? Give a signed decimal fraction (negative if the real-gas pressure is lower).",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          -0.00142,
+          -0.00042
+        ],
+        "correct": true,
+        "feedback": "The attraction correction (about -234 Pa) is slightly larger in magnitude than the excluded-volume correction (about +138 Pa), so the two do not cancel: the net shift is about -95 Pa out of roughly 1.036e5 Pa, a fraction near -0.0009, i.e. about a tenth of a percent below ideal."
+      }
+    ]
+  },
+  {
+    "question": "You have a sample of a real gas at (N, V, T). You prepare a second sample of the same substance with 3N particles in 3V volume, at the same temperature T. How does its van der Waals pressure compare to the first sample's?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Exactly equal -- pressure is intensive, and every term in the van der Waals equation is unchanged by scaling N and V together at fixed T.",
+        "correct": true,
+        "feedback": "Right. N/(V - N b) and N^2/V^2 are each a ratio of something proportional to the scale factor over something proportional to the same scale factor, so the scale factor cancels exactly -- for the real-gas correction just as for the ideal gas."
+      },
+      {
+        "answer": "Exactly triple, since pressure depends linearly on N.",
+        "correct": false,
+        "feedback": "Pressure depends on N only through the *density* N/V, not on N alone. Tripling N while also tripling V leaves that density, and hence the pressure, unchanged."
+      },
+      {
+        "answer": "Exactly a third, since pressure depends inversely on V.",
+        "correct": false,
+        "feedback": "Same error in the other direction: V alone does not set the pressure either, only the ratio N/V does, and that ratio has not changed."
+      },
+      {
+        "answer": "Approximately but not exactly equal -- the excluded-volume and attraction corrections scale differently, so a small residual mismatch remains.",
+        "correct": false,
+        "feedback": "They scale the same way when N and V are scaled together: both corrections are exactly homogeneous of degree zero in (N, V) at fixed T, not just approximately."
+      }
+    ]
+  },
+  {
+    "question": "At a gas's van der Waals critical point (T_c, P_c, V_c), what is special about the P-V isotherm at T = T_c?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Both the slope dP/dV and the curvature d^2P/dV^2 vanish simultaneously at V = V_c -- the isotherm has a horizontal inflection point there.",
+        "correct": true,
+        "feedback": "Correct -- that pair of conditions is exactly how T_c, P_c and V_c are defined and derived."
+      },
+      {
+        "answer": "The pressure is at its absolute maximum over all volumes.",
+        "correct": false,
+        "feedback": "The critical point is a horizontal inflection, not a maximum -- the pressure keeps falling as V grows well beyond V_c."
+      },
+      {
+        "answer": "The gas obeys the ideal gas law exactly at that one point.",
+        "correct": false,
+        "feedback": "The opposite is closer to true: the critical point is where the real-gas corrections matter most, since it is where V is smallest relative to the excluded volume N b."
+      },
+      {
+        "answer": "The volume V_c is independent of how many particles N are present.",
+        "correct": false,
+        "feedback": "V_c = 3 N b is proportional to N -- it is extensive, unlike T_c and P_c, which depend only on the substance's a and b and not on the sample size."
+      }
+    ]
+  },
+  {
+    "question": "Below the critical temperature, a van der Waals isotherm develops a region where (dP/dV)_T > 0 -- pressure rising as volume increases. What does this region signify?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "That region is mechanically unstable and never realized by real matter; the true isotherm replaces it with a flat, constant-pressure segment via the Maxwell construction.",
+        "correct": true,
+        "feedback": "Right -- a region where pressure rises with volume would spontaneously collapse or expand rather than sit in equilibrium, so no real gas ever sits there."
+      },
+      {
+        "answer": "That region describes the gas becoming supercritical.",
+        "correct": false,
+        "feedback": "Supercritical behaviour appears above T_c, where no loop occurs at all -- the loop is specifically a below-T_c phenomenon."
+      },
+      {
+        "answer": "That region is where the ideal gas law becomes exact.",
+        "correct": false,
+        "feedback": "The loop is the single clearest sign that the gas is furthest from ideal behaviour, not closest to it."
+      },
+      {
+        "answer": "That region signals that the excluded-volume correction has become negative.",
+        "correct": false,
+        "feedback": "b itself never changes sign; the loop comes from the competition between the two corrections at a volume close to N b, not from either correction flipping sign."
+      }
+    ]
+  }
+]
