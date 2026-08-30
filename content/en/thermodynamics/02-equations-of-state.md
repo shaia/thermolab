@@ -4,134 +4,142 @@ short_title: 02 · Equations of state
 module: 02-equations-of-state
 objectives:
   - id: OBJ-02-1
-    text: State the ideal gas law P V = N k_B T as reviewed from earlier modules, and name the two physical effects it necessarily leaves out.
+    text: State the state postulate for a simple compressible substance -- fixing two independent intensive variables fixes every other equilibrium property -- and explain why all equilibrium states therefore form a single surface in (P, v, T) space.
   - id: OBJ-02-2
-    text: Derive the N-particle van der Waals equation of state by adding a mean-field attraction correction and an excluded-volume correction to the ideal gas law, and explain what each correction represents physically.
+    text: Classify a thermodynamic variable as intensive or extensive by the doubling test, form per-particle densities such as v = V/N, and predict which quantities change when two identical systems are joined.
   - id: OBJ-02-3
-    text: Distinguish intensive from extensive state variables, and demonstrate that pressure is invariant under simultaneous scaling of N and V at fixed T.
+    text: Use the ideal gas law P V = N k_B T to compute any one of P, V, T, N from the others, and state its epistemic status -- an empirical law of the dilute classical regime, not a law of nature.
   - id: OBJ-02-4
-    text: Compute the critical point (T_c, P_c, V_c) of a van der Waals gas from its a and b constants, and explain what happens physically at that point.
+    text: Explain the physical origin of the van der Waals constants a (mutual attraction lowers pressure by a/v^2) and b (excluded volume shifts v to v - b), and compute pressures from P = k_B T/(v - b) - a/v^2.
   - id: OBJ-02-5
-    text: Interpret a P-V-T surface, including the unphysical van der Waals loop below the critical temperature, and state where the mean-field model breaks down.
+    text: Derive the critical point (v_c, T_c, P_c) = (3b, 8a/(27 k_B b), a/(27 b^2)) from dP/dv = 0 and d^2P/dv^2 = 0 on the critical isotherm, and interpret why no pressure liquefies a gas above T_c.
+  - id: OBJ-02-6
+    text: Rewrite the vdW equation in reduced variables P_r = P/P_c, v_r = v/v_c, T_r = T/T_c to obtain the parameter-free law of corresponding states, and use the compressibility factor Z = P v/(k_B T) to quantify a real gas's distance from ideality.
 ---
 
 # Equations of state: from the ideal gas to a real one
 
 (02-equations-of-state-puzzle)=
-## The puzzle: a law that cannot see what the gas is made of
+## The puzzle: a lighter that sloshes, a cylinder that never does
 
-We derived $PV = Nk_BT$ in [module 4](04-pressure.md): particles bounce elastically off the
-walls, the mass cancels out of the result, and what is left depends on nothing about the gas
-except how many particles it has and how energetic they are. The same law, with the same
-coefficient, for helium, for argon, for any dilute gas at all — the ideal gas law is famously
-indifferent to what the molecules actually *are*.
+Shake a butane lighter and you can hear it: liquid fuel, sloshing inside a transparent
+plastic shell, at room temperature, held there by nothing more exotic than the pressure of
+its own vapour. Beside it, a steel cylinder of compressed nitrogen sits on a workbench. Squeeze
+its regulator as hard as engineering allows and nothing sloshes — nitrogen at room temperature
+never liquefies, no matter how hard you compress it.
 
-Real gases are not indifferent to their own identity. Cool helium and it stays a gas down to
-about $4\ \mathrm{K}$; cool argon and it condenses into a liquid at $87\ \mathrm{K}$; cool
-water vapour and it condenses far higher, near $373\ \mathrm{K}$. A law with no way to tell
-one substance from another cannot possibly predict when — or whether — that substance turns
-into a liquid, and real gases also show measurably different pressures from the ideal-gas
-prediction at the same $N$, $V$, $T$, long before condensation is anywhere in sight.
+Both are just gases confined under pressure. Both, at low enough density, obey the same law:
+
+$$
+PV = Nk_BT .
+$$
+
+That law has no substance-specific constant in it anywhere — no molecular size, no
+attraction, nothing that could possibly distinguish butane from nitrogen. A law blind to what
+the molecules *are* cannot explain why one of them puddles at room temperature and the other
+flatly refuses to.
 
 :::{important} The question
-What is missing from $PV = Nk_BT$ that lets real gases differ from one another and eventually
-condense — and can it be added back in without abandoning the reasoning that got us to the
-ideal gas law in the first place?
+Why does one substance's equilibrium surface fold at room temperature — allowing liquid and
+vapour to coexist — while another's cannot, however hard you compress it? And what is the
+ideal gas law missing that makes it blind to the difference?
 :::
 
-The two things missing are not exotic. Real molecules attract each other weakly at a
-distance, and they are not points — they take up room. Putting both back in, carefully, is
-this module's entire content.
+The answer is not exotic. Real molecules attract each other weakly at a distance, and they
+are not points — they take up room. Putting both effects back into the equation of state,
+carefully, is this module's entire content.
 
 (02-equations-of-state-predict)=
 ## Predict before you calculate
 
 Commit to an answer for each of these *before* running anything. Write them down.
 
-1. Real molecules attract each other. Does that attraction make the pressure of a real gas
-   higher or lower than $Nk_BT/V$, at the same $N$, $V$, $T$?
-2. Real molecules have a nonzero size, so a container cannot be packed with an arbitrarily
-   large number of them. Does that make the pressure higher or lower than ideal, at high
-   density?
-3. You double both $N$ and $V$ of a gas at fixed $T$ — the same substance, twice the sample.
-   Does the pressure change?
-4. A real gas is cooled at fixed volume, well below room temperature. Sketch what you expect
-   its $P$–$V$ isotherms to look like as $T$ drops: do they stay simple monotonic curves, or
-   can something qualitatively different happen at low enough $T$?
+1. You have a gas bottle at $(N, V, T)$. You bring an identical second bottle and open the
+   valve between them, so the two merge into one system at the same $T$ — twice the gas, in
+   twice the volume. Which of $P$, $V$, $T$, $N$, $U$ change, and which stay the same?
+2. $\mathrm{CO_2}$ at $280\ \mathrm{K}$ is compressed slowly at fixed temperature. As the
+   volume shrinks, does the pressure keep climbing, level off at some point, or do something
+   else? Sketch the curve you expect.
+3. Is there a temperature above which *no* pressure, however large, can turn a gas into a
+   liquid?
+4. Two different gases — say $\mathrm{CO_2}$ and $\mathrm{N_2}$ — are each held at the same
+   *reduced* temperature and reduced pressure (that is, the same multiple of their own
+   critical temperature and critical pressure, even though those critical points are wildly
+   different numbers). Do the two gases have the same compressibility factor $Z$, or does $Z$
+   depend on which gas it is?
 
 :::{note} Why we ask first
-Questions 1 and 2 pull in opposite directions, and a real gas shows both effects at once —
-which one dominates depends on the density. Question 4 is where this module is heading:
-something genuinely new happens to the *shape* of an isotherm once a real gas is cooled far
-enough, and it is the reason liquids exist at all.
+Question 1 is the doubling test this module makes precise: some quantities double, some do
+not, and mixing them up is one of the most common errors in the subject. Question 4 previews
+the module's real payoff: the ideal gas law is *not* a universal law every gas obeys, but once
+pressure, volume and temperature are measured in units of a substance's own critical point, a
+genuinely universal law re-emerges — just not the one you might have guessed.
 :::
 
 (02-equations-of-state-explore)=
 ## Explore the model
 
-The laboratory notebook for this module lets you set $N$, the van der Waals constants $a$
-and $b$ of a chosen substance, and a range of temperatures and volumes, then watch the
-resulting P-V-T surface — and how it differs from the flat ideal-gas surface — bend as the
-temperature drops toward the substance's critical point.
+The laboratory notebook for this module lets you build a substance's van der Waals surface
+from its constants $a$ and $b$, morph it continuously from the flat ideal-gas sheet, drag a
+state point across it, and watch the three shadows that point casts onto the surrounding
+walls.
 
-Here is the phenomenon in one picture: the same $(N, V, T)$ grid, evaluated once for the
-ideal gas and once for a van der Waals gas with argon's constants, shown as two surfaces over
-the same axes.
+Here is the surface itself, rotating, as $a$ and $b$ turn on from zero and a fold appears
+where a flat sheet used to be:
 
-:::{figure} ../media/pvt-surface-ideal-vs-vdw.mp4
-:alt: A rotating three-dimensional plot comparing the flat ideal-gas pressure surface (a pale wireframe) with the curved, coloured van der Waals surface for argon over the same range of volume and temperature.
+:::{figure} ../media/gases-surface.mp4
+:alt: A rotating three-dimensional pressure-volume-temperature surface that starts perfectly flat, like an ideal gas, and grows a fold as van der Waals constants are turned on, revealing a region where the surface is no longer single-valued in pressure for a given volume and temperature.
 :width: 100%
 
-The van der Waals pressure surface for argon (coloured) against the ideal-gas surface over
-the same $(V,T)$ grid (pale wireframe). The two agree closely at large volume — low
-density — and pull apart as the volume shrinks toward the excluded volume $Nb$, exactly
-where the ideal gas law is least trustworthy.
+The van der Waals $P$-$v$-$T$ surface, morphing on from the flat ideal-gas sheet as $a$ and
+$b$ are turned up to a real substance's values. The fold that appears below the critical
+temperature is the geometric signature of liquefaction — nothing in the flat ideal surface
+could ever produce it.
 :::
 
-Now watch a single isotherm — one fixed temperature, pressure plotted against volume — as
-the temperature sweeps down through argon's critical temperature $T_c$:
+Now watch a single isotherm sweep down through the critical temperature:
 
-:::{figure} ../media/pvt-isotherms-near-critical.mp4
-:alt: A single P-V isotherm curve that is smooth and monotonic at high temperature, flattens at a marked critical point, and develops a non-monotonic wiggle at temperatures below the critical temperature.
+:::{figure} ../media/gases-isotherms.mp4
+:alt: A single pressure-volume isotherm curve that is smooth and monotonic at high temperature, flattens at a marked critical point, and develops a non-monotonic wiggle at temperatures below the critical temperature.
 :width: 100%
 
-One van der Waals isotherm, replotted as its temperature sweeps from well above argon's
-critical temperature to well below it. Above $T_c$ the curve falls smoothly, just like an
-ideal gas. Below $T_c$ it develops a non-monotonic wiggle — the van der Waals loop — which is
-the model's signature of a phase transition it cannot correctly resolve on its own.
+One van der Waals isotherm, replotted as its temperature sweeps from above the critical
+temperature to below it. Above $T_c$ the curve falls smoothly, just like an ideal gas. Below
+$T_c$ it develops a non-monotonic wiggle — the van der Waals loop — flagged here and left
+unexplained; see [Verify](#02-equations-of-state-verify).
+:::
+
+And here is a single state point sliding across the surface, its three shadows tracing an
+isotherm, an isochore, and an isobar onto the three walls around it:
+
+:::{figure} ../media/gases-shadows.mp4
+:alt: A state point moving along a three-leg path on a pressure-volume-temperature surface, with its projection onto each of the three surrounding walls tracing out, in turn, an isotherm on the pressure-volume wall, an isochore on the pressure-temperature wall, and an isobar on the volume-temperature floor.
+:width: 100%
+
+A state point moves in three legs — constant $T$, then constant $v$, then constant $P$ — and
+its shadow on each wall traces the corresponding named curve: an isotherm, an isochore, an
+isobar. Every point on the surface is simultaneously all three kinds of curve, depending on
+which pair of coordinates you hold fixed.
 :::
 
 :::{admonition} Model specification
 :class: model-spec
-- **System:** $N$ structureless molecules of a real gas, described in the van der Waals
-  mean-field approximation; the ideal gas is the special case $a = b = 0$.
-- **Dynamics:** none — this is a static equation of state relating equilibrium values of $P$,
-  $V$, $T$ and $N$, not a trajectory to integrate.
-- **Boundary:** a rigid container of volume $V$ at temperature $T$, or a piston varying $V$
-  quasistatically along an isotherm.
-- **Ensemble:** implicit thermodynamic equilibrium — $P(N,V,T)$ is an equilibrium equation of
-  state; no microstate is sampled.
-- **Ignored:** higher-order (beyond pairwise mean-field) interactions, quantum effects,
-  internal molecular structure, mixtures of species, and any density dependence of $a$ and
-  $b$ themselves.
-- **Valid when:** the gas is dilute to moderately dense and classical, so that the mutual
-  attraction and the molecules' own volume are both small, additive corrections to the
-  ideal-gas pressure, away from the critical point.
-- **Failure modes:** very high density, where a single mean-field pairwise correction can no
-  longer capture the real interactions; at or below the critical temperature, where the
-  equation's van der Waals loop is unphysical and a Maxwell construction (not derived here)
-  is needed instead.
-:::
-
-:::{admonition} What this model cannot do
-:class: model-assumption
-The van der Waals equation replaces the true, fluctuating interactions between individual
-molecule pairs with a single smoothed-out, average correction — a *mean-field*
-approximation. It can show you *that* a loop appears in the isotherm below $T_c$, which is
-the qualitative signature of a liquid-gas transition, but the loop itself is unphysical: real
-matter never follows it. The actual constant-pressure path between liquid and gas is found
-by the Maxwell equal-area construction, which replaces the loop rather than explaining it
-away, and is left for the advanced section.
+- **System:** a fixed amount $N$ of a simple compressible substance, described entirely by
+  the macroscopic coordinates $(P, v, T)$, with $v = V/N$ the volume per particle; the ideal
+  gas is the special case $a = b = 0$.
+- **Dynamics:** none — every rendered point is an equilibrium state; nothing evolves.
+- **Boundary:** closed; $N$ is fixed, $v$ and $T$ are set externally, and $P$ is read off the
+  equation of state.
+- **Ensemble:** not applicable — this is macroscopic thermodynamics, not a sampled microstate.
+- **Ignored:** everything microscopic ($a$ and $b$ enter as fitted constants, not
+  derivations); how the system moves between states; the two-phase interior of the fold (the
+  surface is drawn from the bare van der Waals equation).
+- **Valid when:** the dilute classical regime (the ideal sheet); moderate densities near and
+  above $T_c$ (the van der Waals sheet).
+- **Failure modes:** the sub-critical region where the bare van der Waals isotherm gives
+  $(\partial P/\partial v)_T > 0$ — no real substance equilibrates there, and a Maxwell
+  construction is needed to repair it, which module 14 supplies; the cryogenic and
+  quantum-degenerate regimes module 17 covers.
 :::
 
 :::{admonition} Open the laboratory
@@ -145,47 +153,83 @@ To run it locally instead: `uv run jupyter lab notebooks/en/labs/02-equations-of
 
 Run the laboratory now, then come back. Three things are worth doing before you read on:
 
-- Set $a = b = 0$ and confirm the surface is perfectly flat in the sense that
-  $P \propto T/V$ everywhere — the ideal gas, with nothing to distinguish one substance from
-  another.
-- Turn on argon's $a$ and $b$ and watch how much the surface bends near small volume, where
-  the excluded-volume correction dominates.
-- Sweep the temperature slider down through $T_c$ and watch the isotherm develop its loop.
-  Note the volume at which the loop first appears — it is $V_c$.
+- Set $a = b = 0$ and confirm the surface is perfectly flat — the ideal gas, with no fold
+  anywhere, whatever temperature you look at.
+- Turn on a substance's $a$ and $b$ and watch the fold appear below its critical temperature.
+- Join two identical samples in the doubling-test cell and check which quantities the printed
+  table says changed.
 
 (02-equations-of-state-derive)=
 ## Derive the result
 
-**System and boundary.** $N$ molecules of a real gas in a container of volume $V$ at
-temperature $T$. **Independent variables.** $N$, $V$, $T$, and two substance-specific
-constants $a$, $b$ that we are about to introduce.
+### The state postulate
 
-### Two corrections to the ideal gas law
-
-:::{admonition} The ideal gas law, reviewed
+:::{admonition} The state postulate
 :class: empirical-law
-$$
-PV = Nk_BT
-$$
+For a simple compressible substance — a fixed amount of a single-component fluid, with no
+electric, magnetic or surface effects — fixing any **two independent intensive variables**
+fixes every other equilibrium property. Equivalently: every equilibrium state of such a
+substance lies on a single two-dimensional surface in $(P, v, T)$ space, and an *equation of
+state* is nothing but the equation of that surface.
 
-derived in [module 4](04-pressure.md) from point particles that never interact, and
-equivalently obtainable from the zeroth and first laws plus the empirical observation that
-dilute gases share one equation of state ([module 1](01-equilibrium.md)). It is exact only in
-the limit of zero density, where molecules almost never come close enough to feel each other
-or to notice each other's size.
+This is a claim about the world, not a theorem derivable from the zeroth or first law alone —
+it is an empirical generalisation, exactly like the zeroth law's claim that thermal
+equilibrium is transitive ([module 1](01-equilibrium.md)). Nothing here is proven from more
+basic principles; it is proposed, and every equation of state this module writes down is a
+test of it.
 :::
 
+### Intensive versus extensive: the doubling test
+
+:::{admonition} Intensive and extensive, by the doubling test
+:class: definition
+Join two identical copies of a system — same substance, same state — into one. A variable is
+**extensive** if the joined value is *double* the original: $V$, $N$, and the internal energy
+$U$ are extensive. A variable is **intensive** if the joined value is *unchanged*: $T$ and $P$
+are intensive — they describe a local property of the substance, not how much of it there is.
+
+Per-particle quantities such as $v \equiv V/N$ are intensive by construction: both numerator
+and denominator double, so their ratio does not move. This is exactly why the state
+postulate is phrased in terms of $v$ rather than $V$ — $v$, unlike $V$, is a property of the
+*substance* at a given $(P, T)$, not of a particular sample of it.
+:::
+
+Pressure had better be intensive for "the pressure of the gas" to mean anything: two adjacent
+litres of the same gas at the same temperature must report the same pressure, or a single
+gauge reading would be meaningless. The laboratory verifies this by direct computation for
+every equation of state below; the doubling test above is the reason it must come out that
+way.
+
+### The ideal gas law, reviewed
+
+:::{admonition} The ideal gas law
+:class: empirical-law
+$$
+PV = Nk_BT, \qquad\text{equivalently}\qquad Pv = k_BT \ \text{with}\ v = V/N.
+$$
+
+Derived in [module 4](04-pressure.md) from point particles that never interact, and
+equivalently obtainable as the simplest equation of state consistent with the state postulate
+plus the empirical observation that dilute gases share one equation of state
+([module 1](01-equilibrium.md)). It has no substance-specific constant anywhere in it — which
+is exactly its epistemic status: an empirical law of the *dilute classical regime*, exact only
+as density falls to zero, and not a law every gas obeys at every density. Treating it as
+universal is the `ideal-gas-universal` misconception this module's [Verify](#02-equations-of-state-verify)
+section falsifies directly.
+:::
+
+### Two corrections, and the van der Waals equation
+
 **Excluded volume.** A real molecule is not a point; it excludes other molecules from the
-small region it occupies. If each molecule effectively reserves a volume $b$ for itself, the
-volume actually available for the gas to move around in is not $V$ but $V - Nb$. Substituting
-this reduced volume into the ideal gas law in place of $V$:
+small region $b$ it occupies. Replacing the per-particle volume $v$ available to move around
+in with the reduced volume $v - b$:
 
 $$
-P = \frac{Nk_BT}{V - Nb}.
+P = \frac{k_BT}{v - b}.
 $$
 
-Because the denominator is *smaller* than $V$, this correction alone always *raises* the
-pressure above the ideal value — molecules crowded into less usable room collide with the
+Because the denominator is *smaller* than $v$, this correction alone always *raises* the
+pressure above the ideal value: molecules crowded into less usable room collide with the
 walls more often.
 
 :::{admonition} Attraction lowers the pressure
@@ -194,104 +238,96 @@ A molecule deep inside the gas is pulled equally in every direction by its neigh
 feels no net force. A molecule about to strike the wall has neighbours behind it and none
 beyond the wall, so the net attraction pulls it *backwards*, slightly reducing the momentum
 it delivers. [Module 4's advanced section](04-pressure.md#04-pressure-advanced) derives this
-exactly as the virial correction $PV = Nk_BT + \frac{1}{d}\langle\sum_{i<j}
-\mathbf{r}_{ij}\cdot\mathbf{F}_{ij}\rangle$; for a short-ranged attraction summed over every
-pair, the mean-field estimate of that correction term is $-aN^2/V^2$, proportional to the
-*square* of the density because it takes two molecules — one to attract, one to be
-attracted — for the effect to occur at all.
+exactly as a virial correction; for a short-ranged attraction summed over every pair, the
+mean-field estimate of the correction is $-a/v^2$ — proportional to the square of the
+density, because it takes *two* molecules, one to attract and one to be attracted, for the
+effect to occur at all.
 :::
 
 Adding both corrections to the ideal gas law gives the **van der Waals equation of state**:
 
 $$
-\boxed{\; P = \frac{Nk_BT}{V - Nb} - \frac{aN^2}{V^2} \;}
+\boxed{\; P = \frac{k_BT}{v - b} - \frac{a}{v^2} \;}
 $$
 
-equivalently written in the more familiar product form
-$\left(P + \dfrac{aN^2}{V^2}\right)(V - Nb) = Nk_BT$. Setting $a = b = 0$ recovers the ideal
-gas law exactly — not approximately, as the [Verify](#02-equations-of-state-verify) section
-checks directly against `paths.ideal_gas_pressure`.
+Setting $a = b = 0$ recovers the ideal gas law exactly — not approximately, as
+[Verify](#02-equations-of-state-verify) checks directly against `gases.ideal_gas_pressure`.
+Neither correction is *derived* from first principles here; each is argued physically and
+then simply added, which is exactly why the box above is a `model-assumption`, not a
+`theorem`: the van der Waals equation is a plausible model, not a consequence of the state
+postulate the way the ideal gas law can be read as one.
 
 :::{admonition} A note on units: per particle, not per mole
 :class: definition
 Textbooks usually quote $a$ and $b$ per *mole*, with $n$ moles in place of $N$ particles and
-$R$ in place of $k_B$. This course keeps $N$ a plain particle count everywhere, so `thermolab`
-uses $a$, $b$ **per particle**: $a = a_{\text{molar}}/N_A^2$ and $b = b_{\text{molar}}/N_A$.
-Both keep the same physical units as their molar counterparts — only the numeric value shrinks
-enormously, since $N_A \approx 6\times10^{23}$. Mixing the two conventions is the single most
-common arithmetic error this topic produces; the module's test suite pins the conversion
-against argon's textbook values so it cannot silently drift.
+$R$ in place of $k_B$: $(P + a_{\text{molar}}n^2/V^2)(V - n b_{\text{molar}}) = nRT$. This
+course keeps $N$ a plain particle count everywhere and works in the per-particle volume
+$v = V/N$, so `thermolab.gases` takes $a$, $b$ **per particle**:
+$a = a_{\text{molar}}/N_A^2$ and $b = b_{\text{molar}}/N_A$. Both keep the same physical units
+as their molar counterparts — only the numeric value shrinks enormously, since
+$N_A \approx 6\times10^{23}$.
 :::
-
-### Intensive versus extensive
-
-:::{admonition} Intensive and extensive state variables
-:class: definition
-A state variable is **extensive** if it doubles when you double the size of the system at
-fixed density — $V$, $N$, and the internal energy $U$ are extensive. A state variable is
-**intensive** if it stays the same — $T$ and $P$ are intensive; they describe a *local*
-property of the material, not how much of it there is.
-:::
-
-Pressure had better be intensive for "the pressure of the gas" to mean anything at all — two
-adjacent litres of the same gas at the same temperature must report the same pressure, or a
-single pressure gauge reading would be meaningless. Algebraically, replacing
-$N \to \lambda N$ and $V \to \lambda V$ at fixed $T$ (the same substance, $\lambda$ times as
-much of it) leaves every term in the boxed equation unchanged: $N/(V - Nb)$ and $N^2/V^2$ are
-each ratios of something proportional to $\lambda$ (or $\lambda^2$) divided by something
-proportional to $\lambda$ (or $\lambda^2$), so the $\lambda$'s cancel exactly. This holds for
-the *real*-gas correction exactly as it does for the ideal gas, because $a$ and $b$ are
-properties of the substance, not of the sample size — doubling how much argon you have does
-not change what a single argon atom is like. The laboratory verifies this by direct
-computation rather than proof by inspection; the algebra above is the proof.
 
 ### The critical point
 
-Look again at the isotherm animation above. Above $T_c$, pressure falls monotonically as
-volume grows — one volume for every pressure, exactly as for an ideal gas. Below $T_c$, the
-curve is no longer monotonic: it rises where it should fall. The boundary between the two
-behaviours is a single special point, found where the isotherm's slope and its curvature both
-vanish at once:
+Look again at the isotherm animation above. Above $T_c$, pressure falls monotonically as $v$
+grows — one $v$ for every $P$, exactly as for an ideal gas. Below $T_c$, the curve is no
+longer monotonic: it rises where it should fall. The boundary between the two behaviours is a
+single special point, where the isotherm's slope and its curvature both vanish at once:
 
 $$
-\left(\frac{\partial P}{\partial V}\right)_T = 0, \qquad
-\left(\frac{\partial^2 P}{\partial V^2}\right)_T = 0.
+\left(\frac{\partial P}{\partial v}\right)_T = 0, \qquad
+\left(\frac{\partial^2 P}{\partial v^2}\right)_T = 0.
 $$
 
-Writing the pressure per particle, with $x \equiv V/N$ the volume per molecule, makes
-$P(x) = k_BT/(x - b) - a/x^2$ depend on $x$ alone — no explicit $N$ left in it, because we
-just showed $P$ is intensive. Solving the two equations above for $x$ and $T$ together (a
-standard but slightly tedious piece of algebra, omitted here) gives
+Because $P$ depends on $v$ and $T$ alone — no explicit $N$, since $P$ is intensive — solving
+these two equations together (a standard but slightly tedious piece of algebra, omitted here)
+gives:
 
+:::{admonition} The critical point
+:class: theorem
 $$
-\boxed{\; V_c = 3Nb, \qquad k_BT_c = \frac{8a}{27b}, \qquad P_c = \frac{a}{27b^2} \;}
+\boxed{\; v_c = 3b, \qquad k_BT_c = \frac{8a}{27b}, \qquad P_c = \frac{a}{27b^2} \;}
 $$
 
-$T_c$ and $P_c$ depend only on $a$ and $b$ — they are intensive, exactly as a property of a
-*substance* (rather than of a particular sample) should be. $V_c$, by contrast, is
-proportional to $N$: it is extensive, because it is the volume of a specific sample at its
-critical point, and a bigger sample needs a bigger volume to reach it.
-
-:::{admonition} What happens physically at the critical point
-:class: definition
-Below $T_c$, a real gas can coexist as liquid and vapour simultaneously, at a pressure that
-depends only on $T$ — the flat part of a *true* isotherm that the van der Waals loop is a
-smoothed-over approximation to. As $T$ rises toward $T_c$, the difference between the liquid
-and vapour densities shrinks; at $T_c$ itself the two phases become identical, and above it
-there is no distinction between "gas" and "liquid" at all — only a single **supercritical
-fluid**. $(T_c, P_c, V_c)$ is the one point where this merger happens.
+All three are properties of the *substance* alone — intensive, with no particle count
+anywhere in them, exactly as the state-postulate framing of this module promises. Below
+$T_c$, a real substance can coexist as liquid and vapour simultaneously; as $T \to T_c$ the
+two phases' densities converge, and at $T_c$ they become identical. Above $T_c$ there is no
+distinction between "gas" and "liquid" at all — only a single **supercritical fluid** — which
+is precisely why no pressure, however large, liquefies nitrogen at room temperature: room
+temperature is far above nitrogen's $T_c = 126\ \mathrm{K}$, while it is comfortably below
+butane's $T_c \approx 425\ \mathrm{K}$.
 :::
 
-:::{admonition} Where the van der Waals numbers are least trustworthy
-:class: approximation
-Fitting $a$ and $b$ to reproduce a real gas's measured $T_c$ and $P_c$ (as the laboratory
-does for argon) reproduces those two numbers to within about a percent. It does *not*
-reproduce $V_c$ nearly as well — the van der Waals equation predicts the same dimensionless
-ratio $P_cV_c/(Nk_BT_c) = 3/8$ for every substance, while real gases scatter around
-$0.27$–$0.29$. This is the clearest quantitative sign that mean-field theory is an
-approximation, not an identity: it gets the *existence* and rough *location* of a critical
-point right while getting its precise geometry wrong, exactly the failure mode the model
-specification above names.
+### Reduced variables and the compressibility factor
+
+Define **reduced** variables $P_r = P/P_c$, $v_r = v/v_c$, $T_r = T/T_c$ — pressure,
+per-particle volume and temperature measured in units of the substance's own critical point.
+Substituting the closed forms above into the van der Waals equation and simplifying eliminates
+$a$, $b$ and every substance-specific number entirely:
+
+:::{admonition} The law of corresponding states
+:class: theorem
+$$
+\boxed{\; P_r = \frac{8T_r}{3v_r - 1} - \frac{3}{v_r^2} \;}
+$$
+
+Every van der Waals substance obeys this *same* equation, with no adjustable constants left
+at all — this is the resolution [Predict](#02-equations-of-state-predict) question 4 was
+pointing toward: the ideal gas law is not a universal law, but once $P$, $v$, $T$ are measured
+relative to a substance's own critical point, a genuinely parameter-free law re-emerges.
+
+A direct consequence is the **compressibility factor** $Z \equiv Pv/(k_BT)$, which is exactly
+$1$ for an ideal gas and measures a real gas's distance from it. Evaluated at the critical
+point itself,
+
+$$
+Z_c \equiv \frac{P_cv_c}{k_BT_c} = \frac{3}{8},
+$$
+
+a single dimensionless number every van der Waals substance shares — and a falsifiable
+prediction, checked against real gases in [Verify](#02-equations-of-state-verify).
 :::
 
 (02-equations-of-state-verify)=
@@ -301,68 +337,77 @@ Deriving a formula and trusting it are different things. The laboratory checks t
 several ways, and each check is also a test in the project's test suite, so the claims on
 this page cannot silently rot.
 
-**1. The ideal-gas limit.** As $a, b \to 0$, `van_der_waals_pressure` converges on
-`paths.ideal_gas_pressure` — the same function [module 4](04-pressure.md) and
-[module 5](05-work-paths.md) already rely on, imported directly rather than re-derived a
-third time.
+**1. The ideal-gas limit.** As $a, b \to 0$, `gases.van_der_waals_pressure` converges on
+`gases.ideal_gas_pressure` — the same function [module 4](04-pressure.md) and
+[module 5](05-work-paths.md) already rely on (`kinetics.py` and `paths.py` import it from
+`gases.py` rather than each carrying their own copy).
 
-**2. Real argon at ordinary density.** At $N = 5\times10^{22}$ particles in $2.0\ \mathrm{L}$
-at $300\ \mathrm{K}$ — the same scenario as
-[module 4's Problem 2](04-pressure-problems.md) — argon's measured $a$ and $b$ shift the
-pressure away from the ideal value by about a tenth of a percent: small, but not zero, and in
-the direction set by whichever correction dominates at this density.
+**2. The critical point: closed form versus a numerical scan.** `vdw_critical_point` gives
+$(v_c, T_c, P_c)$ from three lines of algebra. The laboratory also *measures* $T_c$ a second,
+independent way: scanning a family of isotherms and finding the one whose $|\partial P/\partial
+v|$ comes closest to zero across the whole $v$-range — the kind of procedure an experimentalist
+without a closed form would actually run.
 
-**3. The critical point.** `critical_point` reproduces argon's measured $T_c$ and $P_c$ to
-within about a percent from its $a$, $b$ alone, and the pressure formula evaluated exactly at
-$(T_c, V_c)$ returns $P_c$ to machine precision — the closed-form relations and the pressure
-formula they came from agree with each other exactly, not approximately.
+:::{admonition} A measurement needs an uncertainty attached
+:class: numerical-observation
+A flatness scan over a finite grid of temperatures and volumes cannot land exactly on $T_c$ —
+only within half a grid spacing of it. The laboratory reports the scan's result as
+$T_c = (\text{value}) \pm (\text{uncertainty})$, not as a bare number, and that uncertainty
+shrinks as the grid is refined, exactly like the convergence tests elsewhere in this course.
+Quoting a measurement without its uncertainty is not a small omission; it is a different, less
+honest kind of claim.
+:::
 
-**4. The critical point really is a stationary inflection.** A finite difference of the
-pressure with respect to volume, evaluated at $V_c$, shrinks toward zero as the step size
-shrinks — and shrinks at *second order*, the signature of a true vanishing derivative rather
-than a numerical coincidence.
+**3. Z approaches 1 in the dilute limit.** As $v \to \infty$ at fixed $T$, both correction
+terms in the van der Waals equation vanish and $Z \to 1$ — the formal statement of "ideal gas"
+as a limit rather than a category.
 
-**5. Intensivity.** Pressure computed at $(N, V)$ and at $(\lambda N, \lambda V)$, same $T$,
-agree to machine precision for every $\lambda$ tried, confirming the algebraic argument above
-by direct computation.
+**4. The NIST CO2 isotherm falsifies "the ideal gas law is universal".** `data/co2-isotherm-280k.csv`
+holds representative published values for carbon dioxide's isothermal pressure-volume
+behaviour at $280\ \mathrm{K}$ — comfortably below $\mathrm{CO_2}$'s critical temperature of
+$304.13\ \mathrm{K}$. Computing $Z = Pv/(k_BT)$ along that isotherm and overlaying the ideal
+prediction $Z = 1$ shows the two diverging sharply as the gas is compressed: the measured
+pressure *plateaus* at the substance's saturation pressure while a naive $P = k_BT/v$
+prediction keeps climbing without limit, and $Z$ falls to a small fraction of $1$ deep in the
+two-phase region.
 
-:::{admonition} What the agreement does and does not establish
+:::{admonition} The ideal gas law is not a law every gas obeys
+:class: numerical-observation
+This is the direct falsifier for `ideal-gas-universal`: real $\mathrm{CO_2}$ at $280\
+\mathrm{K}$ does not track $P = k_BT/v$ once it is compressed past a few times its critical
+volume — it flattens into a condensation plateau the ideal law has no way to predict, because
+the ideal law contains no substance-specific information at all. The van der Waals prediction
+tracks the *shape* of the departure — falling below ideal, then failing near the plateau in
+its own way (see the open question below) — considerably better than the ideal law does, but
+neither model reproduces the flat plateau itself.
+:::
+
+:::{admonition} What the wiggle means is left open
 :class: open-question
-Matching argon's $T_c$ and $P_c$ to a percent is evidence that the mean-field approximation
-captures the right *physics* of a liquid-gas transition — an attraction that pulls molecules
-together and a finite size that eventually pushes back. It is not evidence that the van der
-Waals equation is quantitatively accurate everywhere; the $V_c$ mismatch above is the
-built-in counter-example, and no amount of additional testing of *this* model can fix it,
-because the discrepancy is a property of the model's mean-field assumption, not of any
-particular calculation.
+Below $T_c$, the bare van der Waals equation does not plateau the way real $\mathrm{CO_2}$
+does — it develops the non-monotonic loop the isotherm animation shows, with a region where
+$(\partial P/\partial v)_T > 0$. That region cannot describe any stable equilibrium state, and
+this module deliberately does not explain what replaces it or how the flat, physically correct
+plateau is actually located. Module 14 resolves this with the Maxwell construction, reusing
+the exact isotherms `gases.py` computes here. For now: the loop is a
+real, checkable feature of the bare equation, and *why* it is unphysical, and what to do about
+it, are questions this module raises without answering.
 :::
 
 (02-equations-of-state-transfer)=
 ## Transfer the idea
 
-- **Gas liquefaction.** Industrial processes that liquefy air, natural gas, or helium work by
-  cooling and compressing a real gas past the loop this module's second animation shows —
-  the same physics, at an engineering scale.
-- **Supercritical extraction.** Above $T_c$ and $P_c$, carbon dioxide is a single
-  supercritical fluid — denser than a typical gas, more penetrating than a typical liquid —
-  used to decaffeinate coffee and extract essential oils without the toxic solvents an
-  ordinary liquid extraction would need.
-- **The virial expansion.** The van der Waals equation is the simplest member of a more
-  general family, $PV = Nk_BT\left(1 + \frac{B_2(T)N}{V} + \cdots\right)$, whose second virial
-  coefficient $B_2(T)$ can be computed exactly from the intermolecular potential — a
-  systematic refinement of the same mean-field idea, touched on again in module 12.
-- **The law of corresponding states.** Measuring pressure, volume and temperature in units of
-  $P_c$, $V_c$, $T_c$ collapses the van der Waals equation into one universal, substance-free
-  form (the [Advanced section](#02-equations-of-state-advanced) derives it) — the reason a
-  single reduced phase diagram, appropriately rescaled, describes argon and carbon dioxide
-  about equally well despite wildly different $a$ and $b$.
-
-:::{admonition} A word on "real gas"
-:class: definition
-This course uses **real gas** for any gas whose equation of state departs from
-$PV = Nk_BT$ — not a technical classification, just a reminder that the ideal gas law is a
-*limit*, approached as density falls, rather than a law every gas obeys everywhere.
-:::
+- **Back to module 4.** The empirical box above gets its microscopic derivation there — this
+  module states $PV = Nk_BT$; that one *derives* it from particles bouncing off walls.
+- **Forward to module 6.** Every process this course studies from here on is a curve drawn on
+  the surface this module builds; module 6's work ledger integrates $P\,dv$ along such curves.
+- **Forward to module 9.** $V$, $N$ and $U$ all doubling together under the doubling test is
+  exactly the extensivity the fundamental relation's Euler relation depends on.
+- **Forward to module 14, named and dated.** The wiggle above is real, checkable, and
+  unexplained — module 14 names it, resolves it with the Maxwell construction, and reuses
+  these exact isotherms to do it.
+- **Forward to module 17.** Even the "ideal" sheet fails eventually — in the cryogenic,
+  quantum-degenerate regime, where $Z \to 1$ stops being the right limit.
 
 (02-equations-of-state-quiz)=
 ## Check your understanding
@@ -379,59 +424,49 @@ Exam-style problems for this module — the ones worth doing with a pen — are 
 Answer in a few sentences each. These are the questions that reveal whether the ideas landed;
 no number will save you.
 
-1. A student says: "Real gases deviate from the ideal gas law because real molecules take up
-   space." Improve this sentence so that it is actually correct, and say precisely what it
-   leaves out.
-2. Explain, without writing an equation, why doubling both the amount of gas and the volume
-   containing it — same substance, same temperature — leaves the pressure unchanged.
-3. Two gases have the same $b$ but different $a$: gas A attracts more strongly than gas B.
-   Which one has the higher critical temperature, and why does that follow from the physical
-   meaning of $a$ rather than just from the formula?
-4. The van der Waals loop below $T_c$ is described in this module as "unphysical." Explain
-   what that word is doing there — what, precisely, does the model get wrong, and what does
-   it still get right?
+1. Explain why calling the ideal gas law a "law" can mislead a reader, and say precisely what
+   kind of statement it actually is.
+2. Explain, without writing an equation, why no pressure — however large — liquefies a gas
+   above its critical temperature.
+3. Explain why $v = V/N$ is intensive although $V$ and $N$ are each extensive.
+4. Describe what would be physically wrong with a substance whose isotherm had
+   $(\partial P/\partial v)_T > 0$ somewhere.
 
 (02-equations-of-state-advanced)=
-## Advanced: the law of corresponding states
+## Advanced: the virial expansion
 
 :::{admonition} Advanced — safe to skip on a first pass
 :class: advanced
-Nothing later in the core course depends on this section.
+Nothing in modules 4, 6, 9, 14 or 17's core content depends on this section; module 14
+re-derives what it needs directly from the van der Waals equation.
 :::
 
-Define **reduced** variables $P_r = P/P_c$, $V_r = V/V_c$, $T_r = T/T_c$ — pressure, volume
-and temperature measured in units of the substance's own critical point. Substituting the
-closed forms for $V_c$, $T_c$, $P_c$ from the derivation above into the van der Waals equation
-and simplifying eliminates $a$, $b$ and $N$ entirely:
+The van der Waals equation is one particular, simple model of "real gases differ from ideal
+ones." The systematic version of the same idea writes the compressibility factor as a power
+series in the density $1/v$:
 
 $$
-\left(P_r + \frac{3}{V_r^2}\right)\left(V_r - \frac{1}{3}\right) = \frac{8}{3}T_r .
+Z = 1 + \frac{B(T)}{v} + \frac{C(T)}{v^2} + \cdots,
 $$
 
-Every van der Waals gas obeys this *same* equation, with no adjustable constants left at all.
-Two different substances at the same reduced temperature and reduced pressure are said to be
-in **corresponding states**, and — to the extent that the van der Waals approximation holds —
-they share the same reduced volume, the same reduced vapour pressure curve, and even
-approximately the same deviations from ideal-gas behaviour, despite having wildly different
-$a$ and $b$.
+the **virial expansion**, whose coefficients can in principle be computed exactly from the
+intermolecular potential, order by order, rather than guessed at with two constants. Expanding
+the boxed van der Waals equation in powers of $1/v$ gives its own second virial coefficient in
+closed form:
 
-:::{admonition} Why this is more than a curiosity
-:class: numerical-observation
-The law of corresponding states works better in practice than the van der Waals equation
-itself does — real gases' reduced equations of state agree with each other, and with the
-reduced van der Waals prediction, considerably more closely than their un-reduced pressures
-agree with the un-reduced van der Waals formula. This is a general feature of mean-field
-theories near a critical point, not a special property of this particular model, and it is
-the historical starting point for the modern theory of critical phenomena and universality —
-far beyond this course, but visible already in three lines of algebra.
-:::
+$$
+B(T) = b - \frac{a}{k_BT} .
+$$
 
-**The Maxwell construction, briefly.** Below $T_c$, the true isotherm replaces the
-unphysical van der Waals loop with a horizontal segment at the substance's actual vapour
-pressure, positioned so that the two areas the horizontal line cuts from the loop — one
-where the loop's pressure exceeds the vapour pressure, one where it falls below — are
-exactly equal. That equal-area condition follows from requiring the Gibbs free energy to be
-single-valued along the isotherm, a piece of the fundamental relation this course reaches in
-module 9. It is what turns the van der Waals equation from "predicts a phase transition
-exists" into "predicts where it happens" — the gap between qualitative and quantitative that
-mean-field theory leaves for later, more careful tools to close.
+At low $T$, $B(T) < 0$ — attraction dominates and $Z < 1$; at high $T$, $B(T) > 0$ — excluded
+volume dominates and $Z > 1$. The crossover defines the **Boyle temperature**,
+
+$$
+T_B = \frac{a}{k_Bb},
+$$
+
+the one temperature at which a van der Waals gas behaves ideally ($Z = 1$) over the widest
+possible range of density, because the two corrections cancel to leading order in $1/v$ at
+every density simultaneously. Real gases have Boyle temperatures too, and the virial
+expansion — unlike the two-constant van der Waals model — can in principle be pushed to as
+many terms as the data justify.

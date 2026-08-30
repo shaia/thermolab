@@ -1,0 +1,42 @@
+# NOTE: byte-identical copy at notebooks/en/labs/data/co2-isotherm-280k.csv -- JupyterLite
+# only bundles the notebooks/ tree (jupyter_lite_config.json: "contents": ["notebooks"]), so
+# the laboratory notebook needs its own copy to run in the browser. Keep the two in sync.
+#
+# Representative values consistent with the NIST Chemistry WebBook isothermal properties
+# for CO2 at 280 K. Hand-constructed for this course from published literature figures for
+# CO2's critical point and its 280 K saturation curve -- this is not a live pull from NIST's
+# database (this machine has no network access to query it), and the numbers are illustrative
+# of the real shape and scale of the isotherm rather than a digit-for-digit NIST export.
+#
+# Reference values used to build this table (NIST Chemistry WebBook, CO2):
+#   T_c = 304.13 K, P_c = 7.3773e6 Pa                    (critical point)
+#   P_sat(280 K) = 4.1663e6 Pa                            (saturation / vapour pressure)
+#   rho_vapour,sat(280 K)  ~= 114.8 kg/m^3   -> V_m ~= 3.834e-4 m^3/mol
+#   rho_liquid,sat(280 K)  ~= 827   kg/m^3   -> V_m ~= 5.320e-5 m^3/mol
+#   M(CO2) = 44.01e-3 kg/mol
+#
+# Columns: temperature_K, pressure_Pa, molar_volume_m3_per_mol
+#   Rows 1-8   -- dilute-to-near-saturated CO2 vapour (isothermal compression at 280 K).
+#   Rows 8-14  -- the 280 K condensation plateau: 280 K is below CO2's T_c = 304.13 K, so a
+#                 real substance holds P = P_sat exactly constant while V drops through the
+#                 two-phase (liquid + vapour) region -- the flat segment a real gas follows,
+#                 in contrast to the unphysical van der Waals loop over the same volume range.
+#   Rows 14-16 -- the compressed-liquid branch just past the plateau, where the substance is
+#                 all liquid and pressure rises steeply for a small further reduction in V.
+# temperature_K, pressure_Pa, molar_volume_m3_per_mol
+280.0,451617,5.0e-3
+280.0,875298,2.5e-3
+280.0,1745940,1.2e-3
+280.0,2473415,8.0e-4
+280.0,3103893,6.0e-4
+280.0,3491880,5.0e-4
+280.0,3935293,4.2e-4
+280.0,4166300,3.834e-4
+280.0,4166300,3.0e-4
+280.0,4166300,2.2e-4
+280.0,4166300,1.5e-4
+280.0,4166300,1.0e-4
+280.0,4166300,7.0e-5
+280.0,4166300,5.32e-5
+280.0,6500000,5.0e-5
+280.0,10000000,4.7e-5

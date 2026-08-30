@@ -59,11 +59,11 @@ misconceptions:
     statement: "The equilibrium temperature of two bodies in contact is always the simple average of their starting temperatures, regardless of their sizes."
     assigned_module: 01-equilibrium
     status: addressed
-  - id: ideal-gas-law-universal
-    statement: "The ideal gas law PV = N k_B T holds at any density or pressure, for any real gas."
+  - id: ideal-gas-universal
+    statement: "The ideal gas law is a law of nature that every gas obeys."
     assigned_module: 02-equations-of-state
     status: addressed
-  - id: attraction-raises-pressure
-    statement: "Intermolecular attraction between gas molecules raises the pressure they exert on the container walls."
+  - id: doubling-doubles-everything
+    statement: "Doubling a system doubles every property it has."
     assigned_module: 02-equations-of-state
     status: addressed

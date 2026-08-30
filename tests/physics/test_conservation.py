@@ -12,7 +12,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from thermolab import equations_of_state, equilibrium, forms, kinetics, multiplicity, sampling
+from thermolab import equilibrium, forms, gases, kinetics, multiplicity, sampling
 from thermolab.validation import relative_error
 
 pytestmark = pytest.mark.conservation
@@ -173,22 +173,29 @@ def test_an_exact_form_integrates_to_zero_around_a_closed_loop():
     assert loop == pytest.approx(0.0, abs=1e-9)
 
 
-def test_van_der_waals_pressure_is_invariant_under_simultaneous_n_v_scaling():
-    """Pressure is intensive: scaling N and V together at fixed T leaves P unchanged, exactly.
+def test_ideal_gas_pressure_temperature_roundtrip_is_exact():
+    """No dynamics to conserve energy over here, so invariance stands in: P -> T -> P is exact.
 
-    P = N k_B T/(V - N b) - a N^2/V^2 is homogeneous of degree zero in (N, V) at fixed T,
-    since every term is a ratio of something proportional to N (or N^2) over something
-    proportional to V (or V^2) -- the same invariance that makes pressure, unlike volume or
-    energy, an intensive state variable. It holds for the real-gas correction exactly as it
-    does for the ideal gas, since a and b are properties of the substance, not the sample.
+    `ideal_gas_temperature` is the algebraic inverse of `ideal_gas_pressure`, so composing them
+    must return the starting temperature to machine precision, for any (N, V) pair.
     """
-    a, b = 3.736e-49, 5.317e-29
-    temperature = 300.0
-    n_particles, volume = 1000, 1.0e-24  # well above the excluded volume N*b = 5.317e-26 m^3
-    base = equations_of_state.van_der_waals_pressure(n_particles, temperature, volume, a, b)
+    n_particles, volume = 1000, 1.0e-3
+    for temperature in (150.0, 300.0, 600.0):
+        pressure = gases.ideal_gas_pressure(n_particles, temperature, volume)
+        recovered = gases.ideal_gas_temperature(n_particles, pressure, volume)
+        assert relative_error(recovered, temperature) < 1e-12
 
-    for factor in (2, 5, 50):
-        scaled = equations_of_state.van_der_waals_pressure(
-            factor * n_particles, temperature, factor * volume, a, b
-        )
-        assert relative_error(float(scaled), float(base)) < 1e-10
+
+def test_reduced_variables_roundtrip_recovers_the_absolute_state():
+    """reduced_variables is a pure rescaling by the critical point, so it must invert exactly:
+    multiplying each reduced coordinate back by its critical value returns the input state."""
+    a, b = 3.736e-49, 5.317e-29
+    v_c, t_c, p_c = gases.vdw_critical_point(a, b)
+    v, temperature = 2.0 * v_c, 1.1 * t_c
+    pressure = gases.van_der_waals_pressure(v, temperature, a, b)
+
+    p_r, v_r, t_r = gases.reduced_variables(pressure, v, temperature, a, b)
+
+    assert relative_error(float(p_r) * p_c, float(pressure)) < 1e-12
+    assert relative_error(float(v_r) * v_c, v) < 1e-12
+    assert relative_error(float(t_r) * t_c, temperature) < 1e-12

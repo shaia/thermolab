@@ -30,6 +30,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .constants import K_B
+from .gases import ideal_gas_pressure  # noqa: F401  (C4a: canonical home is gases.py)
 
 
 @dataclass(frozen=True)
@@ -235,17 +236,6 @@ def max_stable_dt(state: GasState, safety: float = 0.25) -> float:
     if fastest == 0:
         return np.inf
     return float(safety * state.box.min() / fastest)
-
-
-def ideal_gas_pressure(n_particles: int, temperature: float, volume: float) -> float:
-    """P = N k_B T / V — the equation of state the simulation is checked against.
-
-    Dimensionally consistent in any dimension: `volume` is an area in 2D and the returned
-    pressure is then a force per unit length.
-    """
-    if volume <= 0:
-        raise ValueError("volume must be positive")
-    return n_particles * K_B * temperature / volume
 
 
 def mean_kinetic_energy(temperature: float, dimension: int = 2) -> float:

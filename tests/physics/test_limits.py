@@ -12,9 +12,9 @@ import numpy as np
 import pytest
 
 from thermolab import (
-    equations_of_state,
     equilibrium,
     forms,
+    gases,
     kinetics,
     multiplicity,
     paths,
@@ -240,6 +240,14 @@ def test_ideal_gas_law_is_consistent_between_modules():
     assert paths.ideal_gas_temperature(500, 1e5, 1e-3) == pytest.approx(1e5 * 1e-3 / (500 * K_B))
 
 
+def test_kinetics_and_paths_ideal_gas_functions_are_gases_by_identity():
+    """C4a dedup: kinetics.py and paths.py re-import gases.py's functions rather than
+    redefining them, so the check is object identity, not merely equal output."""
+    assert kinetics.ideal_gas_pressure is gases.ideal_gas_pressure
+    assert paths.ideal_gas_pressure is gases.ideal_gas_pressure
+    assert paths.ideal_gas_temperature is gases.ideal_gas_temperature
+
+
 def test_die_mean_and_variance_match_the_hand_calculation():
     """μ = 7/2 and σ² = 35/12 are the numbers a student works out by summing six terms."""
     assert sampling.die_mean(6) == pytest.approx(3.5, rel=1e-12)
@@ -359,12 +367,13 @@ ARGON_B = 5.317e-29  # m^3, per molecule (argon b_molar / N_A)
 
 
 def test_van_der_waals_pressure_at_a_b_zero_matches_the_ideal_gas_law_exactly():
-    """At a = b = 0 the formula is read off paths.ideal_gas_pressure directly (see the
-    module's source), so this is a sanity check on that delegation rather than a limit."""
+    """At a = b = 0, gases.van_der_waals_pressure(v, ...) reduces to k_B T / v, which is exactly
+    paths.ideal_gas_pressure(N, T, V) evaluated at the same state, v = V / N."""
     n_particles, temperature, volume = 1000, 300.0, 1e-3
+    v = volume / n_particles
     ideal = paths.ideal_gas_pressure(n_particles, temperature, volume)
 
-    vdw = equations_of_state.van_der_waals_pressure(n_particles, temperature, volume, 0.0, 0.0)
+    vdw = gases.van_der_waals_pressure(v, temperature, 0.0, 0.0)
 
     assert relative_error(float(vdw), ideal) < 1e-12
 
@@ -375,13 +384,12 @@ def test_van_der_waals_pressure_converges_to_the_ideal_gas_law_as_a_and_b_shrink
     the genuine a, b -> 0 limit, as opposed to the exact-zero sanity check above.
     """
     n_particles, temperature, volume = 5.0e22, 300.0, 2.0e-3
+    v = volume / n_particles
     ideal = paths.ideal_gas_pressure(n_particles, temperature, volume)
 
     errors = []
     for factor in (1.0, 0.1, 0.01, 0.001):
-        vdw = equations_of_state.van_der_waals_pressure(
-            n_particles, temperature, volume, ARGON_A * factor, ARGON_B * factor
-        )
+        vdw = gases.van_der_waals_pressure(v, temperature, ARGON_A * factor, ARGON_B * factor)
         errors.append(relative_error(float(vdw), ideal))
 
     assert errors == sorted(errors, reverse=True)  # monotonically shrinking
@@ -389,10 +397,22 @@ def test_van_der_waals_pressure_converges_to_the_ideal_gas_law_as_a_and_b_shrink
     assert errors[-1] < 1e-4  # a thousandth of its a, b is utterly negligible
 
 
+def test_compressibility_factor_approaches_one_as_v_grows():
+    """Z = P v / (k_B T) -> 1 in the dilute limit, for any real gas -- the definition of "ideal"."""
+    temperature = 300.0
+    v_values = np.array([1e-2, 1.0, 1e2, 1e4])
+    pressures = gases.van_der_waals_pressure(v_values, temperature, ARGON_A, ARGON_B)
+    z = gases.compressibility_factor(pressures, v_values, temperature)
+
+    errors = [relative_error(float(value), 1.0) for value in z]
+    assert errors == sorted(errors, reverse=True)  # monotonically shrinking
+    assert errors[-1] < 1e-6
+
+
 def test_critical_point_matches_known_argon_values():
     """Argon's measured critical point is T_c = 150.9 K, P_c = 4.87 MPa (CRC values); the
     molecule-scale a, b converted from the textbook molar constants should reproduce it."""
-    t_c, p_c, v_c = equations_of_state.critical_point(5.0e22, ARGON_A, ARGON_B)
+    v_c, t_c, p_c = gases.vdw_critical_point(ARGON_A, ARGON_B)
 
     assert relative_error(t_c, 150.9) < 0.02
     assert relative_error(p_c, 4.87e6) < 0.02
@@ -400,12 +420,35 @@ def test_critical_point_matches_known_argon_values():
 
 
 def test_pressure_at_the_critical_point_equals_the_predicted_critical_pressure():
-    """The closed-form P_c must be exactly what the pressure formula gives at (T_c, V_c)."""
-    n_particles = 1000
-    t_c, p_c, v_c = equations_of_state.critical_point(n_particles, ARGON_A, ARGON_B)
+    """The closed-form P_c must be exactly what the pressure formula gives at (v_c, T_c)."""
+    v_c, t_c, p_c = gases.vdw_critical_point(ARGON_A, ARGON_B)
 
-    pressure_here = equations_of_state.van_der_waals_pressure(
-        n_particles, t_c, v_c, ARGON_A, ARGON_B
-    )
+    pressure_here = gases.van_der_waals_pressure(v_c, t_c, ARGON_A, ARGON_B)
 
     assert relative_error(float(pressure_here), p_c) < 1e-10
+
+
+def test_critical_compressibility_factor_is_exactly_three_eighths():
+    """Z_c = P_c v_c / (k_B T_c) = 3/8 for every van der Waals substance -- the model's one
+    universal, substance-independent number (real gases scatter around 0.23-0.31)."""
+    v_c, t_c, p_c = gases.vdw_critical_point(ARGON_A, ARGON_B)
+
+    z_c = gases.compressibility_factor(p_c, v_c, t_c)
+
+    assert relative_error(float(z_c), 3.0 / 8.0) < 1e-12
+
+
+def test_reduced_pressure_equals_one_at_the_critical_point():
+    """The parameter-free law of corresponding states evaluated at its own reference point."""
+    assert relative_error(float(gases.vdw_pressure_reduced(1.0, 1.0)), 1.0) < 1e-12
+
+
+def test_vdw_constants_from_critical_inverts_vdw_critical_point():
+    """Fitting a, b from a critical point and reading the critical point back off them must
+    round-trip exactly -- the two functions are algebraic inverses of one another."""
+    v_c, t_c, p_c = gases.vdw_critical_point(ARGON_A, ARGON_B)
+
+    a_fit, b_fit = gases.vdw_constants_from_critical(t_c, p_c)
+
+    assert relative_error(a_fit, ARGON_A) < 1e-10
+    assert relative_error(b_fit, ARGON_B) < 1e-10

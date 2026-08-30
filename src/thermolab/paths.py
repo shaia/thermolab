@@ -29,18 +29,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .constants import K_B
-
-
-def ideal_gas_pressure(n_particles: int, temperature: float, volume: float) -> float:
-    """P = N k_B T / V."""
-    if volume <= 0:
-        raise ValueError("volume must be positive")
-    return n_particles * K_B * temperature / volume
-
-
-def ideal_gas_temperature(n_particles: int, pressure: float, volume: float) -> float:
-    """T = P V / (N k_B)."""
-    return pressure * volume / (n_particles * K_B)
+from .gases import ideal_gas_pressure, ideal_gas_temperature  # noqa: F401  (C4a: see gases.py)
 
 
 def isothermal_pressure(volumes: np.ndarray, n_particles: int, temperature: float) -> np.ndarray:

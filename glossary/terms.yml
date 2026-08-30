@@ -66,9 +66,29 @@ terms:
   - key: van-der-waals
     en: van der Waals
     he: ואן דר ואלס
+    he_reject: [ון דר ואלס, וואן דר וואלס]
   - key: critical-point
     en: critical point
     he: נקודה קריטית
+  - key: state-postulate
+    en: state postulate
+    he: הנחת המצב
+  - key: reduced-variables
+    en: reduced variables
+    he: משתנים מצומצמים
+  - key: corresponding-states
+    en: law of corresponding states
+    he: חוק המצבים המתאימים
+  - key: compressibility-factor
+    en: compressibility factor
+    he: מקדם הדחיסות
+    he_reject: [פקטור דחיסות]
+  - key: isotherm
+    en: isotherm
+    he: איזותרמה
+  - key: condensation
+    en: condensation
+    he: עיבוי
   - key: kinetic-theory
     en: kinetic theory
     he: תורה קינטית

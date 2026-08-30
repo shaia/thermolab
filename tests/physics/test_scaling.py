@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import equilibrium, kinetics, multiplicity, sampling
+from thermolab import equilibrium, gases, kinetics, multiplicity, sampling
 from thermolab.constants import K_B
 from thermolab.validation import relative_error, scaling_exponent
 
@@ -74,6 +74,18 @@ def test_larger_systems_have_steadier_pressure():
     large = relative_pressure_fluctuation(400, n_samples=16, base_seed=101)
 
     assert large < small
+
+
+def test_ideal_gas_pressure_is_unchanged_by_doubling_n_and_v():
+    """The doubling test, mechanised: pressure is intensive, so joining two identical samples
+    of the same gas -- N -> 2N, V -> 2V, same T -- must leave the pressure exactly unchanged,
+    the falsifier for the `doubling-doubles-everything` misconception."""
+    temperature, n_particles, volume = 300.0, 1000, 1e-3
+
+    base = gases.ideal_gas_pressure(n_particles, temperature, volume)
+    doubled = gases.ideal_gas_pressure(2 * n_particles, temperature, 2 * volume)
+
+    assert doubled == base
 
 
 def test_multiplicity_peak_narrows_as_one_over_sqrt_n():

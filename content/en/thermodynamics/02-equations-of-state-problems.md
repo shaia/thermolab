@@ -5,131 +5,109 @@ short_title: 02 · Problems
 
 # Problem set: equations of state
 
-Exam-style problems. Work them with a pen before touching a computer; the last one is meant
-to be finished numerically. Solutions and marking rubrics live with the instructor material
-and are deliberately not on this site.
+Exam-style problems. Work them with a pen before touching a computer; problem 4 is meant to
+be finished numerically. Solutions and marking rubrics live with the instructor material and
+are deliberately not on this site.
 
 Take $k_B = 1.381 \times 10^{-23}\ \mathrm{J\,K^{-1}}$ and $N_A = 6.022\times10^{23}$
-throughout. Argon's van der Waals constants, in this course's per-particle convention, are
-$a = 3.736\times10^{-49}\ \mathrm{Pa\,m^6}$ and $b = 5.317\times10^{-29}\ \mathrm{m^3}$
-(converted from the textbook molar values $a_{\text{molar}} = 0.1355\ \mathrm{Pa\,m^6/mol^2}$,
-$b_{\text{molar}} = 3.201\times10^{-5}\ \mathrm{m^3/mol}$).
+throughout. Recall the per-particle van der Waals equation from the module page,
+$P = k_BT/(v - b) - a/v^2$ with $v = V/N$, and its closed-form critical point
+$v_c = 3b$, $k_BT_c = 8a/(27b)$, $P_c = a/(27b^2)$.
 
-## Problem 1 — reading the equation of state
+Argon's van der Waals constants, in this course's per-particle convention, are
+$a = 3.736\times10^{-49}\ \mathrm{Pa\,m^6}$ and $b = 5.317\times10^{-29}\ \mathrm{m^3}$.
+Carbon dioxide's measured critical point (NIST Chemistry WebBook) is
+$T_c = 304.13\ \mathrm{K}$, $P_c = 7.3773\times10^{6}\ \mathrm{Pa}$.
 
-<!-- objectives: OBJ-02-1, OBJ-02-2 -->
-
-A sealed rigid vessel of volume $2.0\ \mathrm{L}$ holds $N = 5.0\times10^{22}$ argon atoms at
-$300\ \mathrm{K}$ — the same numbers as
-[module 4's Problem 2](04-pressure-problems.md).
-
-(a) Compute the pressure predicted by the ideal gas law.
-
-(b) Compute the excluded-volume term $Nk_BT/(V-Nb)$ and the attraction term $aN^2/V^2$
-separately, using argon's constants above.
-
-(c) Combine them into the van der Waals pressure, and state the relative difference from
-your answer in (a) as a percentage.
-
-(d) Which of the two corrections dominates at this density? Would that still be true if the
-vessel held the same number of atoms in a hundredth of the volume? Justify your answer
-without recomputing everything from scratch.
-
-## Problem 2 — building the corrections
-
-<!-- objectives: OBJ-02-2 -->
-
-(a) A student writes the excluded-volume correction as $P = Nk_BT/(V - b)$, without the
-factor of $N$ multiplying $b$. Explain, in terms of what $b$ represents physically, why this
-is wrong for any $N > 1$.
-
-(b) Explain why the attraction correction is proportional to $N^2/V^2$ (density squared)
-rather than to $N/V$ (density to the first power) — your answer should say what physical
-event the term is counting.
-
-(c) A textbook quotes carbon dioxide's van der Waals constants as
-$a_{\text{molar}} = 0.3640\ \mathrm{Pa\,m^6/mol^2}$ and
-$b_{\text{molar}} = 4.267\times10^{-5}\ \mathrm{m^3/mol}$. Convert both to the per-particle
-convention `thermolab.equations_of_state` uses, and state the two conversion factors you
-applied.
-
-## Problem 3 — intensive and extensive
-
-<!-- objectives: OBJ-02-3 -->
-
-Argon at $N = 5.0\times10^{22}$, $V = 2.0\times10^{-3}\ \mathrm{m^3}$, $T = 300\ \mathrm{K}$
-(Problem 1's scenario).
-
-(a) Compute the van der Waals pressure at $(3N, 3V)$, same $T$, and compare it with your
-answer to Problem 1(c).
-
-(b) Explain algebraically, working directly from the boxed van der Waals equation, why *any*
-simultaneous rescaling $N \to \lambda N$, $V \to \lambda V$ at fixed $T$ leaves the pressure
-exactly unchanged — not just for $\lambda = 3$.
-
-(c) The ideal gas's internal energy is $U = \tfrac{3}{2}Nk_BT$ (three dimensions). Is $U$
-intensive or extensive? Compute $U$ at $(N,T)$ and at $(3N,T)$ to check your answer, and
-state in one sentence what distinguishes a quantity like $U$ from a quantity like $P$.
-
-## Problem 4 — the critical point
-
-<!-- objectives: OBJ-02-4 -->
-
-Using argon's constants above, for one mole of argon ($N = N_A$):
-
-(a) Compute $T_c$, $P_c$, and $V_c$ from the closed-form relations.
-
-(b) Argon's measured critical point is $T_c = 150.9\ \mathrm{K}$,
-$P_c = 4.87\times10^{6}\ \mathrm{Pa}$, and a measured molar critical volume of about
-$74.6\ \mathrm{cm^3}$. Compare each of your three answers to the corresponding measured
-value as a percentage difference.
-
-(c) One of the three comparisons in (b) should stand out as noticeably worse than the other
-two. Which one, and — without redoing the algebra — what does the module page's discussion
-of $P_cV_c/(Nk_BT_c)$ say about *why* that particular quantity is the least trustworthy?
-
-(d) In one or two sentences, describe what is physically special about the point
-$(T_c, P_c, V_c)$ — what distinguishes it from every other point on the P-V-T surface?
-
-## Problem 5 — reading a P-V-T surface
+## Problem 1 — deriving the critical point
 
 <!-- objectives: OBJ-02-5 -->
 
-Consider a family of van der Waals isotherms for a fixed substance, plotted at several
-temperatures both above and below $T_c$.
+(a) Starting from $P(v) = k_BT/(v - b) - a/v^2$ at fixed $T$, compute $(\partial P/\partial
+v)_T$ and $(\partial^2 P/\partial v^2)_T$.
 
-(a) Describe, in words, how the shape of the isotherm changes as $T$ decreases through $T_c$.
+(b) Set both derivatives to zero simultaneously and solve for $v_c$ and $T_c$. (Hint: dividing
+one equation by the other eliminates $T$ first, leaving an equation in $v$ alone.)
 
-(b) On an isotherm below $T_c$, part of the van der Waals curve has $(\partial P/\partial
-V)_T > 0$ — pressure *rising* as volume *increases*. Explain why this region cannot describe
-any stable equilibrium state of a real substance.
+(c) Substitute your result back into $P(v)$ at $T = T_c$ to find $P_c$.
 
-(c) The Maxwell construction (module page, Advanced section) replaces the unphysical loop
-with a flat horizontal segment, positioned by requiring two areas cut from the loop to be
-equal. Without deriving this, explain in one sentence what physical quantity being
-single-valued is what forces the areas to match.
+(d) Using argon's constants above, evaluate $v_c$, $T_c$ and $P_c$ numerically. Convert your
+per-particle $v_c$ to a molar volume by multiplying by $N_A$, and compare all three numbers to
+argon's measured critical point: $T_c = 150.9\ \mathrm{K}$, $P_c = 4.87\times10^{6}\
+\mathrm{Pa}$, molar $V_c \approx 74.6\ \mathrm{cm^3/mol}$.
 
-(d) State, in your own words, the two ingredients of the van der Waals model whose absence
-would make it unable to predict a critical point at all.
+## Problem 2 — the universal $Z_c = 3/8$
 
-## Problem 6 — computational
+<!-- objectives: OBJ-02-6 -->
 
-<!-- objectives: OBJ-02-1, OBJ-02-3, OBJ-02-4 -->
+(a) Using the boxed critical-point formulas from Problem 1(b)-(c), show that
+$Z_c \equiv P_cv_c/(k_BT_c) = 3/8$ exactly — a number with no $a$ or $b$ left in it at all.
 
-Using the module's laboratory notebook and `thermolab.equations_of_state`:
+(b) Real gases' measured critical compressibility factors cluster around $0.23$–$0.31$
+(argon $\approx 0.29$, carbon dioxide $\approx 0.274$, water $\approx 0.23$) rather than
+exactly $3/8 = 0.375$. Is this discrepancy evidence against the state postulate (the module
+page's opening claim), against the van der Waals model specifically, or against something
+else? Justify your answer in a sentence or two.
 
-(a) Build a `pv_t_surface` for argon over a range of temperatures spanning $T_c$ and a range
-of volumes down to just above the excluded volume. Compare it, on the same axes, with the
-ideal-gas surface (`a = b = 0`) over the same grid, and report the volume at which the two
-surfaces start to visibly disagree at $T = 300\ \mathrm{K}$.
+(c) Compute the percentage difference between $3/8$ and argon's measured $0.29$.
 
-(b) Verify numerically that `van_der_waals_pressure` is unchanged under
-$(N,V) \to (\lambda N, \lambda V)$ at fixed $T$, for at least three values of $\lambda$, and
-report the largest relative difference you measure.
+## Problem 3 — deriving the reduced equation of state
 
-(c) Compute `critical_point` for argon, then evaluate the pressure formula at a few volumes
-close to $V_c$ (holding $T = T_c$) to confirm numerically that the pressure is stationary
-there — that is, that $P(V_c - \delta)$ and $P(V_c + \delta)$ are both very close to $P_c$
-for small $\delta$.
+<!-- objectives: OBJ-02-6 -->
 
-(d) State one thing your numerical result in (c) does *not* prove about the critical point.
+(a) Substitute $P = P_rP_c$, $v = v_rv_c$, $T = T_rT_c$ into the boxed van der Waals equation,
+using the closed forms for $v_c$, $T_c$, $P_c$ from Problem 1, and show the result simplifies
+to $P_r = 8T_r/(3v_r - 1) - 3/v_r^2$ with $a$, $b$ and $k_B$ cancelling out completely.
+
+(b) Confirm that your reduced equation gives $P_r = 1$ when $v_r = T_r = 1$ — that is, that it
+is satisfied exactly at the critical point itself, as it must be by construction.
+
+(c) Two different gases are held at the same reduced temperature and the same reduced
+pressure. What does the equation you just derived say about their reduced volumes? Is this
+something the *un-reduced* van der Waals equation, evaluated separately with each gas's own
+$a$ and $b$, would tell you on its own, without first reducing the variables?
+
+## Problem 4 — computational: fitting carbon dioxide from its critical point
+
+<!-- objectives: OBJ-02-3, OBJ-02-4 -->
+
+Using the module's laboratory notebook and `thermolab.gases`.
+
+(a) From carbon dioxide's measured critical point above, compute $a$ and $b$ with
+`gases.vdw_constants_from_critical`.
+
+(b) Load `data/co2-isotherm-280k.csv` (representative published NIST Chemistry WebBook
+values for carbon dioxide's isothermal pressure-volume behaviour at $280\ \mathrm{K}$). For
+each tabulated molar volume, convert to the per-particle $v = V_m/N_A$ and compute both the
+ideal pressure $P = k_BT/v$ and the van der Waals pressure using your fitted $a$, $b$ from
+(a).
+
+(c) For each tabulated point, report the percentage difference of each model's prediction
+from the tabulated (measured) pressure. Over what range of $v$ does the *ideal* prediction
+stay within $10\%$ of the measured value? Where does it first exceed $50\%$?
+
+(d) The van der Waals prediction tracks the measured pressure considerably more closely than
+the ideal prediction does, across the dilute-to-near-saturation vapour branch — but neither
+model reproduces the flat condensation plateau in the tabulated data. State, in one sentence,
+why a model built from a single, density-independent pair of constants $(a, b)$ cannot in
+principle produce a genuinely flat plateau at any density.
+
+## Problem 5 — challenge: a molecule's size, and dimensional analysis
+
+<!-- objectives: OBJ-02-2, OBJ-02-4 -->
+
+(a) Treat a $\mathrm{CO_2}$ molecule as a hard sphere of diameter $d \approx 3.3\times10^{-10}\
+\mathrm{m}$ (an approximate kinetic diameter). Two such spheres cannot approach closer than
+one diameter, centre to centre, so each *pair* of molecules excludes a sphere of radius $d$
+around each other — volume $\tfrac{4}{3}\pi d^3$. That excluded volume belongs to the pair, not
+to either molecule alone, so argue that the excluded volume *per molecule* is
+$b \approx \tfrac{1}{2}\left(\tfrac{4}{3}\pi d^3\right) = \tfrac{2}{3}\pi d^3$, and evaluate it
+numerically.
+
+(b) Compare your geometric estimate of $b$ to the value fit from carbon dioxide's critical
+point in Problem 4(a). Are the two the same order of magnitude?
+
+(c) Inspect the boxed van der Waals equation term by term and confirm that $a$ must carry
+units of $\mathrm{Pa\,m^6}$ and $b$ must carry units of $\mathrm{m^3}$ for the equation to be
+dimensionally consistent. In one sentence, explain why this argument pins down the units of
+$a$ and $b$ without needing to know either constant's numerical value.

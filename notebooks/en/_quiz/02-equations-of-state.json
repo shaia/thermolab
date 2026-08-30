@@ -1,171 +1,147 @@
 [
   {
-    "question": "A student claims that P V = N k_B T holds exactly for any gas at any density. Which observation most directly falsifies this claim?",
+    "question": "The state postulate says a simple compressible substance's equilibrium states form a single two-dimensional surface in (P, v, T) space. Given the values of any two independent intensive variables -- say P and T -- what does the state postulate say about the rest?",
     "type": "multiple_choice",
     "answers": [
       {
-        "answer": "Real gases condense into liquids at low temperature, which the ideal gas law -- having no way to distinguish one substance from another -- cannot predict.",
+        "answer": "v (and every other equilibrium property) is already fixed -- the two you chose pick out one point on the surface, and a point on a surface has no remaining freedom.",
         "correct": true,
-        "feedback": "Right. A law with no substance-specific constants in it cannot possibly predict that argon condenses at 87 K while helium stays gaseous down to 4 K. Something specific to each substance has to be missing."
+        "feedback": "Right. That is exactly what \"a single two-dimensional surface\" means: two coordinates locate a point on it, and the third coordinate is then read off, not separately chosen."
       },
       {
-        "answer": "The ideal gas law uses k_B instead of R.",
+        "answer": "P, v and T are three fully independent knobs, so all three must be measured separately.",
         "correct": false,
-        "feedback": "That is just a difference between a per-particle count N and a per-mole count n; the two forms are the same statement, R = N_A k_B. It says nothing about density."
+        "feedback": "This is what the state postulate denies. If P, v and T were independent, equilibrium states would fill a three-dimensional volume, not sit on a two-dimensional surface -- and there would be no such thing as \"the equation of state\"."
       },
       {
-        "answer": "The ideal gas law does not apply to gases made of more than one atom per molecule.",
+        "answer": "Only extensive variables like V and N determine the state; P and T alone are not enough.",
         "correct": false,
-        "feedback": "It applies equally well to any dilute classical gas, monatomic or not -- the atom count inside a molecule is irrelevant to the derivation in module 4."
+        "feedback": "Backwards. P and T (both intensive) are exactly what the state postulate says suffices to fix v; N sets how much substance you have, not which point on the per-particle surface it occupies."
       },
       {
-        "answer": "The ideal gas law requires N to be measured in moles rather than as a particle count.",
+        "answer": "This is true only for the ideal gas; real gases need a third independent variable.",
         "correct": false,
-        "feedback": "Either convention works; this course deliberately writes P V = N k_B T with N a plain particle count. Neither convention says anything about where the law breaks down."
+        "feedback": "The state postulate is a general claim about any simple compressible substance's equilibrium surface -- the van der Waals gas included. It does not add a degree of freedom the ideal gas lacked."
       }
     ]
   },
   {
-    "question": "Real gas molecules attract each other weakly. Compared to the ideal-gas prediction N k_B T / V at the same N, V, T, does this attraction raise or lower the pressure, and why?",
+    "question": "You have a gas bottle at (N, V, T). You open a valve to an identical second bottle at the same state, merging into one system with twice the gas, in twice the volume, at the same T. Which of the following correctly lists what changes?",
     "type": "multiple_choice",
     "answers": [
       {
-        "answer": "It lowers the pressure -- a molecule approaching the wall is pulled backward by the neighbours behind it, so it delivers less momentum than it would feeling no attraction at all.",
+        "answer": "V, N and U (the internal energy) double; P and T stay exactly the same.",
         "correct": true,
-        "feedback": "Correct. Deep in the gas the pull is symmetric and cancels; only near the wall, where there are neighbours on one side and none on the other, does the attraction have a net effect -- and it points away from the wall."
+        "feedback": "Correct -- the doubling test: extensive quantities (V, N, U) double, intensive quantities (P, T, and v = V/N) do not move at all."
       },
       {
-        "answer": "It raises the pressure -- attraction pulls more molecules toward the wall, so more collisions occur.",
+        "answer": "P, V, T and N all double.",
         "correct": false,
-        "feedback": "Attraction does not increase the collision rate; it reduces the momentum each near-wall collision delivers, by pulling the incoming molecule back."
+        "feedback": "Doubling P and T along with V and N would make \"the pressure of the gas\" depend on how much gas happened to be in the room -- which cannot be right, since two adjacent litres of the same gas at the same temperature must report the same pressure."
       },
       {
-        "answer": "It raises the pressure -- attracted molecules move faster, striking harder.",
+        "answer": "Nothing changes -- joining two identical systems just makes a bigger version of the same state.",
         "correct": false,
-        "feedback": "Attraction slows a molecule down as it approaches the wall (it is being pulled back toward the gas it came from), not sped up."
+        "feedback": "V, N and U genuinely double; the two halves really do add up to twice the substance. Only the intensive quantities (P, T, v) stay fixed, not everything."
       },
       {
-        "answer": "It has no effect -- attraction only matters once the gas has condensed into a liquid.",
+        "answer": "Only T changes, since heat flows between the two halves until they equilibrate.",
         "correct": false,
-        "feedback": "The correction is present at any density, though it is small when the gas is dilute. It is exactly this small, everywhere-present correction that eventually adds up to a condensation transition at low enough temperature."
+        "feedback": "The two halves start at the same T, so there is nothing to equilibrate -- T was never going to move, and neither was P."
       }
     ]
   },
   {
-    "question": "In the van der Waals equation, the ideal gas law's volume V is replaced by V - N b, where b is one molecule's excluded volume. Why is it N b rather than just b?",
-    "type": "multiple_choice",
-    "answers": [
-      {
-        "answer": "Each of the N molecules independently excludes a volume b from the space available to the others, so the total excluded volume scales with N.",
-        "correct": true,
-        "feedback": "Exactly -- doubling the number of molecules at fixed b doubles how much room they collectively take up, so the correction has to grow with N, not stay fixed."
-      },
-      {
-        "answer": "b already accounts for the volume excluded by the whole sample of gas, whatever N is.",
-        "correct": false,
-        "feedback": "b is defined per molecule. If it already summed over the whole sample it would have to depend on N, which would make it a property of the sample rather than of the substance."
-      },
-      {
-        "answer": "The excluded volume should be divided among the N particles, giving b/N.",
-        "correct": false,
-        "feedback": "This has the scaling backwards: it would make the excluded-volume correction shrink as more molecules are added, when in fact more molecules exclude more total volume."
-      },
-      {
-        "answer": "The excluded volume can be dropped entirely from the van der Waals equation.",
-        "correct": false,
-        "feedback": "Dropping it removes exactly the term that keeps the pressure from becoming infinite as V shrinks toward zero -- and, as the Advanced section shows, removing it also removes the equation's critical point entirely."
-      }
-    ]
-  },
-  {
-    "question": "Using P = N k_B T/(V - N b) - a N^2/V^2 for argon (a = 3.736e-49 Pa m^6, b = 5.317e-29 m^3, k_B = 1.381e-23 J/K) at N = 5.0e22, V = 2.0e-3 m^3, T = 300 K, the van der Waals pressure differs from the ideal-gas pressure N k_B T/V by roughly what fraction? Give a signed decimal fraction (negative if the real-gas pressure is lower).",
+    "question": "A room measures 30 m^3 and holds air at 101325 Pa and 293 K. Using P V = N k_B T with k_B = 1.381e-23 J/K, how many gas particles does the room contain?",
     "type": "numeric",
     "answers": [
       {
         "range": [
-          -0.00142,
-          -0.00042
+          7.49e+26,
+          7.53e+26
         ],
         "correct": true,
-        "feedback": "The attraction correction (about -234 Pa) is slightly larger in magnitude than the excluded-volume correction (about +138 Pa), so the two do not cancel: the net shift is about -95 Pa out of roughly 1.036e5 Pa, a fraction near -0.0009, i.e. about a tenth of a percent below ideal."
+        "feedback": "N = P V / (k_B T) = (101325)(30) / [(1.381e-23)(293)] = 7.51e26 particles -- the same calculation as P V = N k_B T, solved for N instead of P."
       }
     ]
   },
   {
-    "question": "You have a sample of a real gas at (N, V, T). You prepare a second sample of the same substance with 3N particles in 3V volume, at the same temperature T. How does its van der Waals pressure compare to the first sample's?",
+    "question": "CO2 gas at 280 K is compressed slowly at fixed temperature, well past several times its critical volume. Which best describes what a pressure gauge on the container actually reads, compared with the ideal-gas prediction P = k_B T / v?",
     "type": "multiple_choice",
     "answers": [
       {
-        "answer": "Exactly equal -- pressure is intensive, and every term in the van der Waals equation is unchanged by scaling N and V together at fixed T.",
+        "answer": "The measured pressure climbs more slowly than the ideal prediction, then plateaus at the substance's saturation pressure while the ideal prediction keeps climbing without limit.",
         "correct": true,
-        "feedback": "Right. N/(V - N b) and N^2/V^2 are each a ratio of something proportional to the scale factor over something proportional to the same scale factor, so the scale factor cancels exactly -- for the real-gas correction just as for the ideal gas."
+        "feedback": "Right -- this is exactly what the NIST CO2 isotherm data in this module shows: the real gas departs from P = k_B T / v well before condensation, and then flattens into a plateau the ideal law has no mechanism to produce at all."
       },
       {
-        "answer": "Exactly triple, since pressure depends linearly on N.",
+        "answer": "The measured pressure tracks P = k_B T / v exactly at any density, since every gas obeys the ideal gas law.",
         "correct": false,
-        "feedback": "Pressure depends on N only through the *density* N/V, not on N alone. Tripling N while also tripling V leaves that density, and hence the pressure, unchanged."
+        "feedback": "This is exactly the claim the module's NIST CO2 data falsifies. The ideal gas law contains no substance-specific constant, so it cannot know that CO2 condenses -- real CO2's measured pressure departs sharply from the ideal prediction long before the plateau, let alone during it."
       },
       {
-        "answer": "Exactly a third, since pressure depends inversely on V.",
+        "answer": "The measured pressure rises faster than the ideal prediction at every volume.",
         "correct": false,
-        "feedback": "Same error in the other direction: V alone does not set the pressure either, only the ratio N/V does, and that ratio has not changed."
+        "feedback": "Attraction dominates over most of the compression, which *lowers* the measured pressure below the ideal prediction, not raises it -- only deep in the compressed liquid does pressure rise steeply."
       },
       {
-        "answer": "Approximately but not exactly equal -- the excluded-volume and attraction corrections scale differently, so a small residual mismatch remains.",
+        "answer": "The measured pressure drops to zero once the substance starts to condense.",
         "correct": false,
-        "feedback": "They scale the same way when N and V are scaled together: both corrections are exactly homogeneous of degree zero in (N, V) at fixed T, not just approximately."
+        "feedback": "Condensation holds the pressure at a constant, nonzero value -- the saturation pressure -- not zero. A pressure of zero would mean no gas left at all."
       }
     ]
   },
   {
-    "question": "At a gas's van der Waals critical point (T_c, P_c, V_c), what is special about the P-V isotherm at T = T_c?",
-    "type": "multiple_choice",
+    "question": "Using a, b fit from CO2's measured critical point (T_c = 304.13 K, P_c = 7.3773e6 Pa, via a = 27(k_B T_c)^2/(64 P_c), b = k_B T_c/(8 P_c)), compute the van der Waals pressure at a molar volume of 1.2e-3 m^3/mol (per-particle v = V_m/N_A) and T = 280 K. Give the signed fractional deviation from the ideal prediction k_B T/v at the same state (negative if the van der Waals pressure is lower).",
+    "type": "numeric",
     "answers": [
       {
-        "answer": "Both the slope dP/dV and the curvature d^2P/dV^2 vanish simultaneously at V = V_c -- the isotherm has a horizontal inflection point there.",
+        "range": [
+          -0.104,
+          -0.084
+        ],
         "correct": true,
-        "feedback": "Correct -- that pair of conditions is exactly how T_c, P_c and V_c are defined and derived."
-      },
-      {
-        "answer": "The pressure is at its absolute maximum over all volumes.",
-        "correct": false,
-        "feedback": "The critical point is a horizontal inflection, not a maximum -- the pressure keeps falling as V grows well beyond V_c."
-      },
-      {
-        "answer": "The gas obeys the ideal gas law exactly at that one point.",
-        "correct": false,
-        "feedback": "The opposite is closer to true: the critical point is where the real-gas corrections matter most, since it is where V is smallest relative to the excluded volume N b."
-      },
-      {
-        "answer": "The volume V_c is independent of how many particles N are present.",
-        "correct": false,
-        "feedback": "V_c = 3 N b is proportional to N -- it is extensive, unlike T_c and P_c, which depend only on the substance's a and b and not on the sample size."
+        "feedback": "Ideal: P = k_B T/v ~= 1.940e6 Pa. Van der Waals: P ~= 1.758e6 Pa. The attraction term a/v^2 dominates at this density -- the excluded-volume correction 1/(v-b) is still close to 1/v since v is far larger than b here -- so the net shift is negative, about -9.4%, well before condensation is anywhere in sight."
       }
     ]
   },
   {
-    "question": "Below the critical temperature, a van der Waals isotherm develops a region where (dP/dV)_T > 0 -- pressure rising as volume increases. What does this region signify?",
+    "question": "A gas has per-particle van der Waals constants a = 1.0037e-48 Pa m^6 and b = 7.0855e-29 m^3 (converted from independently published textbook molar constants for CO2, not fit from its critical point). Using k_B T_c = 8a/(27b), compute T_c in kelvin.",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          303.0,
+          305.0
+        ],
+        "correct": true,
+        "feedback": "T_c = 8a/(27 k_B b) ~= 304.0 K -- within 0.1% of CO2's measured critical temperature, 304.13 K, even though a and b here came from an independent fit, not from the critical point itself. P_c = a/(27 b^2) ~= 7.40e6 Pa lands within about half a percent of the measured 7.3773e6 Pa the same way."
+      }
+    ]
+  },
+  {
+    "question": "Two different gases -- say CO2 and N2 -- are held at the same reduced temperature T_r and the same reduced pressure P_r, even though their critical points (and their a, b) are completely different numbers. Do the two gases have the same compressibility factor Z, or does Z depend on which gas it is?",
     "type": "multiple_choice",
     "answers": [
       {
-        "answer": "That region is mechanically unstable and never realized by real matter; the true isotherm replaces it with a flat, constant-pressure segment via the Maxwell construction.",
+        "answer": "The same Z -- the law of corresponding states says any van der Waals substance at a given (T_r, P_r) has the same reduced volume v_r, and Z is built entirely out of reduced quantities once P_c v_c/(k_B T_c) = 3/8 is used to eliminate the substance- specific constants.",
         "correct": true,
-        "feedback": "Right -- a region where pressure rises with volume would spontaneously collapse or expand rather than sit in equilibrium, so no real gas ever sits there."
+        "feedback": "Correct. P_r = 8T_r/(3v_r - 1) - 3/v_r^2 has no a, b or N_A left in it at all, so fixing (T_r, P_r) fixes v_r -- and hence Z -- the same way for every van der Waals substance, regardless of its own critical point."
       },
       {
-        "answer": "That region describes the gas becoming supercritical.",
+        "answer": "Z depends on the gas's chemistry, so it is never the same for two different gases.",
         "correct": false,
-        "feedback": "Supercritical behaviour appears above T_c, where no loop occurs at all -- the loop is specifically a below-T_c phenomenon."
+        "feedback": "This is true of the *un-reduced* pressure -- two gases at the same (v, T) generally have different P, because a and b differ. But once P, v and T are measured in units of each gas's own critical point, that substance-specific information cancels out of the reduced equation entirely."
       },
       {
-        "answer": "That region is where the ideal gas law becomes exact.",
+        "answer": "The same Z, but only because CO2 and N2 happen to have similar molecular masses -- for a very different pair of gases it would not hold.",
         "correct": false,
-        "feedback": "The loop is the single clearest sign that the gas is furthest from ideal behaviour, not closest to it."
+        "feedback": "The law of corresponding states does not depend on molecular mass, or on any property of the two gases matching -- it follows from a, b cancelling out of the reduced van der Waals equation algebraically, for any pair of substances at all."
       },
       {
-        "answer": "That region signals that the excluded-volume correction has become negative.",
+        "answer": "Only if both gases are measured at exactly their own critical points, T_r = P_r = 1.",
         "correct": false,
-        "feedback": "b itself never changes sign; the loop comes from the competition between the two corrections at a volume close to N b, not from either correction flipping sign."
+        "feedback": "The reduced equation holds at every (T_r, P_r), not only at the critical point -- T_r = P_r = 1 is just the one point every reduced isotherm is required to pass through, by construction."
       }
     ]
   }
