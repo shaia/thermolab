@@ -12,7 +12,7 @@ import pytest
 
 from thermolab import equilibrium, kinetics, multiplicity, sampling
 from thermolab.constants import K_B
-from thermolab.validation import seed_study
+from thermolab.validation import scaling_exponent, seed_study
 
 pytestmark = pytest.mark.seed_independence
 
@@ -137,6 +137,62 @@ def test_conditioning_on_a_lucky_start_does_not_bias_what_follows():
     assert study.agrees_with(sampling.die_mean(6), n_sigma=3.0), (
         f"rolls after a hot start averaged {study.mean:.4g} +/- {study.standard_error:.2g}; "
         "a compensating die would sit below 3.5"
+    )
+
+
+def test_same_seed_reproduces_the_same_walk():
+    a = sampling.random_walk(200, 150, np.random.default_rng(55))
+    b = sampling.random_walk(200, 150, np.random.default_rng(55))
+    c = sampling.random_walk(200, 150, np.random.default_rng(56))
+
+    assert np.array_equal(a, b)
+    assert not np.array_equal(a, c)
+
+
+def test_the_fitted_spread_exponent_is_seed_independent():
+    """Every walker cloud is different; the exponent 1/2 read off it is not."""
+
+    def fitted_exponent(rng: np.random.Generator) -> float:
+        spread = sampling.walker_spread(sampling.random_walk(3000, 1024, rng))
+        times = [4, 16, 64, 256, 1024]
+        return scaling_exponent(times, [float(spread[t]) for t in times])
+
+    study = seed_study(fitted_exponent, n_seeds=8)
+
+    assert study.agrees_with(0.5, n_sigma=3.0), (
+        f"fitted exponent {study.mean:.5f} +/- {study.standard_error:.2g} across seeds"
+    )
+
+
+def test_the_spread_coefficient_agrees_across_seeds():
+    """The coefficient as well as the exponent: sigma(t) = sigma_1 sqrt(t), sigma_1 = 1 here."""
+    study = seed_study(
+        lambda rng: float(sampling.walker_spread(sampling.random_walk(4000, 400, rng))[-1]),
+        n_seeds=8,
+    )
+
+    assert study.agrees_with(sampling.step_distribution("pm1").std * np.sqrt(400), n_sigma=3.0)
+
+
+def test_conditioning_on_a_walker_far_from_the_origin_does_not_pull_it_back():
+    """The falsifying experiment for `walker-restoring-force`.
+
+    Keep only the walkers standing at x >= +30 after 500 steps, then watch their *next* 500.
+    If the walk were pulled back, this conditioned displacement would be negative. It is zero
+    within its standard error: a walker far to the right has no idea it is far to the right.
+    """
+
+    def mean_later_displacement(rng: np.random.Generator) -> float:
+        trajectories = sampling.random_walk(40_000, 1000, rng)
+        far_right = trajectories[:, 500] >= 30.0
+        assert far_right.sum() > 100, "not enough walkers survived the condition to average"
+        return float((trajectories[far_right, 1000] - trajectories[far_right, 500]).mean())
+
+    study = seed_study(mean_later_displacement, n_seeds=8)
+
+    assert study.agrees_with(0.0, n_sigma=3.0), (
+        f"walkers conditioned on x >= +30 went on to move {study.mean:.3f} "
+        f"+/- {study.standard_error:.3f} steps; a restoring force would give about -30"
     )
 
 

@@ -452,3 +452,100 @@ def test_vdw_constants_from_critical_inverts_vdw_critical_point():
 
     assert relative_error(a_fit, ARGON_A) < 1e-10
     assert relative_error(b_fit, ARGON_B) < 1e-10
+
+
+@pytest.mark.parametrize("name", ["pm1", "biased", "uniform", "heavy"])
+def test_walk_mean_and_variance_match_the_additivity_result(name):
+    """<x_t> = mu_1 t and Var(x_t) = sigma_1^2 t, for any finite-variance step.
+
+    This is module 00's additivity theorem read with t in the place of N, and it is the whole
+    analytic content of a random walk. Four very different step distributions are checked
+    because the claim is that only the first two moments of a step survive into the answer.
+    """
+    dist = sampling.step_distribution(name)
+    rng = np.random.default_rng(4242)
+    trajectories = sampling.random_walk(8000, 512, rng, step=dist)
+
+    for t in (8, 64, 512):
+        column = trajectories[:, t]
+        standard_error = dist.std * np.sqrt(t / column.size)
+        assert abs(float(column.mean()) - dist.mean * t) < 4.0 * standard_error
+        assert relative_error(float(column.var(ddof=1)), dist.variance * t) < 0.08
+
+
+def test_rescaling_every_step_rescales_the_spread_by_the_same_factor():
+    """The dimensionless module's substitute for a dimensional check.
+
+    Positions are counted in steps, so there is no unit to verify with pint. What can be
+    verified is homogeneity: sigma_1 enters the answer linearly, so measuring a walk in units
+    of half a step must give exactly half the spread — no offset, no stray additive term.
+    """
+    rng = np.random.default_rng(606)
+    trajectories = sampling.random_walk(4000, 256, rng, step="uniform")
+
+    spread = sampling.walker_spread(trajectories)
+    halved = sampling.walker_spread(0.5 * trajectories)
+
+    assert np.allclose(halved, 0.5 * spread, rtol=1e-12)
+
+
+def test_binomial_approaches_its_gaussian_as_n_grows():
+    """de Moivre-Laplace, measured: the worst-case gap to the Gaussian shrinks with n.
+
+    Comparing pmf against density needs the lattice spacing, which is 1 in k. The comparison
+    is restricted to the central few sigma, where the theorem actually claims accuracy — the
+    far tails are relatively wrong at every n, which is a separate and honest limitation.
+    """
+    worst = []
+    for n in (25, 100, 400):
+        k, pmf, gaussian = sampling.binomial_to_gaussian(n, 0.5)
+        sigma = np.sqrt(n * 0.25)
+        central = np.abs(k - n * 0.5) <= 3.0 * sigma
+        worst.append(float(np.max(np.abs(pmf[central] - gaussian[central])) * sigma))
+
+    assert worst[0] > worst[1] > worst[2]
+    assert worst[-1] < 0.01
+
+
+def test_de_moivre_laplace_peak_matches_the_closed_form():
+    """At k = np the Gaussian is 1/sqrt(2 pi n p q); for n = 100, p = 1/2 that is 1/sqrt(50 pi).
+
+    The exact binomial peak is 0.0796 against the approximation's 0.0798 — under a third of a
+    percent, and the number the module's quiz asks a student to reproduce by hand.
+    """
+    k, pmf, gaussian = sampling.binomial_to_gaussian(100, 0.5)
+    peak = int(np.argmin(np.abs(k - 50.0)))
+
+    assert float(gaussian[peak]) == pytest.approx(1.0 / np.sqrt(50.0 * np.pi), rel=1e-12)
+    assert relative_error(float(gaussian[peak]), float(pmf[peak])) < 0.005
+
+
+def test_a_persistent_walk_with_zero_persistence_is_an_ordinary_walk():
+    """q = 0 must recover the independent-step walk exactly in distribution.
+
+    A counterexample is only worth something if it agrees with the thing it contradicts in
+    the limit where they should agree; otherwise the disagreement at q = 0.95 could be a bug.
+    """
+    plain = sampling.random_walk(6000, 400, np.random.default_rng(7))
+    persistent = sampling.correlated_walk(6000, 400, 0.0, np.random.default_rng(8))
+
+    assert relative_error(
+        float(sampling.walker_spread(persistent)[-1]),
+        float(sampling.walker_spread(plain)[-1]),
+    ) < 0.05
+
+
+def test_persistent_walk_variance_is_inflated_by_the_correlation_factor():
+    """Correlated steps do not destroy the sqrt(t) law; they change its coefficient.
+
+    Successive steps have correlation exactly q, so summing the correlations gives
+    Var(x_t) -> t (1 + q)/(1 - q) at long times. Quoting the number is what turns "the CLT
+    failed" into "the independence hypothesis failed, and here is precisely what it cost".
+    """
+    rng = np.random.default_rng(2024)
+    n_steps = 800
+
+    for q in (0.5, 0.9):
+        trajectories = sampling.correlated_walk(6000, n_steps, q, rng)
+        measured = float(trajectories[:, -1].var(ddof=1))
+        assert relative_error(measured, n_steps * (1.0 + q) / (1.0 - q)) < 0.12

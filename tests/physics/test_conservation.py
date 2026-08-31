@@ -199,3 +199,47 @@ def test_reduced_variables_roundtrip_recovers_the_absolute_state():
     assert relative_error(float(p_r) * p_c, float(pressure)) < 1e-12
     assert relative_error(float(v_r) * v_c, v) < 1e-12
     assert relative_error(float(t_r) * t_c, temperature) < 1e-12
+
+
+def test_binomial_probabilities_sum_to_one():
+    """Nothing physical is conserved in a coin walk, but probability still is.
+
+    The pmf is assembled from log-gammas and exponentiated, which is exactly the arrangement
+    where a dropped term hides: every individual value stays plausible while the total drifts.
+    """
+    for n, p in ((10, 0.5), (100, 0.5), (100, 0.6), (2000, 0.5)):
+        _k, pmf, _gaussian = sampling.binomial_to_gaussian(n, p)
+        assert pmf.sum() == pytest.approx(1.0, abs=1e-12)
+
+
+def test_the_walker_histogram_has_unit_area():
+    """A density that does not integrate to 1 cannot be compared with the CLT overlay."""
+    rng = np.random.default_rng(808)
+    trajectories = sampling.random_walk(5000, 200, rng)
+
+    centres, density = sampling.walker_histogram(trajectories[:, -1], n_bins=50)
+    width = float(centres[1] - centres[0])
+
+    assert float(density.sum() * width) == pytest.approx(1.0, abs=1e-9)
+
+
+def test_a_walk_neither_creates_nor_loses_walkers():
+    """Walker number is this model's particle number: fixed, and every walker starts at 0."""
+    rng = np.random.default_rng(99)
+    trajectories = sampling.random_walk(300, 120, rng, step="uniform")
+
+    assert trajectories.shape == (300, 121)
+    assert np.all(trajectories[:, 0] == 0.0)
+    assert np.all(np.isfinite(trajectories))
+
+
+def test_every_walk_position_is_the_running_sum_of_its_own_steps():
+    """The model's defining identity: x_t - x_(t-1) is one step, so differencing must give
+    back a valid step sequence — for the coin walk, exactly +/-1 every time."""
+    rng = np.random.default_rng(1234)
+    trajectories = sampling.random_walk(200, 80, rng)
+
+    steps = np.diff(trajectories, axis=1)
+
+    assert np.all(np.abs(steps) == 1.0)
+    assert np.allclose(np.cumsum(steps, axis=1), trajectories[:, 1:])

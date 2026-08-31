@@ -208,6 +208,81 @@ def test_equilibration_gets_more_predictable_as_the_bodies_grow():
     assert large < small
 
 
+def test_walker_cloud_widens_as_the_square_root_of_time():
+    """The other face of N^(-1/2): a *sum* of t steps spreads as t^(+1/2).
+
+    Same algebra as the sample average, read in the opposite direction — which is exactly the
+    confusion the `spread-means-drift` misconception lives in. Fitting the exponent rather
+    than eyeballing the curve is what makes "widens" a measurement.
+    """
+    rng = np.random.default_rng(31337)
+    trajectories = sampling.random_walk(6000, 1024, rng)
+    spread = sampling.walker_spread(trajectories)
+    times = [4, 16, 64, 256, 1024]
+    spreads = [float(spread[t]) for t in times]
+
+    exponent = scaling_exponent(times, spreads)
+
+    assert exponent == pytest.approx(0.5, abs=0.02), (
+        f"fitted exponent {exponent:.4f} from spreads {spreads}"
+    )
+
+
+@pytest.mark.parametrize("name", ["pm1", "uniform", "heavy"])
+def test_the_spread_coefficient_is_the_standard_deviation_of_one_step(name):
+    """Not just the exponent: sigma(t) = sigma_1 sqrt(t), with sigma_1 the step's own spread.
+
+    This is the sentence that makes the CLT useful rather than decorative — the shape is
+    universal, and the one number that is not universal is fixed by the step distribution.
+    """
+    dist = sampling.step_distribution(name)
+    rng = np.random.default_rng(515)
+    trajectories = sampling.random_walk(8000, 400, rng, step=dist)
+
+    measured = float(sampling.walker_spread(trajectories)[-1])
+
+    assert relative_error(measured, dist.std * np.sqrt(400)) < 0.05
+
+
+def test_drift_and_spread_of_a_biased_walk_grow_at_different_rates():
+    """The falsifier for "the cloud is widening, so the average must be moving".
+
+    A biased walk does both at once, and the two are visibly independent: the mean marches
+    linearly at mu_1 t while the width crawls as sigma_1 sqrt(t). By t = 1024 the drift has
+    outrun the spread by a factor of twenty, which is why a drifting cloud looks nothing like
+    a spreading one once you plot them together.
+    """
+    dist = sampling.step_distribution("biased")
+    rng = np.random.default_rng(20250831)
+    trajectories = sampling.random_walk(4000, 1024, rng, step=dist)
+    spread = sampling.walker_spread(trajectories)
+    times = [16, 64, 256, 1024]
+
+    means = [float(trajectories[:, t].mean()) for t in times]
+    spreads = [float(spread[t]) for t in times]
+
+    assert scaling_exponent(times, means) == pytest.approx(1.0, abs=0.03)
+    assert scaling_exponent(times, spreads) == pytest.approx(0.5, abs=0.03)
+
+
+def test_an_unbiased_cloud_widens_without_its_mean_going_anywhere():
+    """The same statement with the drift switched off: sigma(t) grows, <x_t> does not.
+
+    The mean is compared against its own standard error, sigma_1 sqrt(t)/sqrt(n_walkers) --
+    the only honest way to assert that a measured mean is zero.
+    """
+    rng = np.random.default_rng(4004)
+    n_walkers = 20_000
+    trajectories = sampling.random_walk(n_walkers, 1024, rng)
+    spread = sampling.walker_spread(trajectories)
+
+    for t in (16, 256, 1024):
+        standard_error = np.sqrt(t / n_walkers)
+        assert abs(float(trajectories[:, t].mean())) < 4.0 * standard_error
+
+    assert spread[1024] > 7.0 * spread[16]
+
+
 @pytest.mark.slow
 def test_two_box_equilibrium_spread_scales_as_one_over_sqrt_n():
     """σ_n/N = 1/(2 sqrt(N)) for the Ehrenfest urn, the same law as the pressure fluctuation."""

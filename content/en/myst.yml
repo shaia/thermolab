@@ -31,6 +31,8 @@ project:
         - file: thermodynamics/05-work-paths-problems.md
     - title: Statistical mechanics
       children:
+        - file: statistical-mechanics/03-random-walks.md
+        - file: statistical-mechanics/03-random-walks-problems.md
         - file: statistical-mechanics/08-multiplicity.md
         - file: statistical-mechanics/08-multiplicity-problems.md
 site:

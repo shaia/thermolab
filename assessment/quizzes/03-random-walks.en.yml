@@ -1,0 +1,251 @@
+module: 03-random-walks
+questions:
+  - id: Q-03-1
+    type: numeric
+    objectives: [OBJ-03-1]
+    prompt: >-
+      A walker takes 400 steps of +1 or -1, each direction equally likely. Roughly how far
+      from the starting point would you typically find him? Give the RMS displacement,
+      sigma_1 sqrt(t), in steps.
+    answer: 20
+    tolerance: 1
+    feedback: >-
+      Var(x_t) = sigma_1^2 t with sigma_1 = 1, so the typical distance is sqrt(400) = 20
+      steps. Not 0 — the walk does spread. Not 400 — that is the distance he would cover if
+      every step went the same way, and the steps cancel far more often than they conspire.
+
+  - id: Q-03-2
+    type: multiple-choice
+    objectives: [OBJ-03-1, OBJ-03-6]
+    misconception: walker-restoring-force
+    prompt: >-
+      After 500 steps, one particular walker is standing at position +30. Over his next 500
+      steps, what is his expected displacement from where he now stands?
+    choices:
+      - text: Zero — his next 500 steps are drawn from exactly the same distribution as anyone else's.
+        correct: true
+        feedback: >-
+          Right. Nothing in the model refers to the origin. The step distribution does not
+          know where the walker is, so his future is symmetric about his present position no
+          matter how far out he has strayed.
+      - text: About -30, bringing him back to the origin on average.
+        correct: false
+        feedback: >-
+          This is the restoring-force picture, and there is no force here. A walker at +30
+          would have to consult his own position to know to move left, and nothing in the
+          model lets him. The ensemble mean stays at zero because walkers who stray right are
+          matched by walkers who stray left — not because any individual is recalled.
+      - text: About -30 divided by 500, since the return is spread over the remaining steps.
+        correct: false
+        feedback: >-
+          Same restoring-force idea with the arithmetic rearranged. Any nonzero expected
+          displacement would require the step distribution to depend on position, and it
+          does not.
+      - text: About +30, since a walker who has drifted right is evidently a rightward drifter.
+        correct: false
+        feedback: >-
+          The steps are independent and identically distributed, so past steps carry no
+          information about future ones. There is no such thing as a "rightward drifter" in
+          this model — only a walker who happens to have had more rights so far.
+
+  - id: Q-03-3
+    type: numeric
+    objectives: [OBJ-03-2]
+    prompt: >-
+      For a binomial distribution with n = 100 trials and p = 1/2, compute the standard
+      deviation of the number of successes, sqrt(n p (1-p)).
+    answer: 5
+    tolerance: 0.2
+    feedback: >-
+      sqrt(100 x 0.5 x 0.5) = sqrt(25) = 5. So the number of heads in 100 flips sits at
+      50 +/- 5 about 68% of the time. Note that the walker's *position* is x = 2k - n, whose
+      spread is therefore 2 x 5 = 10 = sqrt(100), consistent with sigma_1 sqrt(t).
+
+  - id: Q-03-4
+    type: multiple-choice
+    objectives: [OBJ-03-3]
+    prompt: >-
+      Which of the following is NOT a hypothesis of the central limit theorem as stated in
+      this module?
+    choices:
+      - text: The individual steps must themselves be Gaussian.
+        correct: true
+        feedback: >-
+          Correct — and this is the whole point of the theorem. If the steps had to be
+          Gaussian already, the result would be a triviality. The steps may be coins, uniform
+          draws, or anything else with a finite variance; the Gaussian appears in the sum
+          regardless.
+      - text: The steps must be independent of one another.
+        correct: false
+        feedback: >-
+          This is a genuine hypothesis, and the one the module's persistent walk breaks. It
+          is what allows variances to add.
+      - text: The steps must all be drawn from the same distribution.
+        correct: false
+        feedback: >-
+          This is a genuine hypothesis of the version stated here. (Weaker conditions exist
+          which relax it, but they are not what this module claims.)
+      - text: The step distribution must have a finite variance.
+        correct: false
+        feedback: >-
+          This is a genuine hypothesis, and problem 8 of the problem set explores what a
+          Cauchy step distribution — which has no finite variance — does to the conclusion.
+
+  - id: Q-03-5
+    type: multiple-choice
+    objectives: [OBJ-03-3]
+    misconception: clt-always-applies
+    prompt: >-
+      A walk repeats its previous step with probability 0.9 and otherwise draws a fresh +/-1
+      step. Its standardized sums, divided by sigma_1 sqrt(n), are compared with a standard
+      Gaussian for growing n. What happens, and why?
+    choices:
+      - text: The histogram stays far too wide at every n, because independence fails and variances no longer simply add.
+        correct: true
+        feedback: >-
+          Exactly. The steps are still identically distributed with finite variance; only
+          independence is gone. The true variance is t(1+q)/(1-q) = 19t rather than t, so
+          dividing by sigma_1 sqrt(n) undershoots the width by a factor sqrt(19).
+      - text: The histogram collapses onto the Gaussian anyway; only more steps are needed.
+        correct: false
+        feedback: >-
+          It does not. This is the "any sum of many random things is Gaussian" reflex, and
+          the persistent walk exists to falsify it. The distance to the standard Gaussian
+          stops falling instead of shrinking to the sampling floor, however large n gets.
+      - text: The histogram becomes visibly non-bell-shaped — two peaks appear.
+        correct: false
+        feedback: >-
+          The shape is not what breaks. At long times the persistent walk is still Gaussian;
+          it is the *width* that the independent-step formula gets wrong. Standardizing by
+          the correct variance makes it collapse perfectly.
+      - text: Nothing changes, since the steps are still +/-1 with equal probability.
+        correct: false
+        feedback: >-
+          The marginal distribution of a single step is indeed unchanged — that is what makes
+          this counterexample sharp. The joint distribution is what changed, and the theorem
+          is a statement about the joint distribution.
+
+  - id: Q-03-6
+    type: numeric
+    objectives: [OBJ-03-4]
+    prompt: >-
+      Use the de Moivre-Laplace approximation to estimate the probability of exactly 50 heads
+      in 100 fair coin flips. That is, evaluate 1/sqrt(2 pi n p q) at n = 100, p = q = 1/2.
+    answer: 0.0798
+    tolerance: 0.0005
+    feedback: >-
+      1/sqrt(2 pi x 100 x 0.25) = 1/sqrt(50 pi) = 0.0798. The exact binomial value is 0.0796,
+      so the approximation is off by about a quarter of a percent — near the peak. Try the
+      same comparison at k = 90 and the relative error is enormous: this is a statement about
+      the central region, not the tails.
+
+  - id: Q-03-7
+    type: multiple-choice
+    objectives: [OBJ-03-5]
+    misconception: spread-means-drift
+    prompt: >-
+      You watch a cloud of unbiased walkers and see it getting steadily wider. What is its
+      average position doing?
+    choices:
+      - text: Staying at zero, within an uncertainty of order sqrt(t/N) that itself grows.
+        correct: true
+        feedback: >-
+          Right, and the caveat matters. The mean stays at zero, but our estimate of it is
+          only good to the standard error sigma_1 sqrt(t) / sqrt(N) — which is why the
+          animation draws a widening grey band around zero rather than a bare line.
+      - text: Growing, since a wider cloud must have a larger average position.
+        correct: false
+        feedback: >-
+          Width and mean are separate quantities. The cloud grows symmetrically: walkers who
+          wander right are matched by walkers who wander left, so the mean stays put while
+          the spread grows as sqrt(t). A biased walk shows the contrast — there the mean
+          really does march, linearly, while the width still only crawls.
+      - text: Growing as sqrt(t), the same as the width.
+        correct: false
+        feedback: >-
+          For an unbiased walk the mean does not grow at all: <x_t> = mu_1 t and mu_1 = 0.
+          The sqrt(t) belongs to the spread alone.
+      - text: Impossible to say without knowing the step distribution.
+        correct: false
+        feedback: >-
+          It is entirely determined: <x_t> = mu_1 t for any step distribution, so "unbiased"
+          (mu_1 = 0) already fixes the answer at zero regardless of the shape of the steps.
+
+  - id: Q-03-8
+    type: multiple-choice
+    objectives: [OBJ-03-5]
+    prompt: >-
+      You quadruple the number of measurements in a sample, from N to 4N. What happens to the
+      standard deviation of the data, and to the standard error of their mean?
+    choices:
+      - text: The standard deviation is unchanged; the standard error halves.
+        correct: true
+        feedback: >-
+          Correct. The standard deviation describes the population and does not care how much
+          of it you looked at. The standard error, sigma_1/sqrt(N), describes your uncertainty
+          about the mean, and sqrt(4) = 2.
+      - text: Both halve.
+        correct: false
+        feedback: >-
+          Measuring more of a population does not make the population less variable. If it
+          did, you could make any quantity precise by measuring it often enough — and the
+          scatter of the individual values would visibly shrink, which it does not.
+      - text: Both are unchanged.
+        correct: false
+        feedback: >-
+          The standard deviation is unchanged, but the whole point of averaging is that the
+          mean becomes better determined. If the standard error did not shrink, there would
+          be no reason to repeat a measurement at all.
+      - text: The standard deviation halves; the standard error is unchanged.
+        correct: false
+        feedback: >-
+          This has the two quantities exactly the wrong way round. It is worth writing both
+          definitions out side by side: one is a property of the data, the other a property
+          of your estimate.
+
+  - id: Q-03-9
+    type: multiple-choice
+    objectives: [OBJ-03-6]
+    misconception: lln-compensation
+    prompt: >-
+      Ten thousand independent walkers produce a smooth, reproducible bell-shaped histogram.
+      Which account of where that order comes from is correct?
+    choices:
+      - text: Astronomically more step sequences land near the middle than at the extremes, and every sequence is equally likely.
+        correct: true
+        feedback: >-
+          Yes. The order is a counting fact, not a dynamical one. Nothing steers a walker,
+          and no walker knows about any other; the shape is simply what you get when you
+          count how many routes arrive at each destination.
+      - text: Walkers who have strayed too far are pulled back, which keeps the distribution centred.
+        correct: false
+        feedback: >-
+          There is no such mechanism, and the laboratory falsifies it directly: condition on
+          the walkers standing at +30 and their subsequent motion is symmetric. Convergence
+          here works by dilution, never by correction.
+      - text: The walkers' steps average out to zero, so each walker ends up near the origin.
+        correct: false
+        feedback: >-
+          Each walker does *not* end up near the origin — the typical distance is sigma_1
+          sqrt(t), which grows without bound. What settles down is the ensemble's shape, not
+          any individual's position.
+      - text: With enough walkers, an excess on one side is compensated by later walkers landing on the other.
+        correct: false
+        feedback: >-
+          The walkers are independent, so no walker can compensate for another; a later
+          walker has no way to learn what the earlier ones did. This is the compensation
+          fallacy from module 0, transplanted from time into the ensemble.
+
+  - id: Q-03-10
+    type: numeric
+    objectives: [OBJ-03-1, OBJ-03-5]
+    prompt: >-
+      A walker takes 400 steps of +/-1, but the coin is biased: p = 0.6 to the right. Compute
+      his expected displacement, mu_1 t, in steps.
+    answer: 80
+    tolerance: 2
+    feedback: >-
+      mu_1 = (+1)(0.6) + (-1)(0.4) = 0.2, so <x_400> = 0.2 x 400 = 80 steps. Compare this with
+      the spread, sigma_1 sqrt(400) = sqrt(0.96) x 20 = 19.6 steps: the drift has outrun the
+      width by a factor of four already, and the gap keeps widening because one grows as t and
+      the other only as sqrt(t).
