@@ -60,12 +60,15 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 
-$uv = Join-Path $env:USERPROFILE '.local\bin\uv.exe'
-if (-not (Test-Path -LiteralPath $uv)) {
-    $uv = (Get-Command uv -ErrorAction SilentlyContinue).Source
+# PATH first, then the unlinked install location — the same order build.sh's find_uv() and
+# build_site.py's uv_executable() use. Keep the three in step.
+$uv = (Get-Command uv -ErrorAction SilentlyContinue).Source
+if (-not $uv) {
+    $fallback = Join-Path $env:USERPROFILE '.local\bin\uv.exe'
+    if (Test-Path -LiteralPath $fallback) { $uv = $fallback }
 }
 if (-not $uv) {
-    throw "uv not found. Install it, or adjust this script's path to uv.exe."
+    throw "uv not found on PATH or in ~/.local/bin — install it from https://docs.astral.sh/uv/"
 }
 
 # mystmd is a project-local npm dependency; build_site.py exits with a clear message if it is

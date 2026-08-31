@@ -21,7 +21,7 @@ summary plus a gap list instead of a full specification.
 |---|---|---|
 | [00-orientation.md](00-orientation.md) | 0. Orientation | built |
 | [01-equilibrium.md](01-equilibrium.md) | 1. Thermal equilibrium | built |
-| [02-equations-of-state.md](02-equations-of-state.md) | 2. Equations of state | planned |
+| [02-equations-of-state.md](02-equations-of-state.md) | 2. Equations of state | built |
 | [03-random-walks.md](03-random-walks.md) | 3. Probability and emergence | planned |
 | [04-pressure.md](04-pressure.md) | 4. Kinetic theory | built |
 | [05-work-paths.md](05-work-paths.md) | 5. First law | built |
@@ -53,7 +53,7 @@ real — quantum mechanics is assumed only from module 17).
 |---|---|---|---|---|---|
 | 0 | `00-orientation` | `foundations/` | Orientation | diagnostic + readiness quiz | **built** |
 | 1 | `01-equilibrium` | `thermodynamics/` | Thermal equilibrium | two bodies exchanging energy | **built** |
-| 2 | `02-equations-of-state` | `thermodynamics/` | Equations of state | interactive P-V-T surface | planned |
+| 2 | `02-equations-of-state` | `thermodynamics/` | Equations of state | interactive P-V-T surface | **built** |
 | 3 | `03-random-walks` | `statistical-mechanics/` | Probability and emergence | walker cloud → Gaussian | planned |
 | 4 | `04-pressure` | `thermodynamics/` | Kinetic theory | particles + piston | **built** |
 | 5 | `05-work-paths` | `thermodynamics/` | Work and paths (first law) | draw a P-V path, compute W | **built** |
