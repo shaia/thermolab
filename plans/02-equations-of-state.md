@@ -2,7 +2,7 @@
 
 > **Brainstorm:** §3 module 2 (+ §5 phase-transition laboratory's vdW-isotherm opening, §6
 > misconceptions, §7 accuracy framework). **Module id:** `02-equations-of-state`.
-> **Content path:** `content/en/thermodynamics/02-equations-of-state.md`. **Status:** planned.
+> **Content path:** `content/en/thermodynamics/02-equations-of-state.md`. **Status:** built.
 > Canonical map, invariants, and conflict log: [README.md](README.md).
 
 ## 1. Overview and narrative arc

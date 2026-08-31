@@ -89,6 +89,47 @@ terms:
   - key: condensation
     en: condensation
     he: עיבוי
+  - key: critical-temperature
+    en: critical temperature
+    he: טמפרטורה קריטית
+  - key: supercritical-fluid
+    en: supercritical fluid
+    he: זורם על-קריטי
+    he_reject: [נוזל על-קריטי, פלואיד על-קריטי]
+  - key: excluded-volume
+    en: excluded volume
+    he: נפח מודר
+    he_reject: [נפח מוצא, נפח נמנע]
+  - key: virial-expansion
+    en: virial expansion
+    he: פיתוח הוויריאל
+  - key: boyle-temperature
+    en: Boyle temperature
+    he: טמפרטורת בויל
+  - key: saturation-pressure
+    en: saturation pressure
+    he: לחץ רוויה
+  - key: vapour
+    en: vapour
+    he: אדים
+  - key: liquid
+    en: liquid
+    he: נוזל
+  - key: phase
+    en: phase
+    he: פאזה
+  - key: coexistence
+    en: coexistence
+    he: דו-קיום
+  - key: mean-field
+    en: mean field
+    he: שדה ממוצע
+  - key: molar-volume
+    en: molar volume
+    he: נפח מולרי
+  - key: hard-sphere
+    en: hard sphere
+    he: כדור קשיח
   - key: kinetic-theory
     en: kinetic theory
     he: תורה קינטית

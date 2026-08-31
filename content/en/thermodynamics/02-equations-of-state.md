@@ -91,7 +91,7 @@ where a flat sheet used to be:
 :alt: A rotating three-dimensional pressure-volume-temperature surface that starts perfectly flat, like an ideal gas, and grows a fold as van der Waals constants are turned on, revealing a region where the surface is no longer single-valued in pressure for a given volume and temperature.
 :width: 100%
 
-The van der Waals $P$-$v$-$T$ surface, morphing on from the flat ideal-gas sheet as $a$ and
+The van der Waals $(P, v, T)$ surface, morphing on from the flat ideal-gas sheet as $a$ and
 $b$ are turned up to a real substance's values. The fold that appears below the critical
 temperature is the geometric signature of liquefaction — nothing in the flat ideal surface
 could ever produce it.
@@ -239,9 +239,9 @@ feels no net force. A molecule about to strike the wall has neighbours behind it
 beyond the wall, so the net attraction pulls it *backwards*, slightly reducing the momentum
 it delivers. [Module 4's advanced section](04-pressure.md#04-pressure-advanced) derives this
 exactly as a virial correction; for a short-ranged attraction summed over every pair, the
-mean-field estimate of the correction is $-a/v^2$ — proportional to the square of the
-density, because it takes *two* molecules, one to attract and one to be attracted, for the
-effect to occur at all.
+mean-field estimate is that the pressure is lowered by $a/v^2$ — proportional to the square
+of the density, because it takes *two* molecules, one to attract and one to be attracted, for
+the effect to occur at all.
 :::
 
 Adding both corrections to the ideal gas law gives the **van der Waals equation of state**:
@@ -344,18 +344,29 @@ this page cannot silently rot.
 
 **2. The critical point: closed form versus a numerical scan.** `vdw_critical_point` gives
 $(v_c, T_c, P_c)$ from three lines of algebra. The laboratory also *measures* $T_c$ a second,
-independent way: scanning a family of isotherms and finding the one whose $|\partial P/\partial
-v|$ comes closest to zero across the whole $v$-range — the kind of procedure an experimentalist
-without a closed form would actually run.
+independent way — the kind of procedure an experimentalist without a closed form would actually
+run. Note what that procedure cannot be: below $T_c$ the isotherm's loop makes
+$\partial P/\partial v$ cross zero at two perfectly ordinary points, so simply hunting for the
+smallest slope anywhere on a grid finds a sub-critical isotherm just as happily as the critical
+one. The laboratory instead sweeps *down* through the supercritical branch, where the isotherm
+stays monotonic and its flattest point shrinks continuously toward zero as $T \to T_c^+$, and
+stops at the first temperature that flattens below a small threshold.
 
 :::{admonition} A measurement needs an uncertainty attached
 :class: numerical-observation
 A flatness scan over a finite grid of temperatures and volumes cannot land exactly on $T_c$ —
 only within half a grid spacing of it. The laboratory reports the scan's result as
-$T_c = (\text{value}) \pm (\text{uncertainty})$, not as a bare number, and that uncertainty
-shrinks as the grid is refined, exactly like the convergence tests elsewhere in this course.
-Quoting a measurement without its uncertainty is not a small omission; it is a different, less
-honest kind of claim.
+$T_c = (\text{value}) \pm (\text{uncertainty})$, not as a bare number.
+
+That error bar has two sources, and only one of them is the grid. Half a grid spacing covers
+the *discretisation*; the flatness threshold contributes a separate **bias**, because a scan
+stops as soon as the slope falls below the threshold rather than when it truly vanishes. Refine
+the temperature grid alone and the quoted uncertainty shrinks while that bias does not — the
+measurement drifts from agreeing with the closed form to disagreeing with it by many times its
+own stated error, which is the signature of an error bar that has stopped being honest. The
+threshold has to be tightened *in step with* the grid for the scan to converge. An uncertainty
+that accounts for only the source you happened to think of is worth little more than no
+uncertainty at all.
 :::
 
 **3. Z approaches 1 in the dilute limit.** As $v \to \infty$ at fixed $T$, both correction
