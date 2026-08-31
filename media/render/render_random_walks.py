@@ -31,11 +31,15 @@ STEP_COLOURS = {"pm1": "#2563eb", "uniform": "#0d9488", "heavy": "#d97706"}
 
 
 def render_walker_cloud(n_steps: int = 400, n_frames: int = 240) -> None:
-    """One path alone, then four thousand of them, with the live position histogram.
+    """One path alone, then a cloud, with the live position histogram beside it.
 
     The two acts are the whole argument. Act one is a single walker: it wanders, and knowing
     where it is tells you nothing about where it will be. Act two replays the same clock with
     the ensemble, and a shape appears that was not in any individual path.
+
+    Note the two different populations, which the page caption has to state accurately: the
+    histogram is built from all `n_walkers`, while only `n_drawn` trajectories are actually
+    stroked on the left — ten thousand overplotted lines are a blue rectangle, not a cloud.
     """
     rng = np.random.default_rng(3)
     n_walkers, n_drawn = 4000, 120
@@ -63,12 +67,16 @@ def render_walker_cloud(n_steps: int = 400, n_frames: int = 240) -> None:
     left.set_ylabel("position")
     left.axhline(0.0, color="#94a3b8", lw=0.8, ls=":")
 
-    centres, _ = sampling.walker_histogram(trajectories[:, -1], n_bins=61, span=edges_span)
-    bars = right.barh(centres, np.zeros_like(centres), height=(centres[1] - centres[0]),
-                      color=CLOUD, alpha=0.55)
+    # A +/-1 walk stands on sites two apart, and which sites are reachable flips parity with
+    # every step, so `lattice=2` re-anchors the bins each frame. That means the bin centres
+    # move by one unit between frames, which rules out a fixed set of bar artists — hence a
+    # profile line rather than `barh`. Binning this on fixed arbitrary edges instead makes
+    # neighbouring bins cover different numbers of reachable sites and the histogram alternates
+    # tall/short by ~60% for no physical reason (see sampling.walker_histogram).
+    (profile,) = right.plot([], [], lw=1.5, color=CLOUD)
     (overlay,) = right.plot([], [], lw=1.6, color=THEORY)
-    # Fixed at the density the cloud reaches early in act two, so the bars visibly flatten and
-    # widen as sqrt(t) instead of being silently rescaled to fill the panel every frame.
+    # Fixed at the density the cloud reaches early in act two, so the profile visibly flattens
+    # and widens as sqrt(t) instead of being silently rescaled to fill the panel every frame.
     right.set_xlim(0, 1.35 * sampling.gaussian_limit(np.array([0.0]), t_start)[0])
     right.set_xlabel("density")
     right.tick_params(labelleft=False)
@@ -80,10 +88,9 @@ def render_walker_cloud(n_steps: int = 400, n_frames: int = 240) -> None:
             solo.set_data(times[: t + 1], trajectories[0, : t + 1])
             for line in faint:
                 line.set_data([], [])
-            for bar in bars:
-                bar.set_width(0.0)
+            profile.set_data([], [])
             overlay.set_data([], [])
-            return [solo, overlay, *faint, *bars]
+            return [solo, profile, overlay, *faint]
 
         progress = (frame - solo_frames + 1) / cloud_frames
         t = t_start + int(round(progress * (n_steps - t_start)))
@@ -91,11 +98,12 @@ def render_walker_cloud(n_steps: int = 400, n_frames: int = 240) -> None:
         for index, line in enumerate(faint):
             line.set_data(times[: t + 1], trajectories[index + 1, : t + 1])
 
-        _, density = sampling.walker_histogram(trajectories[:, t], n_bins=61, span=edges_span)
-        for bar, width in zip(bars, density, strict=True):
-            bar.set_width(width)
+        centres, density = sampling.walker_histogram(
+            trajectories[:, t], n_bins=61, span=edges_span, lattice=2.0
+        )
+        profile.set_data(density, centres)
         overlay.set_data(sampling.gaussian_limit(centres, t), centres)
-        return [solo, overlay, *faint, *bars]
+        return [solo, profile, overlay, *faint]
 
     save(FuncAnimation(fig, update, frames=n_frames, blit=False), fig, "walker-cloud")
     plt.close(fig)
@@ -154,22 +162,36 @@ def render_clt_collapse(n_samples: int = 8000, frames_per_step: int = 5) -> None
     n_bins = 49
 
     term_counts = sorted({int(round(1.22**k)) for k in range(int(np.log(600) / np.log(1.22)) + 1)})
-    curves: dict[str, list[np.ndarray]] = {name: [] for name in (*STEP_COLOURS, "correlated")}
-    centres = np.array([])
+    curves: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {
+        name: [] for name in (*STEP_COLOURS, "correlated")
+    }
     for n_terms in term_counts:
+        # The two +/-1 walks put their standardized sums on a lattice of spacing 2/sqrt(n),
+        # which shrinks as the animation runs — so the bin edges have to be rebuilt for every
+        # n, and the centres stored alongside each curve rather than shared. Without this the
+        # coin walk alternates tall/short by tens of percent and reads, on screen, as the one
+        # distribution that refuses to collapse: the exact opposite of what the module claims.
+        lattice = 2.0 / np.sqrt(n_terms)
         for name in STEP_COLOURS:
             standardized = sampling.clt_sum_distribution(n_terms, n_samples, rng, step=name)
-            centres, density = sampling.walker_histogram(standardized, n_bins=n_bins, span=span)
-            curves[name].append(density)
+            curves[name].append(
+                sampling.walker_histogram(
+                    standardized,
+                    n_bins=n_bins,
+                    span=span,
+                    lattice=lattice if name == "pm1" else None,
+                )
+            )
         persistent = sampling.correlated_walk(n_samples, n_terms, 0.9, rng)[:, -1]
-        _, density = sampling.walker_histogram(
-            persistent / np.sqrt(n_terms), n_bins=n_bins, span=span
+        curves["correlated"].append(
+            sampling.walker_histogram(
+                persistent / np.sqrt(n_terms), n_bins=n_bins, span=span, lattice=lattice
+            )
         )
-        curves["correlated"].append(density)
 
     fig, ax = plt.subplots(figsize=(7.2, 3.8), dpi=DPI)
-    gaussian = np.exp(-0.5 * centres**2) / np.sqrt(2.0 * np.pi)
-    ax.plot(centres, gaussian, color=THEORY, ls="--", lw=1.6)
+    grid = np.linspace(*span, 400)
+    ax.plot(grid, np.exp(-0.5 * grid**2) / np.sqrt(2.0 * np.pi), color=THEORY, ls="--", lw=1.6)
 
     lines = {
         name: ax.plot([], [], lw=1.5, color=colour, alpha=0.9)[0]
@@ -185,7 +207,7 @@ def render_clt_collapse(n_samples: int = 8000, frames_per_step: int = 5) -> None
     def update(frame: int):
         index = min(frame // frames_per_step, len(term_counts) - 1)
         for name, line in lines.items():
-            line.set_data(centres, curves[name][index])
+            line.set_data(*curves[name][index])
         return list(lines.values())
 
     save(

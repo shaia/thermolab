@@ -223,6 +223,19 @@ def test_the_walker_histogram_has_unit_area():
     assert float(density.sum() * width) == pytest.approx(1.0, abs=1e-9)
 
 
+def test_lattice_binned_histogram_still_has_unit_area():
+    """Aligning the bins to the lattice must not quietly change the normalisation."""
+    rng = np.random.default_rng(4242)
+    positions = sampling.random_walk(5000, 300, rng)[:, -1]
+
+    for n_bins in (31, 61, 91):
+        centres, density = sampling.walker_histogram(
+            positions, n_bins=n_bins, span=(-90.0, 90.0), lattice=2.0
+        )
+        width = float(centres[1] - centres[0])
+        assert float(density.sum() * width) == pytest.approx(1.0, abs=1e-9)
+
+
 def test_a_walk_neither_creates_nor_loses_walkers():
     """Walker number is this model's particle number: fixed, and every walker starts at 0."""
     rng = np.random.default_rng(99)

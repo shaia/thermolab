@@ -84,17 +84,19 @@ The laboratory notebook lets you set the number of walkers, the number of steps 
 distribution, then watch the cloud, its histogram, and its width all at once.
 
 Here is the phenomenon in one picture. First a single walker, alone: a jagged line that tells
-you nothing. Then four thousand of them on the same clock, with the histogram of their
-positions drawn beside them.
+you nothing. Then the ensemble on the same clock, with the profile of where its walkers are
+standing drawn beside them.
 
 :::{figure} ../media/walker-cloud.mp4
-:alt: One random-walk path drawn alone, then four thousand paths together with a histogram of positions beside them matching a Gaussian curve.
+:alt: One random-walk path drawn alone, then a cloud of faint paths with a position profile beside it matching a Gaussian curve.
 :width: 100%
 
-One walker, then four thousand. The single dark path is present in both halves and behaves
-identically in both — nothing about it changed when the others arrived. The red curve on the
-right is not fitted to the histogram: it is the Gaussian predicted from the step distribution
-alone, drawn on top.
+One walker, then a cloud. On the left, a hundred and twenty paths are drawn — enough to see a
+cloud, few enough to still see through it; the profile on the right is built from all four
+thousand walkers, which is why it is so much smoother than the picture beside it looks. The
+single dark path is present in both acts and behaves identically in both: nothing about it
+changed when the others arrived. The red curve is not fitted to that profile — it is the
+Gaussian predicted from the step distribution and the elapsed time alone, drawn on top.
 :::
 
 The cloud widens, and it widens at a particular rate. The next animation measures it: the blue
@@ -159,7 +161,21 @@ Three things are worth doing before you read on:
 
 Everything below is mathematics. Nothing is approximated except where it says so.
 
-**System.** A walker's position after $t$ steps is
+**System and boundary.** One walker on an unbounded line, and behind it an ensemble of $N$
+independent copies. There is no boundary: nothing reflects, absorbs or confines.
+
+**Independent variables.** The number of steps $t$, the number of walkers $N$, and the step
+distribution — which enters only through its mean $\mu_1$ and variance $\sigma_1^2$.
+
+**Constraints and approximations.** Steps are independent and identically distributed with
+finite variance. That is the whole list, and each item is load-bearing: the verify section
+breaks the first one on purpose and the problem set breaks the third.
+
+**Kind of argument.** Purely statistical. There is no sign convention to fix and no
+differential to call exact or inexact, because no energy, heat or work appears anywhere in
+this module — which is the point of putting it here, before any of them exist.
+
+With that settled, a walker's position after $t$ steps is
 
 $$
 x_t = s_1 + s_2 + \cdots + s_t ,
@@ -370,9 +386,17 @@ $n = 400$.
 :class: numerical-observation
 Standardised sums of coin, uniform and heavy-tailed steps are compared with a standard
 Gaussian using the largest gap between their cumulative distributions. All three distances
-fall as the number of summed terms grows, and by $n = 256$ every one of them sits at or near
-the floor set by having only 20,000 samples — the same distance a genuine Gaussian sample of
-that size sits from the Gaussian it was drawn from.
+fall as the number of summed terms grows. Against the floor of $0.006$ set by having only
+20,000 samples — the distance a *genuine* Gaussian sample of that size sits from the Gaussian
+it was drawn from — the heavy-tailed steps reach $0.004$ by $n = 256$, the uniform steps
+$0.012$, and the coin $0.029$.
+
+The coin is the interesting one, and it does not get better by adding samples. Its sums live
+on a lattice, so its cumulative distribution is a staircase and a smooth curve can never match
+it more closely than half a step. That residual falls as $n^{-1/2}$ — it is the same finite-$n$
+lattice effect the approximation box above describes, not a failure of the theorem, and it is
+why the honest statement is "these two distributions have reached the sampling floor and the
+third is still walking down towards it".
 
 Three distributions with nothing in common produce one curve. That agreement is a measurement,
 not a proof; the proof is the theorem above.

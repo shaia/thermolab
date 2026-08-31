@@ -149,15 +149,22 @@ Now replace the steps with draws from a Cauchy distribution (`rng.standard_cauch
 steps are independent and identically distributed but have no finite variance.
 
 (a) Estimate the variance of a Cauchy sample of size $10^3$, then of $10^4$, then of $10^5$.
-Describe what happens and explain it.
+Repeat each estimate under several seeds. Describe what happens and explain it.
 
 (b) Build a walk from Cauchy steps and measure the spread of the cloud at
-$t = 4, 16, 64, 256$. Does it grow as $\sqrt{t}$? Determine the exponent you actually get and
-account for it.
+$t = 4, 16, 64, 256$ using the **sample standard deviation**. Fit the exponent, then repeat the
+whole fit under six independent seeds and report the six values you get. What do you conclude
+about this measurement — not about the walk, but about the *estimator*?
 
-(c) Standardise the sums by $\sqrt{t}$ and plot the histogram for growing $t$. Does it collapse
-onto anything at all?
+(c) Measure the spread again with a statistic that does not depend on the tails: the
+interquartile range. Fit that exponent, again under six seeds. It should be far more
+reproducible than (b). What power of $t$ do you get, and can you show analytically that it is
+exact? (Hint: what distribution is the sum of $t$ independent Cauchy variables?)
 
-(d) Both this problem and problem 7 break the central limit theorem, but they break different
+(d) Standardise the sums by $\sqrt{t}$ and plot the histogram for growing $t$. Does it collapse
+onto anything at all? Now standardise by the power you found in (c) instead, and say what the
+limit distribution is.
+
+(e) Both this problem and problem 7 break the central limit theorem, but they break different
 hypotheses and fail in different ways. Contrast them in a short paragraph, and say which of the
 two you would be more likely to meet without noticing in real data.

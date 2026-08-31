@@ -489,6 +489,85 @@ def test_rescaling_every_step_rescales_the_spread_by_the_same_factor():
     assert np.allclose(halved, 0.5 * spread, rtol=1e-12)
 
 
+def _neighbour_alternation(centres: np.ndarray, density: np.ndarray) -> float:
+    """Mean |d_i / mean(neighbours) - 1| across the core: ~0 for a smooth curve.
+
+    A plain peak-to-peak spread will not do here — it is dominated by the genuine curvature of
+    the distribution across the window. Comparing each bin with the average of its two
+    neighbours cancels anything smooth and leaves only the bin-to-bin zigzag.
+    """
+    core = np.abs(centres) < 1.5
+    values = density[core]
+    return float(np.mean(np.abs(values[1:-1] / (0.5 * (values[:-2] + values[2:])) - 1.0)))
+
+
+@pytest.mark.parametrize("n_terms", [250, 600])
+def test_lattice_bins_leave_only_sampling_noise_between_neighbouring_bins(n_terms):
+    """The regression guard for a bug that made the CLT animation contradict its own caption.
+
+    Standardized coin sums live on a lattice of spacing 2/sqrt(n) — an irrational number, so
+    a bin edge computed by repeated addition and a site computed by division disagree in their
+    last bits. If the grid is offset so that sites can land *on* edges, which side each one
+    falls to is then decided by that rounding, bins pick up 1, 2 or 3 sites at random, and the
+    histogram alternates by tens of percent with nothing physical behind it. Rendered, that
+    reads as the coin walk visibly refusing to converge — the opposite of what the module
+    claims — while every number in the test suite stays green, because the sums themselves
+    were never wrong.
+
+    The bug is invisible on an integer lattice, where edges and sites are both exact. So the
+    check is made here, in the standardized coordinates where it actually lives, against the
+    shot noise of the bin populations rather than against a hand-picked constant.
+    """
+    z = sampling.clt_sum_distribution(n_terms, 20_000, np.random.default_rng(17), step="pm1")
+    span, n_bins = (-4.0, 4.0), 49
+
+    centres, density = sampling.walker_histogram(
+        z, n_bins=n_bins, span=span, lattice=2.0 / np.sqrt(n_terms)
+    )
+    width = float(centres[1] - centres[0])
+    core = np.abs(centres) < 1.5
+
+    assert np.all(density[core] > 0.0), "an aligned bin in the core is empty"
+
+    shot_noise = float(np.mean(1.0 / np.sqrt(density[core] * width * 20_000)))
+    aligned = _neighbour_alternation(centres, density)
+    unaligned = _neighbour_alternation(*sampling.walker_histogram(z, n_bins=n_bins, span=span))
+
+    assert aligned < 3.0 * shot_noise, (
+        f"n = {n_terms}: aligned bins alternate by {aligned:.1%}, shot noise {shot_noise:.1%}"
+    )
+    assert unaligned > 2.0 * aligned, (
+        f"n = {n_terms}: alignment bought nothing ({unaligned:.1%} vs {aligned:.1%})"
+    )
+
+
+def test_lattice_binned_density_reproduces_the_exact_binomial():
+    """With one site per bin the histogram is the pmf, so it can be checked against theory.
+
+    This is the payoff of aligning the bins: each bar now corresponds to a definite set of
+    reachable positions, so its height is a probability with a closed form rather than an
+    artefact of where the edges happened to fall.
+    """
+    n_steps = 200
+    rng = np.random.default_rng(9)
+    positions = sampling.random_walk(40_000, n_steps, rng)[:, -1]
+
+    centres, density = sampling.walker_histogram(
+        positions, n_bins=201, span=(-40.0, 40.0), lattice=2.0
+    )
+    width = float(centres[1] - centres[0])
+    assert width == pytest.approx(2.0)
+
+    _, pmf, _ = sampling.binomial_to_gaussian(n_steps, 0.5)
+    core = np.abs(centres) < 20.0
+    for centre, measured in zip(centres[core], (density * width)[core], strict=True):
+        exact = float(pmf[int(round((centre + n_steps) / 2))])
+        standard_error = np.sqrt(exact * (1 - exact) / 40_000)
+        assert abs(measured - exact) < 5.0 * standard_error, (
+            f"bin at x = {centre}: measured {measured:.5f}, exact {exact:.5f}"
+        )
+
+
 def test_binomial_approaches_its_gaussian_as_n_grows():
     """de Moivre-Laplace, measured: the worst-case gap to the Gaussian shrinks with n.
 
