@@ -87,7 +87,8 @@ uv run python scripts/stamp_hashes.py     # mark a finished translation as up to
 uv run python media/render/render_pressure.py   # regenerate a module's animations
 ```
 
-On Windows, `uv` may not be on PATH; call it as `& "$env:USERPROFILE\.local\bin\uv.exe"`.
+If `uv` is not on PATH in a fresh shell, call it by its full path — `build.ps1`, `build.sh` and
+`build_site.py` all fall back to `~/.local/bin/uv` when PATH has none.
 
 Live-preview a single language while writing: `cd content/en && npx myst start`.
 
