@@ -7,7 +7,7 @@ lessons; they never re-implement physics.
 Modules:
     constants            physical constants and the fixed sign convention
     units                pint registry used by the dimensional tests
-    sampling             independent draws and sample averages; the N^(-1/2) law at its simplest
+    sampling             independent draws: sample averages, random walks, and the CLT
     forms                differential forms in the plane; exact versus inexact, as pure mathematics
     equilibrium          two bodies exchanging energy quanta until they share one temperature
     gases                the ideal gas, the van der Waals correction, and the critical point

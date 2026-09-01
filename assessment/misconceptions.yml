@@ -67,3 +67,15 @@ misconceptions:
     statement: "Doubling a system doubles every property it has."
     assigned_module: 02-equations-of-state
     status: addressed
+  - id: walker-restoring-force
+    statement: "A random walker who has strayed far to the right is pulled back toward the origin."
+    assigned_module: 03-random-walks
+    status: addressed
+  - id: spread-means-drift
+    statement: "A cloud that is getting wider must also have a drifting average position."
+    assigned_module: 03-random-walks
+    status: addressed
+  - id: clt-always-applies
+    statement: "Any sum of many random quantities is Gaussian."
+    assigned_module: 03-random-walks
+    status: addressed

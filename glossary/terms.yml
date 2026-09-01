@@ -476,3 +476,24 @@ terms:
   - key: markov-inequality
     en: Markov's inequality
     he: אי-שוויון מרקוב
+  - key: binomial-distribution
+    en: binomial distribution
+    he: התפלגות בינומית
+    he_reject: [התפלגות בינומיאלית]
+  - key: standard-error
+    en: standard error
+    he: שגיאת תקן
+    he_reject: [שגיאה סטנדרטית]
+  - key: de-moivre-laplace
+    en: de Moivre-Laplace theorem
+    he: משפט דה-מואבר-לפלס
+  - key: galton-board
+    en: Galton board
+    he: לוח גלטון
+  - key: correlation
+    en: correlation
+    he: מתאם
+    he_reject: [קורלציה]
+  - key: histogram
+    en: histogram
+    he: היסטוגרמה

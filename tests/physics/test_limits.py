@@ -452,3 +452,179 @@ def test_vdw_constants_from_critical_inverts_vdw_critical_point():
 
     assert relative_error(a_fit, ARGON_A) < 1e-10
     assert relative_error(b_fit, ARGON_B) < 1e-10
+
+
+@pytest.mark.parametrize("name", ["pm1", "biased", "uniform", "heavy"])
+def test_walk_mean_and_variance_match_the_additivity_result(name):
+    """<x_t> = mu_1 t and Var(x_t) = sigma_1^2 t, for any finite-variance step.
+
+    This is module 00's additivity theorem read with t in the place of N, and it is the whole
+    analytic content of a random walk. Four very different step distributions are checked
+    because the claim is that only the first two moments of a step survive into the answer.
+    """
+    dist = sampling.step_distribution(name)
+    rng = np.random.default_rng(4242)
+    trajectories = sampling.random_walk(8000, 512, rng, step=dist)
+
+    for t in (8, 64, 512):
+        column = trajectories[:, t]
+        standard_error = dist.std * np.sqrt(t / column.size)
+        assert abs(float(column.mean()) - dist.mean * t) < 4.0 * standard_error
+        assert relative_error(float(column.var(ddof=1)), dist.variance * t) < 0.08
+
+
+def test_rescaling_every_step_rescales_the_spread_by_the_same_factor():
+    """The dimensionless module's substitute for a dimensional check.
+
+    Positions are counted in steps, so there is no unit to verify with pint. What can be
+    verified is homogeneity: sigma_1 enters the answer linearly, so measuring a walk in units
+    of half a step must give exactly half the spread — no offset, no stray additive term.
+    """
+    rng = np.random.default_rng(606)
+    trajectories = sampling.random_walk(4000, 256, rng, step="uniform")
+
+    spread = sampling.walker_spread(trajectories)
+    halved = sampling.walker_spread(0.5 * trajectories)
+
+    assert np.allclose(halved, 0.5 * spread, rtol=1e-12)
+
+
+def _neighbour_alternation(centres: np.ndarray, density: np.ndarray) -> float:
+    """Mean |d_i / mean(neighbours) - 1| across the core: ~0 for a smooth curve.
+
+    A plain peak-to-peak spread will not do here — it is dominated by the genuine curvature of
+    the distribution across the window. Comparing each bin with the average of its two
+    neighbours cancels anything smooth and leaves only the bin-to-bin zigzag.
+    """
+    core = np.abs(centres) < 1.5
+    values = density[core]
+    return float(np.mean(np.abs(values[1:-1] / (0.5 * (values[:-2] + values[2:])) - 1.0)))
+
+
+@pytest.mark.parametrize("n_terms", [250, 600])
+def test_lattice_bins_leave_only_sampling_noise_between_neighbouring_bins(n_terms):
+    """The regression guard for a bug that made the CLT animation contradict its own caption.
+
+    Standardized coin sums live on a lattice of spacing 2/sqrt(n) — an irrational number, so
+    a bin edge computed by repeated addition and a site computed by division disagree in their
+    last bits. If the grid is offset so that sites can land *on* edges, which side each one
+    falls to is then decided by that rounding, bins pick up 1, 2 or 3 sites at random, and the
+    histogram alternates by tens of percent with nothing physical behind it. Rendered, that
+    reads as the coin walk visibly refusing to converge — the opposite of what the module
+    claims — while every number in the test suite stays green, because the sums themselves
+    were never wrong.
+
+    The bug is invisible on an integer lattice, where edges and sites are both exact. So the
+    check is made here, in the standardized coordinates where it actually lives, against the
+    shot noise of the bin populations rather than against a hand-picked constant.
+    """
+    z = sampling.clt_sum_distribution(n_terms, 20_000, np.random.default_rng(17), step="pm1")
+    span, n_bins = (-4.0, 4.0), 49
+
+    centres, density = sampling.walker_histogram(
+        z, n_bins=n_bins, span=span, lattice=2.0 / np.sqrt(n_terms)
+    )
+    width = float(centres[1] - centres[0])
+    core = np.abs(centres) < 1.5
+
+    assert np.all(density[core] > 0.0), "an aligned bin in the core is empty"
+
+    shot_noise = float(np.mean(1.0 / np.sqrt(density[core] * width * 20_000)))
+    aligned = _neighbour_alternation(centres, density)
+    unaligned = _neighbour_alternation(*sampling.walker_histogram(z, n_bins=n_bins, span=span))
+
+    assert aligned < 3.0 * shot_noise, (
+        f"n = {n_terms}: aligned bins alternate by {aligned:.1%}, shot noise {shot_noise:.1%}"
+    )
+    assert unaligned > 2.0 * aligned, (
+        f"n = {n_terms}: alignment bought nothing ({unaligned:.1%} vs {aligned:.1%})"
+    )
+
+
+def test_lattice_binned_density_reproduces_the_exact_binomial():
+    """With one site per bin the histogram is the pmf, so it can be checked against theory.
+
+    This is the payoff of aligning the bins: each bar now corresponds to a definite set of
+    reachable positions, so its height is a probability with a closed form rather than an
+    artefact of where the edges happened to fall.
+    """
+    n_steps = 200
+    rng = np.random.default_rng(9)
+    positions = sampling.random_walk(40_000, n_steps, rng)[:, -1]
+
+    centres, density = sampling.walker_histogram(
+        positions, n_bins=201, span=(-40.0, 40.0), lattice=2.0
+    )
+    width = float(centres[1] - centres[0])
+    assert width == pytest.approx(2.0)
+
+    _, pmf, _ = sampling.binomial_to_gaussian(n_steps, 0.5)
+    core = np.abs(centres) < 20.0
+    for centre, measured in zip(centres[core], (density * width)[core], strict=True):
+        exact = float(pmf[int(round((centre + n_steps) / 2))])
+        standard_error = np.sqrt(exact * (1 - exact) / 40_000)
+        assert abs(measured - exact) < 5.0 * standard_error, (
+            f"bin at x = {centre}: measured {measured:.5f}, exact {exact:.5f}"
+        )
+
+
+def test_binomial_approaches_its_gaussian_as_n_grows():
+    """de Moivre-Laplace, measured: the worst-case gap to the Gaussian shrinks with n.
+
+    Comparing pmf against density needs the lattice spacing, which is 1 in k. The comparison
+    is restricted to the central few sigma, where the theorem actually claims accuracy — the
+    far tails are relatively wrong at every n, which is a separate and honest limitation.
+    """
+    worst = []
+    for n in (25, 100, 400):
+        k, pmf, gaussian = sampling.binomial_to_gaussian(n, 0.5)
+        sigma = np.sqrt(n * 0.25)
+        central = np.abs(k - n * 0.5) <= 3.0 * sigma
+        worst.append(float(np.max(np.abs(pmf[central] - gaussian[central])) * sigma))
+
+    assert worst[0] > worst[1] > worst[2]
+    assert worst[-1] < 0.01
+
+
+def test_de_moivre_laplace_peak_matches_the_closed_form():
+    """At k = np the Gaussian is 1/sqrt(2 pi n p q); for n = 100, p = 1/2 that is 1/sqrt(50 pi).
+
+    The exact binomial peak is 0.0796 against the approximation's 0.0798 — under a third of a
+    percent, and the number the module's quiz asks a student to reproduce by hand.
+    """
+    k, pmf, gaussian = sampling.binomial_to_gaussian(100, 0.5)
+    peak = int(np.argmin(np.abs(k - 50.0)))
+
+    assert float(gaussian[peak]) == pytest.approx(1.0 / np.sqrt(50.0 * np.pi), rel=1e-12)
+    assert relative_error(float(gaussian[peak]), float(pmf[peak])) < 0.005
+
+
+def test_a_persistent_walk_with_zero_persistence_is_an_ordinary_walk():
+    """q = 0 must recover the independent-step walk exactly in distribution.
+
+    A counterexample is only worth something if it agrees with the thing it contradicts in
+    the limit where they should agree; otherwise the disagreement at q = 0.95 could be a bug.
+    """
+    plain = sampling.random_walk(6000, 400, np.random.default_rng(7))
+    persistent = sampling.correlated_walk(6000, 400, 0.0, np.random.default_rng(8))
+
+    assert relative_error(
+        float(sampling.walker_spread(persistent)[-1]),
+        float(sampling.walker_spread(plain)[-1]),
+    ) < 0.05
+
+
+def test_persistent_walk_variance_is_inflated_by_the_correlation_factor():
+    """Correlated steps do not destroy the sqrt(t) law; they change its coefficient.
+
+    Successive steps have correlation exactly q, so summing the correlations gives
+    Var(x_t) -> t (1 + q)/(1 - q) at long times. Quoting the number is what turns "the CLT
+    failed" into "the independence hypothesis failed, and here is precisely what it cost".
+    """
+    rng = np.random.default_rng(2024)
+    n_steps = 800
+
+    for q in (0.5, 0.9):
+        trajectories = sampling.correlated_walk(6000, n_steps, q, rng)
+        measured = float(trajectories[:, -1].var(ddof=1))
+        assert relative_error(measured, n_steps * (1.0 + q) / (1.0 - q)) < 0.12

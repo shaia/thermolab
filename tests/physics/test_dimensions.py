@@ -3,6 +3,12 @@
 The library works in plain SI floats so students can read the formulas. These tests
 re-evaluate the same expressions with pint quantities, so a wrong power of a variable fails
 loudly even when the number looks plausible.
+
+One module has nothing to check here. Module 03's random walks are deliberately physics-free:
+positions are counted in steps and steps are pure numbers, so there is no dimension for a
+pint quantity to carry. Its analogue of this category is the *homogeneity* check in
+test_limits.py — rescaling every step rescales the spread by the same factor — which is what
+a dimensional argument reduces to once the units are gone.
 """
 
 from __future__ import annotations

@@ -7,8 +7,11 @@ for work integrals, and the time step of the particle simulation.
 
 from __future__ import annotations
 
+from itertools import pairwise
+
 import numpy as np
 import pytest
+from scipy.special import ndtr
 
 from thermolab import equilibrium, forms, gases, kinetics, paths, sampling
 from thermolab.constants import K_B
@@ -165,6 +168,75 @@ def test_pressure_estimate_settles_as_the_averaging_window_grows():
 
     assert errors[-1] < errors[0]
     assert errors[-1] < 0.05
+
+
+def _distance_to_standard_gaussian(samples: np.ndarray) -> float:
+    """Two-sided Kolmogorov-Smirnov distance between a sample and N(0, 1).
+
+    Sup-norm on the cumulative distribution rather than on a histogram, so the answer does
+    not depend on a bin width the test would otherwise have to pick — and a lattice-valued
+    sample (the coin walk) is measured on the same footing as a continuous one.
+    """
+    ordered = np.sort(np.asarray(samples, dtype=float))
+    n = ordered.size
+    theoretical = ndtr(ordered)
+    above = np.max(np.arange(1, n + 1) / n - theoretical)
+    below = np.max(theoretical - np.arange(n) / n)
+    return float(max(above, below))
+
+
+@pytest.mark.parametrize("name", ["pm1", "uniform", "heavy"])
+def test_standardized_sums_converge_onto_one_gaussian(name):
+    """The central limit theorem, measured as a convergence rather than asserted.
+
+    Three step distributions with nothing in common — a two-point lattice, a flat interval,
+    and a heavy-tailed continuum — are summed, standardized, and compared with N(0, 1). The
+    limit shape does not remember what was summed, which is the theorem's whole content.
+
+    Two floors keep this honest. A sample of 20,000 *genuine* Gaussians already sits about
+    0.006 away from N(0, 1) simply because it is finite, so "converged" can only mean "as
+    close as a real Gaussian sample of the same size gets" — hence the measured `floor`
+    rather than a hand-picked constant, and hence the monotonicity claim carrying that floor
+    as its tolerance. The coin walk has a second, physical floor: its sums live on a lattice
+    of spacing 2/sqrt(n), so a continuous density can never match its staircase better than
+    about half a step. That residual falls as n^(-1/2) and is exactly what de Moivre-Laplace
+    approximates away, not a failure of the theorem.
+    """
+    floor = _distance_to_standard_gaussian(np.random.default_rng(900).standard_normal(20_000))
+    distances = [
+        _distance_to_standard_gaussian(
+            sampling.clt_sum_distribution(n_terms, 20_000, np.random.default_rng(17), step=name)
+        )
+        for n_terms in (1, 4, 16, 64, 256)
+    ]
+
+    assert distances[0] > 5.0 * floor, (
+        f"{name}: a single step should be visibly non-Gaussian, got {distances[0]:.4f}"
+    )
+    assert all(later < earlier + floor for earlier, later in pairwise(distances)), (
+        f"{name}: distances {distances} do not fall (floor {floor:.4f})"
+    )
+    assert distances[-1] < 0.05, f"{name}: still {distances[-1]:.4f} away at n = 256"
+
+
+def test_the_persistent_walk_refuses_to_converge_to_the_naive_gaussian():
+    """The counterexample is itself a test — otherwise the collapse above proves nothing.
+
+    A walk whose steps repeat with probability 0.9 still has identically distributed steps of
+    finite variance; only independence is gone. Standardizing by the independent-step formula
+    sigma_1 sqrt(n) therefore misses by the factor sqrt((1+q)/(1-q)) = sqrt(19), and no amount
+    of extra steps repairs it: the distance to N(0, 1) stalls instead of falling.
+    """
+    distances = [
+        _distance_to_standard_gaussian(
+            sampling.correlated_walk(20_000, n_steps, 0.9, np.random.default_rng(23))[:, -1]
+            / np.sqrt(n_steps)
+        )
+        for n_steps in (16, 64, 256, 1024)
+    ]
+
+    assert min(distances) > 0.3, f"the correlated walk should stay far from N(0,1): {distances}"
+    assert distances[-1] > 0.5 * distances[0], f"distances are still shrinking: {distances}"
 
 
 def test_pressure_derivative_at_the_critical_point_vanishes_at_second_order():
