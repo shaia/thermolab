@@ -1,6 +1,7 @@
-# NOTE: byte-identical copy at notebooks/en/labs/data/co2-isotherm-280k.csv -- JupyterLite
-# only bundles the notebooks/ tree (jupyter_lite_config.json: "contents": ["notebooks"]), so
-# the laboratory notebook needs its own copy to run in the browser. Keep the two in sync.
+# NOTE: byte-identical copies at notebooks/{en,he}/labs/data/co2-isotherm-280k.csv --
+# JupyterLite only bundles the notebooks/ tree (jupyter_lite_config.json: "contents":
+# ["notebooks"]), so each language's laboratory notebook needs its own co-located copy to
+# run in the browser. Keep all three in sync -- scripts/check_parity.py enforces it.
 #
 # Representative values consistent with the NIST Chemistry WebBook isothermal properties
 # for CO2 at 280 K. Hand-constructed for this course from published literature figures for
