@@ -1,0 +1,36 @@
+# NOTE: byte-identical copy at notebooks/en/labs/data/galton-board.csv -- JupyterLite only
+# bundles the notebooks/ tree (jupyter_lite_config.json: "contents": ["notebooks"]), so the
+# laboratory notebook needs its own copy to run in the browser. Keep the two in sync.
+#
+# A 12-row Galton board, 200 beads. Each bead meets 12 pegs and goes left or right at each
+# one, so the bin it lands in counts its right-turns: the board is a random walk in wood, and
+# its pile is a binomial(12, 1/2) distribution sampled 200 times.
+#
+# Hand-constructed for this course as one representative run -- a multinomial draw from the
+# exact binomial weights, not a transcription of a physical board in this room. The point of
+# the exercise survives either way, and the honest label matters more than the pretence: what
+# a student is asked to do with these numbers (compare them with binomial(12, 1/2) and with
+# its Gaussian, and decide whether the agreement is good) is exactly what they would do with
+# counts off a real board, including the part where 200 beads is not very many.
+#
+# If you have a physical board, or run the class coin-flip protocol from the module page,
+# replace this file with your own counts in the same two columns and rerun the notebook. It
+# is a better exercise with data you collected.
+#
+# Columns: bin,count -- bin is the number of right-turns (0..12), count is the beads that
+# landed there. Total 200. The column names stay inside this comment block because the
+# notebook reads the file with np.loadtxt(comments="#"), which strips comments but has no
+# notion of a header row.
+0,0
+1,0
+2,2
+3,15
+4,25
+5,31
+6,44
+7,38
+8,34
+9,7
+10,3
+11,1
+12,0
