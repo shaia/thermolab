@@ -393,6 +393,36 @@ class TestCheckParity:
             (media / "both.mp4").write_bytes(b"\x00")
         assert not has_error(check_parity.check(tmp_path), "exists in")
 
+    def test_fails_when_lab_data_trees_disagree(self, tmp_path):
+        # The Hebrew CO2 isotherm shipped exactly like this: the notebook's browser branch
+        # reads data/<name> beside itself, but only English had the copy. nbmake takes the
+        # other branch and passes in both languages, so nothing else can see it.
+        for lang in ("en", "he"):
+            (tmp_path / "notebooks" / lang / "labs" / "data").mkdir(parents=True)
+        (tmp_path / "notebooks" / "en" / "labs" / "data" / "solo.csv").write_bytes(b"1,2\n")
+        findings = check_parity.check(tmp_path)
+        assert has_error(findings, "mismatch: solo.csv exists in en but not in he")
+
+    def test_fails_when_a_lab_data_copy_drifts_from_the_original(self, tmp_path):
+        (tmp_path / "data").mkdir()
+        (tmp_path / "data" / "shared.csv").write_bytes(b"1,2\n")
+        for lang, payload in (("en", b"1,2\n"), ("he", b"9,9\n")):
+            data = tmp_path / "notebooks" / lang / "labs" / "data"
+            data.mkdir(parents=True)
+            (data / "shared.csv").write_bytes(payload)
+        findings = check_parity.check(tmp_path)
+        assert has_error(findings, "stale: shared.csv differs from data/shared.csv")
+
+    def test_passes_when_lab_data_trees_agree(self, tmp_path):
+        (tmp_path / "data").mkdir()
+        (tmp_path / "data" / "shared.csv").write_bytes(b"1,2\n")
+        for lang in ("en", "he"):
+            data = tmp_path / "notebooks" / lang / "labs" / "data"
+            data.mkdir(parents=True)
+            (data / "shared.csv").write_bytes(b"1,2\n")
+        findings = check_parity.check(tmp_path)
+        assert not has_error(findings, "shared.csv")
+
 
 # ---------------------------------------------------------------------------
 # check_assessment.py

@@ -1,5 +1,6 @@
 """EN/HE parity checks: tree completeness, hash staleness, equation identity,
-notebook code-cell identity, quiz-bank identity, figure targets, and media-tree agreement.
+notebook code-cell identity, quiz-bank identity, figure targets, media-tree agreement,
+and laboratory data-tree agreement.
 
 English is the source of truth (`.claude/CLAUDE.md`); every HE artifact either
 mirrors its EN source exactly (equations, notebook code) or carries a hash proving
@@ -416,6 +417,59 @@ def check_media_trees(root: Path) -> list[Finding]:
 
 
 # ---------------------------------------------------------------------------
+# Laboratory data: co-located copies exist in both languages and match the original
+# ---------------------------------------------------------------------------
+
+
+def lab_data_dir(root: Path, lang: str) -> Path:
+    return root / "notebooks" / lang / "labs" / "data"
+
+
+def check_lab_data_trees(root: Path) -> list[Finding]:
+    """Both `notebooks/<lang>/labs/data/` trees hold the same files, matching `data/`.
+
+    A lab notebook that reads a data file needs its own co-located copy, because JupyterLite
+    bundles only the notebooks/ tree (`jupyter_lite_config.json`'s `LiteBuildConfig.contents`)
+    and its contents addon strips that top directory name — so in the browser the notebook
+    sits at `<lang>/labs/` and opens `data/<name>` beside itself.
+
+    Nothing else can see a missing copy. The same cell takes its other branch on the desktop
+    and reads the canonical `data/` at the repo root, which both languages reach equally, so
+    nbmake passes for a notebook that dies in the browser. That is exactly how the Hebrew
+    module-02 CO2 isotherm shipped broken.
+    """
+    names = {}
+    for lang in LANGS:
+        data_dir = lab_data_dir(root, lang)
+        names[lang] = (
+            {p.name for p in data_dir.glob("*") if p.is_file()} if data_dir.exists() else set()
+        )
+
+    findings: list[Finding] = []
+    for lang, other in (("en", "he"), ("he", "en")):
+        for name in sorted(names[lang] - names[other]):
+            findings.append(
+                Finding(
+                    lab_data_dir(root, lang) / name,
+                    None,
+                    "error",
+                    f"mismatch: {name} exists in {lang} but not in {other}",
+                )
+            )
+
+    # The co-located files are copies; `data/` is the canonical original they must equal.
+    for lang in LANGS:
+        for name in sorted(names[lang]):
+            original = root / "data" / name
+            copy = lab_data_dir(root, lang) / name
+            if original.exists() and copy.read_bytes() != original.read_bytes():
+                findings.append(
+                    Finding(copy, None, "error", f"stale: {name} differs from data/{name}")
+                )
+    return findings
+
+
+# ---------------------------------------------------------------------------
 # Orchestration
 # ---------------------------------------------------------------------------
 
@@ -439,6 +493,7 @@ def check(root: Path = ROOT) -> list[Finding]:
     findings.extend(check_quiz_parity(root))
     findings.extend(check_figure_targets(root))
     findings.extend(check_media_trees(root))
+    findings.extend(check_lab_data_trees(root))
     return findings
 
 

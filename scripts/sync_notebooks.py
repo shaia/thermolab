@@ -9,6 +9,10 @@ to be translated cell by cell.
 The `en_source_hash` stamped into `metadata.thermolab` is what `check_parity.py` compares
 against, so running this after an English edit is what clears a staleness failure.
 
+Data files beside the notebooks (`labs/data/`) are mirrored too — a lab needs its own
+co-located copy in each language to run in the browser, and copying only the `.ipynb` is how
+the Hebrew module-02 isotherm ended up reading a file that was not there.
+
 Run:  uv run python scripts/sync_notebooks.py [--check]
 """
 
@@ -17,6 +21,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -83,6 +88,38 @@ def sync_one(en_path: Path, he_path: Path, check_only: bool) -> list[str]:
     return changes
 
 
+def sync_data_files(check_only: bool) -> list[str]:
+    """Mirror the `data/` directories that sit beside the notebooks.
+
+    A notebook that reads a data file needs a copy co-located with it in *each* language:
+    JupyterLite bundles only the notebooks/ tree and serves each language from its own
+    directory, so the browser branch of the cell opens `data/<name>` next to the notebook it
+    is running. Copying the `.ipynb` alone leaves the Hebrew lab opening a file that is not
+    there — in the browser only, where nothing on this machine can see it.
+
+    Only `data/` is mirrored. `_quiz/` next door is written per language by
+    `render_quizzes.py` and its Hebrew copy must never be overwritten with the English one.
+    """
+    changes: list[str] = []
+    for en_dir in sorted(p for p in EN_ROOT.rglob("data") if p.is_dir()):
+        for en_file in sorted(en_dir.rglob("*")):
+            if not en_file.is_file() or ".ipynb_checkpoints" in en_file.parts:
+                continue
+            he_file = HE_ROOT / en_file.relative_to(EN_ROOT)
+            if he_file.exists() and he_file.read_bytes() == en_file.read_bytes():
+                continue
+
+            rel = he_file.relative_to(ROOT)
+            reason = "differs from English" if he_file.exists() else "missing"
+            if check_only:
+                changes.append(f"{rel}: {reason} (would be copied from English)")
+                continue
+            he_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(en_file, he_file)
+            changes.append(f"{rel}: {reason} — copied from English")
+    return changes
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -100,6 +137,8 @@ def main(argv: list[str] | None = None) -> int:
             continue
         he_path = HE_ROOT / en_path.relative_to(EN_ROOT)
         all_changes.extend(sync_one(en_path, he_path, args.check))
+
+    all_changes.extend(sync_data_files(args.check))
 
     for change in all_changes:
         print(change)
