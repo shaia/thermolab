@@ -481,7 +481,17 @@ def free_expansion_microstate(state: kinetics.GasState, factor: float,
     temperature must drop makes a prediction about numbers this function leaves untouched by
     construction, and `simulate` then measures a pressure that has fallen by exactly the
     volume ratio.
+
+    `axis` chooses which wall moves; negative indices count from the last, as elsewhere in
+    NumPy. It is checked here rather than left to raise an IndexError from the assignment,
+    because the useful thing to say is which axes this box actually has.
     """
+    dimension = state.dimension
+    if not -dimension <= axis < dimension:
+        raise ValueError(
+            f"axis {axis} is out of range for a {dimension}-dimensional box: "
+            f"expected -{dimension} <= axis < {dimension}"
+        )
     if factor <= 1.0:
         raise ValueError("a free expansion must enlarge the box")
     box = state.box.copy()

@@ -363,3 +363,22 @@ def test_a_microscopic_free_expansion_touches_no_velocity(n_particles, factor, s
     assert widened.kinetic_energy == gas.kinetic_energy
     assert widened.kinetic_temperature == gas.kinetic_temperature
     assert widened.volume == pytest.approx(factor * gas.volume, rel=1e-12)
+
+
+def test_a_free_expansion_widens_the_axis_it_was_asked_to():
+    """Either wall may be the one that moves, and a negative axis counts from the last.
+
+    An out-of-range axis is refused with the box's actual dimensionality rather than left to
+    raise NumPy's IndexError, which names neither the argument nor the range.
+    """
+    rng = np.random.default_rng(11)
+    gas = kinetics.initialise_gas(40, (1e-6, 2e-6), 300.0, 4.65e-26, rng)
+
+    for axis, expected in ((0, (3e-6, 2e-6)), (1, (1e-6, 6e-6)), (-1, (1e-6, 6e-6))):
+        widened = processes.free_expansion_microstate(gas, 3.0, axis=axis)
+        assert np.allclose(widened.box, expected, rtol=1e-12)
+        assert widened.kinetic_temperature == gas.kinetic_temperature
+
+    for bad_axis in (2, -3, 7):
+        with pytest.raises(ValueError, match="out of range for a 2-dimensional box"):
+            processes.free_expansion_microstate(gas, 2.0, axis=bad_axis)
