@@ -169,12 +169,26 @@ class ProcessResult:
         return self.path
 
     def partial_work_on_gas(self, fraction: float) -> float:
-        """Work accumulated along the first `fraction` of the path.
+        """Work accumulated along the first `fraction` of the path, for `fraction` in [0, 1].
 
         Meaningful only for a quasistatic process, and so routed through `quasistatic_path`:
         an irreversible process has no intermediate states to accumulate along, however
         well-defined its total work is.
+
+        A fraction outside [0, 1] is an error rather than something to clamp. Past 1 a plain
+        slice would silently return the whole path's work, and below 0 it would return the
+        first sample interval's — both plausible-looking numbers for a caller that has got its
+        arithmetic wrong, which is the worst way for this to fail.
+
+        Zero returns exactly zero: no path traversed, no work. Any positive fraction too small
+        to select two samples still integrates over the first interval, because that is the
+        finest step a sampled path can resolve — sampling the path more densely is the way to
+        ask a finer question.
         """
+        if not 0.0 <= fraction <= 1.0:
+            raise ValueError(f"fraction must lie in [0, 1], got {fraction}")
+        if fraction == 0.0:
+            return 0.0
         path = self.quasistatic_path
         cut = max(2, int(fraction * path.volumes.size))
         return paths.work_on_gas(path.volumes[:cut], path.pressures[:cut])

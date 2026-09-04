@@ -788,3 +788,25 @@ def test_an_irreversible_process_refuses_to_hand_out_a_path():
         _ = free.quasistatic_path
 
     assert processes.adiabatic(start, 2e-3).quasistatic_path is not None
+
+
+def test_partial_work_is_zero_at_the_start_and_the_whole_work_at_the_end():
+    """The two endpoints of the accumulation must agree with the closed form, exactly.
+
+    A fraction outside [0, 1] raises rather than clamping: past 1 a plain slice returns the
+    whole path's work and below 0 it returns the first interval's, and both are numbers a
+    caller with broken arithmetic would happily believe.
+    """
+    start = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3)
+    result = processes.adiabatic(start, 2e-3)
+
+    assert result.partial_work_on_gas(0.0) == 0.0
+    assert relative_error(result.partial_work_on_gas(1.0), result.work_on_gas) < 1e-4
+
+    accumulated = [result.partial_work_on_gas(f) for f in np.linspace(0.05, 1.0, 20)]
+    assert all(later <= earlier for earlier, later in zip(accumulated, accumulated[1:],
+                                                          strict=False))
+
+    for bad_fraction in (-0.1, 1.1, 2.0):
+        with pytest.raises(ValueError, match=r"fraction must lie in \[0, 1\]"):
+            result.partial_work_on_gas(bad_fraction)
