@@ -29,6 +29,8 @@ project:
         - file: thermodynamics/04-pressure-problems.md
         - file: thermodynamics/05-work-paths.md
         - file: thermodynamics/05-work-paths-problems.md
+        - file: thermodynamics/06-processes.md
+        - file: thermodynamics/06-processes-problems.md
     - title: Statistical mechanics
       children:
         - file: statistical-mechanics/03-random-walks.md

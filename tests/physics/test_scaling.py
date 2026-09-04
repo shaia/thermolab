@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import equilibrium, gases, kinetics, multiplicity, sampling
+from thermolab import equilibrium, gases, kinetics, multiplicity, processes, sampling
 from thermolab.constants import K_B
 from thermolab.validation import relative_error, scaling_exponent
 
@@ -295,3 +295,47 @@ def test_two_box_equilibrium_spread_scales_as_one_over_sqrt_n():
         spreads.append(float(late.std() / n))
 
     assert scaling_exponent(sizes, spreads) == pytest.approx(-0.5, abs=0.12)
+
+
+def test_the_first_law_ledger_is_extensive_while_the_state_ratios_are_not():
+    """Doubling N at fixed T and V/N doubles W, Q and ΔU and leaves every ratio alone.
+
+    This is the large-N statement for macroscopic thermodynamics, and it is worth measuring
+    rather than assuming: the exponent of W against N is fitted, so a stray N inside gamma or
+    inside a temperature ratio would show up as an exponent that is not 1.
+    """
+    sizes = [500, 1000, 2000, 4000, 8000]
+    works, ratios = [], []
+    for n in sizes:
+        start = processes.EquilibriumState.from_temperature(n, 300.0, n * 1e-6)
+        result = processes.adiabatic(start, 2.0 * start.volume)
+        works.append(abs(result.work_on_gas))
+        ratios.append(result.end.temperature / start.temperature)
+
+    assert scaling_exponent(sizes, works) == pytest.approx(1.0, abs=1e-6)
+    assert np.ptp(ratios) / np.mean(ratios) < 1e-12
+
+
+def test_the_three_adiabatic_routes_keep_their_ordering_at_every_system_size():
+    """The 189 / 225 / 300 K ordering is a statement about the process, not about N.
+
+    Every temperature here is intensive, so the whole comparison must be flat in N. If any of
+    the three drifted with system size, an extensive quantity would have leaked into a place
+    where only ratios belong.
+    """
+    finals = []
+    for n in (100, 1000, 10000, 100000):
+        start = processes.EquilibriumState.from_temperature(n, 300.0, n * 1e-6)
+        load = processes.external_pressure_for_equilibrium_at(start, 2.0)
+        finals.append(
+            (
+                processes.adiabatic(start, 2.0 * start.volume).end.temperature,
+                processes.adiabatic_against_constant_pressure(start, load).end.temperature,
+                processes.free_expansion(start, 2.0 * start.volume).end.temperature,
+            )
+        )
+        assert finals[-1][0] < finals[-1][1] < finals[-1][2]
+
+    columns = np.array(finals)
+    for column in columns.T:
+        assert np.ptp(column) / column.mean() < 1e-12

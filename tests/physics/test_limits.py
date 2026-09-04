@@ -18,6 +18,7 @@ from thermolab import (
     kinetics,
     multiplicity,
     paths,
+    processes,
     sampling,
 )
 from thermolab.constants import K_B
@@ -628,3 +629,162 @@ def test_persistent_walk_variance_is_inflated_by_the_correlation_factor():
         trajectories = sampling.correlated_walk(6000, n_steps, q, rng)
         measured = float(trajectories[:, -1].var(ddof=1))
         assert relative_error(measured, n_steps * (1.0 + q) / (1.0 - q)) < 0.12
+
+
+def test_mayer_relation_holds_for_every_number_of_degrees_of_freedom():
+    """C_P - C_V = N k_B, independent of f, of T and of the substance."""
+    for degrees_of_freedom in range(1, 13):
+        c_v = processes.heat_capacity_constant_volume(1000, degrees_of_freedom)
+        c_p = processes.heat_capacity_constant_pressure(1000, degrees_of_freedom)
+        assert relative_error(c_p - c_v, 1000 * K_B) < 1e-12
+        assert relative_error(c_p / c_v, processes.gamma_from_dof(degrees_of_freedom)) < 1e-12
+
+
+def test_gamma_takes_its_textbook_values_and_inverts():
+    """5/3 monatomic, 7/5 diatomic with rotations, 9/7 once the vibration counts."""
+    assert processes.gamma_from_dof(3) == pytest.approx(5.0 / 3.0, rel=1e-15)
+    assert processes.gamma_from_dof(5) == pytest.approx(7.0 / 5.0, rel=1e-15)
+    assert processes.gamma_from_dof(7) == pytest.approx(9.0 / 7.0, rel=1e-15)
+    for degrees_of_freedom in (3, 5, 6, 7):
+        gamma = processes.gamma_from_dof(degrees_of_freedom)
+        assert processes.dof_from_gamma(gamma) == pytest.approx(degrees_of_freedom, rel=1e-12)
+
+
+def test_each_quasistatic_family_reproduces_its_own_closed_form_by_quadrature():
+    """Integrating -∫P dV along the sampled curve must return the analytic work."""
+    start = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3)
+    v_end = 2e-3
+
+    for result in (
+        processes.isobaric(start, v_end),
+        processes.isothermal(start, v_end),
+        processes.adiabatic(start, v_end),
+    ):
+        quadrature = result.quasistatic_path.work_on_gas()
+        assert relative_error(quadrature, result.work_on_gas) < 1e-4, result.label
+
+    isochoric = processes.isochoric(start, 0.5 * start.pressure)
+    assert isochoric.quasistatic_path.work_on_gas() == pytest.approx(0.0, abs=1e-30)
+
+
+def test_the_polytrope_reduces_to_each_named_family_at_its_own_index():
+    """n = 0, 1 and gamma are the isobar, the isotherm and the adiabat - not approximately."""
+    start = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3)
+    v_end = 2.5e-3
+    gamma = start.gamma
+
+    isobaric = processes.polytropic_work_on_gas(start.pressure, start.volume, v_end, 0.0)
+    isothermal = processes.polytropic_work_on_gas(start.pressure, start.volume, v_end, 1.0)
+    adiabatic = processes.polytropic_work_on_gas(start.pressure, start.volume, v_end, gamma)
+
+    assert relative_error(isobaric, processes.isobaric(start, v_end).work_on_gas) < 1e-12
+    assert relative_error(isothermal, processes.isothermal(start, v_end).work_on_gas) < 1e-12
+    assert relative_error(adiabatic, processes.adiabatic(start, v_end).work_on_gas) < 1e-12
+
+
+def test_the_isothermal_polytrope_is_a_logarithm_and_not_a_nudged_rational():
+    """n = 1 is a genuine singularity of (P2V2 - P1V1)/(n-1), not a removable one.
+
+    Evaluating the rational form just off n = 1 is how a plausible wrong number is produced,
+    so the implementation branches. Approaching n = 1 from either side must converge to the
+    logarithm the branch returns.
+    """
+    p1, v1, v2 = 4.14e-15, 1e-3, 2e-3
+    exact = processes.polytropic_work_on_gas(p1, v1, v2, 1.0)
+
+    for offset in (1e-3, 1e-4, 1e-5):
+        for index in (1.0 - offset, 1.0 + offset):
+            nearby = processes.polytropic_work_on_gas(p1, v1, v2, index)
+            assert relative_error(nearby, exact) < 5.0 * offset
+
+
+def test_both_adiabatic_invariants_are_flat_along_the_whole_curve():
+    """P V^gamma and T V^(gamma-1) are constants of the motion, not endpoint relations."""
+    start = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3)
+    path = processes.adiabatic(start, 3e-3, n_points=513).quasistatic_path
+
+    pv_gamma = path.pressures * path.volumes ** start.gamma
+    temperatures = path.pressures * path.volumes / (start.n_particles * K_B)
+    tv_gamma = temperatures * path.volumes ** (start.gamma - 1.0)
+
+    assert np.ptp(pv_gamma) / pv_gamma.mean() < 1e-12
+    assert np.ptp(tv_gamma) / tv_gamma.mean() < 1e-12
+    assert tv_gamma.mean() == pytest.approx(300.0 * 1e-3 ** (start.gamma - 1.0), rel=1e-12)
+
+
+def test_a_free_expansion_is_the_zero_load_limit_of_a_loaded_one():
+    """P_ext -> 0 must reach the free expansion exactly, not merely approach it."""
+    start = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3)
+    v_end = 2e-3
+    free = processes.free_expansion(start, v_end)
+
+    at_zero = processes.against_constant_external_pressure(start, 0.0, v_end)
+    assert at_zero.work_on_gas == free.work_on_gas
+    assert at_zero.end.temperature == pytest.approx(free.end.temperature, rel=1e-15)
+
+    previous = None
+    for load in (1e-1, 1e-2, 1e-3, 1e-4):
+        loaded = processes.against_constant_external_pressure(
+            start, load * start.pressure, v_end
+        )
+        gap = free.end.temperature - loaded.end.temperature
+        assert gap > 0.0
+        if previous is not None:
+            assert gap < previous
+        previous = gap
+
+
+def test_three_adiabatic_routes_to_one_volume_are_ordered_and_opposite():
+    """The module's central numbers: 189 K, 225 K, 300 K, with the works ranked the other way.
+
+    All three have Q = 0 and end at 2 V_1, so ΔU = W_on and every joule delivered is a joule
+    of internal energy given up. The two orderings are therefore forced to be opposite; a
+    result in which the free expansion both cooled most and delivered most would be a sign
+    error somewhere.
+    """
+    start = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3)
+    v_end = 2e-3
+    p_external = processes.external_pressure_for_equilibrium_at(start, 2.0)
+
+    slow = processes.adiabatic(start, v_end)
+    loaded = processes.adiabatic_against_constant_pressure(start, p_external)
+    free = processes.free_expansion(start, v_end)
+
+    assert loaded.end.volume == pytest.approx(v_end, rel=1e-12)
+    assert slow.end.temperature < loaded.end.temperature < free.end.temperature
+    assert abs(slow.work_on_gas) > abs(loaded.work_on_gas) > abs(free.work_on_gas)
+
+    assert slow.end.temperature == pytest.approx(300.0 * 2.0 ** (-2.0 / 3.0), rel=1e-12)
+    assert loaded.end.temperature == pytest.approx(225.0, rel=1e-12)
+    assert free.end.temperature == pytest.approx(300.0, rel=1e-15)
+
+
+def test_the_free_expansion_lands_on_the_isotherm_without_following_it():
+    """Its endpoint obeys P V = constant - the isothermal relation, reached with Q = 0.
+
+    The point is the pair of facts together: the final state is the one an isothermal
+    expansion would have reached, and no heat was exchanged to get there. Anything that
+    applied P V^gamma here would land 37% lower in pressure.
+    """
+    start = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3)
+    free = processes.free_expansion(start, 2e-3)
+    isothermal = processes.isothermal(start, 2e-3)
+
+    assert free.end.pressure == pytest.approx(isothermal.end.pressure, rel=1e-12)
+    assert free.heat == 0.0
+    assert isothermal.heat > 0.0
+    assert free.end.pressure == pytest.approx(0.5 * start.pressure, rel=1e-12)
+
+    adiabatic_pressure = processes.adiabatic(start, 2e-3).end.pressure
+    assert relative_error(adiabatic_pressure, free.end.pressure) > 0.3
+
+
+def test_an_irreversible_process_refuses_to_hand_out_a_path():
+    """The library must not return a silent None for a curve that does not exist."""
+    start = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3)
+    free = processes.free_expansion(start, 2e-3)
+
+    with pytest.raises(ValueError, match="not quasistatic"):
+        _ = free.quasistatic_path
+
+    assert processes.adiabatic(start, 2e-3).quasistatic_path is not None

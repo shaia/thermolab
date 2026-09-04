@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import equilibrium, kinetics, multiplicity, sampling
+from thermolab import equilibrium, kinetics, multiplicity, processes, sampling
 from thermolab.constants import K_B
 from thermolab.validation import scaling_exponent, seed_study
 
@@ -232,3 +232,53 @@ def test_seed_study_detects_a_genuinely_biased_measurement():
     biased = seed_study(lambda rng: 1.0 + 0.5 + rng.normal(0, 1e-6), n_seeds=8)
 
     assert not biased.agrees_with(1.0, n_sigma=3.0)
+
+
+def test_a_microscopic_free_expansion_has_the_same_temperature_under_every_seed():
+    """Not "agrees within error" — identical, for every seed, because no velocity is touched.
+
+    This is the one measurement in the course with genuinely zero spread, and that is the
+    point: a result that cannot vary with the seed is a property of the model rather than a
+    sample from it. The pressure below is the honest measurement, and it does have a spread.
+    """
+    for seed in range(8):
+        rng = np.random.default_rng(seed)
+        gas = kinetics.initialise_gas(200, BOX_2D, 300.0, ARGON_MASS, rng)
+        widened = processes.free_expansion_microstate(gas, 2.0)
+
+        assert widened.kinetic_temperature == gas.kinetic_temperature
+
+
+def test_the_measured_pressure_of_a_free_expansion_halves_across_independent_seeds():
+    """P V is conserved: same particles, same speeds, twice the room, half the wall traffic.
+
+    Measured from summed wall impulses rather than computed from the equation of state, so
+    this is the microscopic model agreeing with the thermodynamic argument and not restating
+    it. The initial transient is discarded because the widened box starts with every particle
+    bunched in its old half.
+    """
+    def measure(rng: np.random.Generator) -> float:
+        gas = kinetics.initialise_gas(300, BOX_2D, 300.0, ARGON_MASS, rng)
+        widened = processes.free_expansion_microstate(gas, 2.0)
+        packed = kinetics.simulate(gas, dt=kinetics.max_stable_dt(gas), n_steps=1200)
+        spread = kinetics.simulate(widened, dt=kinetics.max_stable_dt(widened), n_steps=1200)
+        return spread.pressure(discard_fraction=0.2) / packed.pressure(discard_fraction=0.2)
+
+    study = seed_study(measure, n_seeds=8, base_seed=606)
+
+    assert study.agrees_with(0.5)
+    assert study.relative_spread < 0.1
+
+
+def test_the_same_seed_reproduces_the_same_widened_gas():
+    """The expansion carries no randomness of its own, so reproducibility must survive it."""
+    first = processes.free_expansion_microstate(
+        kinetics.initialise_gas(150, BOX_2D, 300.0, ARGON_MASS, np.random.default_rng(31)), 3.0
+    )
+    second = processes.free_expansion_microstate(
+        kinetics.initialise_gas(150, BOX_2D, 300.0, ARGON_MASS, np.random.default_rng(31)), 3.0
+    )
+
+    assert np.array_equal(first.positions, second.positions)
+    assert np.array_equal(first.velocities, second.velocities)
+    assert np.array_equal(first.box, second.box)

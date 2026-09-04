@@ -497,3 +497,25 @@ terms:
   - key: histogram
     en: histogram
     he: היסטוגרמה
+  - key: free-expansion
+    en: free expansion
+    he: התפשטות חופשית
+    he_reject: [התפשטות חינם]
+  - key: adiabatic-index
+    en: adiabatic index
+    he: מקדם אדיאבטי
+  - key: mayer-relation
+    en: Mayer relation
+    he: יחס מאייר
+  - key: polytropic
+    en: polytropic
+    he: פוליטרופי
+  - key: lapse-rate
+    en: lapse rate
+    he: קצב הצינון עם הגובה
+  - key: throttling
+    en: throttling
+    he: חניקה
+  - key: joule-thomson
+    en: Joule-Thomson effect
+    he: אפקט ג'אול-תומסון

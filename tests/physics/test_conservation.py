@@ -12,7 +12,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from thermolab import equilibrium, forms, gases, kinetics, multiplicity, sampling
+from thermolab import equilibrium, forms, gases, kinetics, multiplicity, processes, sampling
 from thermolab.validation import relative_error
 
 pytestmark = pytest.mark.conservation
@@ -256,3 +256,110 @@ def test_every_walk_position_is_the_running_sum_of_its_own_steps():
 
     assert np.all(np.abs(steps) == 1.0)
     assert np.allclose(np.cumsum(steps, axis=1), trajectories[:, 1:])
+
+
+@given(
+    degrees_of_freedom=st.integers(min_value=3, max_value=8),
+    volume_ratio=st.floats(min_value=1.05, max_value=6.0),
+    temperature=st.floats(min_value=50.0, max_value=1200.0),
+)
+@settings(max_examples=30, deadline=None)
+def test_the_first_law_closes_on_every_quasistatic_family(
+    degrees_of_freedom, volume_ratio, temperature
+):
+    """δQ + δW_on - ΔU must vanish for all four families, for any gas and any expansion.
+
+    This is not a tautology. `isobaric` computes its work from -P ΔV and its heat from
+    C_P ΔT — two formulae that never consult each other — so the residual vanishing is a live
+    check of Mayer's relation C_P - C_V = N k_B. Give C_P any other value and this fails.
+    """
+    start = processes.EquilibriumState.from_temperature(
+        1000, temperature, 1e-3, degrees_of_freedom
+    )
+    v_end = volume_ratio * start.volume
+
+    for result in (
+        processes.isochoric(start, 0.5 * start.pressure),
+        processes.isobaric(start, v_end),
+        processes.isothermal(start, v_end),
+        processes.adiabatic(start, v_end),
+    ):
+        scale = max(abs(result.work_on_gas), abs(result.internal_energy_change), 1e-30)
+        assert abs(result.first_law_residual) / scale < 1e-12, result.label
+
+
+@given(
+    degrees_of_freedom=st.integers(min_value=3, max_value=8),
+    volume_ratio=st.floats(min_value=1.05, max_value=6.0),
+)
+@settings(max_examples=25, deadline=None)
+def test_a_free_expansion_conserves_internal_energy_exactly(
+    degrees_of_freedom, volume_ratio
+):
+    """No work, no heat, so ΔU = 0 — and for an ideal gas that pins ΔT to zero as well.
+
+    The two path functions are compared with `== 0.0` because they are literals in the
+    constructor, not results. ΔU is not: it is the difference of two energies each rebuilt
+    from P and V, so it lands within an ulp of zero rather than on it. Comparing it
+    fractionally is the same rule the rest of this suite follows — these energies are around
+    1e-18 J, so an absolute tolerance would prove nothing at all.
+    """
+    start = processes.EquilibriumState.from_temperature(
+        1000, 300.0, 1e-3, degrees_of_freedom
+    )
+    result = processes.free_expansion(start, volume_ratio * start.volume)
+
+    assert result.work_on_gas == 0.0
+    assert result.heat == 0.0
+    assert relative_error(result.end.internal_energy, start.internal_energy) < 1e-15
+    assert result.end.temperature == pytest.approx(start.temperature, rel=1e-15)
+
+
+@given(
+    degrees_of_freedom=st.integers(min_value=3, max_value=8),
+    load_fraction=st.floats(min_value=0.05, max_value=0.95),
+)
+@settings(max_examples=25, deadline=None)
+def test_an_expansion_against_a_constant_load_stops_in_mechanical_equilibrium(
+    degrees_of_freedom, load_fraction
+):
+    """The closed form must land the gas at exactly the external pressure it pushed against.
+
+    `adiabatic_against_constant_pressure` solves for the stopping state analytically, then the
+    work is recomputed from -P_ext ΔV; the residual therefore compares two independent routes
+    to the same energy rather than restating one of them.
+    """
+    start = processes.EquilibriumState.from_temperature(
+        1000, 300.0, 1e-3, degrees_of_freedom
+    )
+    p_external = load_fraction * start.pressure
+
+    result = processes.adiabatic_against_constant_pressure(start, p_external)
+
+    assert result.end.pressure == pytest.approx(p_external, rel=1e-12)
+    scale = max(abs(result.work_on_gas), 1e-30)
+    assert abs(result.first_law_residual) / scale < 1e-12
+
+
+@given(
+    n_particles=st.integers(min_value=2, max_value=60),
+    factor=st.floats(min_value=1.1, max_value=8.0),
+    seed=st.integers(min_value=0, max_value=2**31 - 1),
+)
+@settings(max_examples=25, deadline=None)
+def test_a_microscopic_free_expansion_touches_no_velocity(n_particles, factor, seed):
+    """Removing a partition moves no wall against a force, so the kinetic energy is untouched.
+
+    This is the free expansion's ΔU = 0 established one level down, without thermodynamics.
+    The equality is exact rather than approximate because the velocity array is copied, not
+    recomputed — and that is precisely why "expanding gases cool" has nowhere to act here.
+    """
+    rng = np.random.default_rng(seed)
+    gas = kinetics.initialise_gas(n_particles, (1e-6, 1e-6), 300.0, 4.65e-26, rng)
+
+    widened = processes.free_expansion_microstate(gas, factor)
+
+    assert np.array_equal(widened.velocities, gas.velocities)
+    assert widened.kinetic_energy == gas.kinetic_energy
+    assert widened.kinetic_temperature == gas.kinetic_temperature
+    assert widened.volume == pytest.approx(factor * gas.volume, rel=1e-12)

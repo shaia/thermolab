@@ -1,0 +1,186 @@
+[
+  {
+    "question": "An ideal gas is heated at constant volume, then a second identical sample is heated at constant pressure through the same temperature rise. Which statement is correct?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Both gain the same internal energy, but the second absorbs more heat.",
+        "correct": true,
+        "feedback": "Correct. Internal energy depends only on temperature for an ideal gas, so equal temperature rises mean equal changes in U. The constant-pressure sample also pushes its piston out, and that work has to be paid for by extra heat — exactly N k_B per kelvin, which is Mayer's relation."
+      },
+      {
+        "answer": "Both absorb the same heat, but the second gains more internal energy.",
+        "correct": false,
+        "feedback": "This has the two quantities the wrong way round. Internal energy is fixed by the temperature alone, so it cannot differ between two samples with the same temperature rise. Heat is not fixed by the temperature, because it is a path function."
+      },
+      {
+        "answer": "Both absorb the same heat and gain the same internal energy, since the temperature rise is the same.",
+        "correct": false,
+        "feedback": "The internal energies do match, for exactly that reason. The heats do not: the constant-pressure sample spends part of its heat on expansion work, so it needs more of it to reach the same temperature."
+      },
+      {
+        "answer": "The first absorbs more heat, because at constant volume none of it is wasted on work.",
+        "correct": false,
+        "feedback": "The sign is inverted. Doing no work means the constant-volume sample needs LESS heat to achieve a given temperature rise, which is why C_V is the smaller of the two heat capacities."
+      }
+    ]
+  },
+  {
+    "question": "An ideal gas fills half of a rigid, perfectly insulated box; the other half is evacuated. The partition is removed. What happens to the temperature of the gas?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "It does not change, because no heat entered or left and the gas did no work on anything.",
+        "correct": true,
+        "feedback": "Correct. There is nothing to push against, so W_on = 0; the box is insulated, so Q = 0; hence the internal energy is unchanged, and for an ideal gas that fixes the temperature exactly. The final pressure is halved, but nothing else moved."
+      },
+      {
+        "answer": "It falls, because expanding gases cool.",
+        "correct": false,
+        "feedback": "Expanding gases cool when they do work on something while insulated — a spray can, a rising air parcel. Here there is nothing outside the gas to push on, so no energy leaves by either channel. The cooling was never caused by the expansion; it was caused by the paying, and here nothing is paid."
+      },
+      {
+        "answer": "It falls, by the factor 2^(-2/3) that the adiabatic law gives for a monatomic gas.",
+        "correct": false,
+        "feedback": "That factor comes from P V^gamma = constant, whose derivation needs the gas to have a single well-defined pressure at every instant. During a free expansion it does not, so the law does not apply here at all."
+      },
+      {
+        "answer": "It rises, because the gas has more room and the molecules speed up.",
+        "correct": false,
+        "feedback": "Nothing accelerates the molecules. Their speeds are untouched by the removal of a partition, which is precisely why the temperature does not move in either direction."
+      }
+    ]
+  },
+  {
+    "question": "The free expansion of the previous question has Q = 0, so it is adiabatic. Does it obey P V^gamma = constant?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "No. That law needs the process to be quasistatic as well as adiabatic, and a free expansion is not.",
+        "correct": true,
+        "feedback": "Correct. The derivation writes C_V dT = -P dV, and the P in there is the gas's own pressure — which only exists if the gas is in equilibrium throughout. A free expansion is adiabatic and violently non-quasistatic, so it obeys P V = constant instead, which is just the isotherm."
+      },
+      {
+        "answer": "Yes. Adiabatic means Q = 0, and P V^gamma = constant is what Q = 0 implies.",
+        "correct": false,
+        "feedback": "Q = 0 is only one of the two assumptions the derivation uses. The other is that the gas has a single pressure at every instant, and without it there is no P to put inside P dV — the differential equation cannot even be written down."
+      },
+      {
+        "answer": "Yes, but only approximately, because the expansion is fast.",
+        "correct": false,
+        "feedback": "It is not an approximation that degrades with speed. The free expansion obeys P V = constant exactly, and P V^gamma = constant would predict a final pressure smaller by the factor 2^(-2/3) — about 37% wrong, not slightly wrong."
+      },
+      {
+        "answer": "No, because a free expansion is not adiabatic — no walls means no insulation.",
+        "correct": false,
+        "feedback": "The box is insulated, so no heat crosses its boundary and the process is adiabatic by any definition. That is what makes it the interesting counterexample: it satisfies the heat condition and still fails the law."
+      }
+    ]
+  },
+  {
+    "question": "Why is C_P larger than C_V for an ideal gas, and by how much?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Because heating at constant pressure also pays for expansion work; the excess is exactly N k_B.",
+        "correct": true,
+        "feedback": "Correct, and the excess is remarkable for what it does not depend on: not the number of degrees of freedom, not the temperature, not the substance. It is the expansion work per kelvin, P dV = N k_B dT along an isobar, and nothing else."
+      },
+      {
+        "answer": "Because a gas at constant pressure is hotter, and hot gases have larger heat capacities.",
+        "correct": false,
+        "feedback": "The two heat capacities are compared at the same temperature. And for an ideal gas both are independent of temperature, so \"hot gases have larger heat capacities\" is not true within this model at all."
+      },
+      {
+        "answer": "Because at constant pressure the molecules have more room to move, adding degrees of freedom.",
+        "correct": false,
+        "feedback": "Degrees of freedom are set by the molecule's structure, not by how much room it has. A monatomic gas has three translational degrees of freedom in any volume."
+      },
+      {
+        "answer": "Because the excess N k_B accounts for the heat lost to the container walls.",
+        "correct": false,
+        "feedback": "Nothing is lost. The excess energy goes into the surroundings as work done by the expanding gas, which is an entirely different channel from heat leaking through a wall — and Mayer's relation holds exactly for a perfectly insulated container too."
+      }
+    ]
+  },
+  {
+    "question": "A heavy block is dropped onto a piston, compressing an insulated gas until the piston comes to rest. Which pressure belongs in the work integral W_on = -integral of P dV?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "The external pressure applied at the boundary, which here is constant and larger than the gas's own pressure.",
+        "correct": true,
+        "feedback": "Correct. Work is done at the boundary, against whatever the piston pushes on, so the external pressure is what appears. Only in a quasistatic process are the two equal — and that is the whole content of the word \"quasistatic\"."
+      },
+      {
+        "answer": "The gas's own pressure, since it is the gas we are doing work on.",
+        "correct": false,
+        "feedback": "The gas is what receives the energy, but the force at the boundary is set by the block, not by the gas. Worse, during the compression the gas has no single pressure at all — it is denser near the piston than at the far wall."
+      },
+      {
+        "answer": "The average of the gas's initial and final pressures.",
+        "correct": false,
+        "feedback": "That average would be the right answer for a straight line in the P-V plane traversed quasistatically. Here there is no line to average along, and the external pressure is a genuinely different number from either endpoint."
+      },
+      {
+        "answer": "Neither — work is undefined for an irreversible process.",
+        "correct": false,
+        "feedback": "Work is perfectly well defined; it is a force acting through a distance at the boundary, and the block's weight and the piston's travel are both measurable. What is undefined is the gas's own pressure during the process, and hence the area under a curve that does not exist."
+      }
+    ]
+  },
+  {
+    "question": "One mole of a monatomic ideal gas at 400 K expands quasistatically and adiabatically from 5.0 L to 15.0 L. Find the final temperature in kelvin.",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          190.3,
+          194.3
+        ],
+        "correct": true,
+        "feedback": "Use T V^(gamma-1) = constant with gamma = 5/3, so T2 = T1 (V1/V2)^(2/3) = 400 x (1/3)^(2/3) = 192.3 K. If you obtained 400 K you applied the isothermal condition instead; 64 K means you put gamma in the exponent where gamma - 1 belongs; 133 K means you used an exponent of 1, which is the isobaric relation V/T = constant."
+      }
+    ]
+  },
+  {
+    "question": "Two moles of an ideal gas in an insulated cylinder expand from 10.0 L to 25.0 L against a constant external pressure of 1.0e5 Pa. Compute the work done ON the gas, in joules.",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          -1520.0,
+          -1480.0
+        ],
+        "correct": true,
+        "feedback": "W_on = -P_ext (V2 - V1) = -(1.0e5)(0.025 - 0.010) = -1500 J. Negative, because the gas expanded and did work on its surroundings. Note what did not appear anywhere: the amount of gas, its temperature, and its own pressure. Only the external pressure and the volume change matter."
+      }
+    ]
+  },
+  {
+    "question": "An isotherm and an adiabat pass through the same point in the P-V plane. Which falls more steeply as the volume increases, and why?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "The adiabat, by the factor gamma, because along it the gas thins out and cools at the same time.",
+        "correct": true,
+        "feedback": "Correct. Differentiating gives -P/V for the isotherm and -gamma P/V for the adiabat. Along the isotherm the pressure falls only because the density does; along the adiabat the temperature falls as well, and both effects push the pressure down."
+      },
+      {
+        "answer": "The isotherm, because a reservoir keeps feeding heat in and that supports the pressure.",
+        "correct": false,
+        "feedback": "Heat flowing in does support the pressure — which makes the isotherm the SHALLOWER curve, not the steeper one. It is the adiabat, with no heat coming in, that falls away faster."
+      },
+      {
+        "answer": "They have the same slope at the shared point; the curves separate only further along.",
+        "correct": false,
+        "feedback": "The slopes differ at the shared point by exactly the factor gamma, which for a monatomic gas is 5/3. Curves through a common point with different slopes separate immediately."
+      },
+      {
+        "answer": "The adiabat, because gamma is greater than 1 and the adiabatic exponent is applied to the temperature.",
+        "correct": false,
+        "feedback": "The conclusion is right and the reason is not. The exponent gamma appears on the volume in P V^gamma = constant; the temperature form carries gamma - 1 instead. Getting the right answer from the wrong exponent is worth catching now."
+      }
+    ]
+  }
+]
