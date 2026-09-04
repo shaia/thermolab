@@ -687,15 +687,49 @@ def test_the_isothermal_polytrope_is_a_logarithm_and_not_a_nudged_rational():
 
     Evaluating the rational form just off n = 1 is how a plausible wrong number is produced,
     so the implementation branches. Approaching n = 1 from either side must converge to the
-    logarithm the branch returns.
+    logarithm the branch returns, at first order in (n - 1) ln(V2/V1).
     """
     p1, v1, v2 = 4.14e-15, 1e-3, 2e-3
     exact = processes.polytropic_work_on_gas(p1, v1, v2, 1.0)
+    log_ratio = float(np.log(v2 / v1))
 
     for offset in (1e-3, 1e-4, 1e-5):
         for index in (1.0 - offset, 1.0 + offset):
             nearby = processes.polytropic_work_on_gas(p1, v1, v2, index)
             assert relative_error(nearby, exact) < 5.0 * offset
+            # First order in the small parameter, so the gap must shrink WITH it rather than
+            # collapse to zero: a branch that swallowed these indices would give 0 here.
+            assert relative_error(nearby, exact) == pytest.approx(
+                0.5 * offset * log_ratio, rel=0.05
+            )
+
+
+def test_a_near_isothermal_polytrope_is_not_swallowed_by_the_isothermal_branch():
+    """n = 1.00001 must be evaluated as the polytrope it is, not silently replaced.
+
+    `np.isclose(index, 1.0)` guarded this branch once, and its default tolerance reaches all
+    the way to n = 1.00001 — where the rational form is accurate to about 5e-12 and the
+    logarithm substituted for it is only good to 5e-6. Six orders of accuracy were being
+    thrown away on a caller who had deliberately asked for a near-isothermal compression.
+
+    The branch is on |(n - 1) ln(V2/V1)| instead, so this checks both sides of it: just
+    outside, the answer differs from the logarithm by the physically correct first-order
+    amount; just inside, it is the logarithm exactly.
+    """
+    p1, v1, v2 = 4.14e-15, 1e-3, 2.5e-3
+    logarithmic = processes.polytropic_work_on_gas(p1, v1, v2, 1.0)
+    log_ratio = float(np.log(v2 / v1))
+
+    outside = processes.polytropic_work_on_gas(p1, v1, v2, 1.00001)
+    assert outside != logarithmic
+    assert relative_error(outside, logarithmic) == pytest.approx(
+        0.5 * 1e-5 * log_ratio, rel=0.05
+    )
+
+    # Inside the cutoff the rational form has lost more to cancellation than the limit costs,
+    # so the logarithm is returned unchanged.
+    inside = processes.polytropic_work_on_gas(p1, v1, v2, 1.0 + 1e-12)
+    assert inside == logarithmic
 
 
 def test_both_adiabatic_invariants_are_flat_along_the_whole_curve():

@@ -318,6 +318,15 @@ def polytropic_pressure(volumes, p_ref: float, v_ref: float, index: float) -> np
     return p_ref * (v_ref / volumes) ** index
 
 
+#: Where the rational polytropic work stops beating its own limit, in the only variable that
+#: matters: |(n - 1) ln(V_2/V_1)|. The rational form subtracts two nearly equal numbers, so it
+#: loses relative accuracy like eps_machine/|(n-1) ln(V2/V1)|, while the logarithm is the
+#: (n - 1) -> 0 limit and is wrong by about half that same product. The two cross where the
+#: product is sqrt(2 * 2.2e-16) ~ 2e-8, measured and confirmed against 60-digit arithmetic.
+#: Below this, take the logarithm; above it, the rational form is the more accurate of the two.
+_POLYTROPE_LOG_CUTOFF = 1.0e-8
+
+
 def polytropic_work_on_gas(p_start: float, v_start: float, v_end: float,
                            index: float) -> float:
     """W_on = (P_2 V_2 - P_1 V_1)/(n - 1), with the n = 1 isotherm handled by its logarithm.
@@ -325,9 +334,17 @@ def polytropic_work_on_gas(p_start: float, v_start: float, v_end: float,
     n = 1 is not a removable singularity to be nudged past numerically: the integral of
     dV/V genuinely is a logarithm, and evaluating the rational form at n = 1 + 1e-9 is how
     a plausible-looking wrong number gets produced.
+
+    The branch is on |(n - 1) ln(V_2/V_1)|, not on n alone, because that product is what
+    controls both errors -- see `_POLYTROPE_LOG_CUTOFF`. Guarding with `np.isclose(index, 1)`
+    instead, as this once did, is wrong in the other direction: its default tolerance swallows
+    everything out to n = 1.00001, where the rational form is accurate to 5e-12 and the
+    logarithm it substitutes is only good to 5e-6. A caller who deliberately asks for a
+    near-isothermal polytrope should get the polytrope.
     """
-    if np.isclose(index, 1.0):
-        return -p_start * v_start * float(np.log(v_end / v_start))
+    log_ratio = float(np.log(v_end / v_start))
+    if abs((index - 1.0) * log_ratio) < _POLYTROPE_LOG_CUTOFF:
+        return -p_start * v_start * log_ratio
     p_end = polytropic_pressure(v_end, p_start, v_start, index)
     return float((p_end * v_end - p_start * v_start) / (index - 1.0))
 
