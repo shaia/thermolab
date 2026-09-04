@@ -60,9 +60,11 @@ about where the ideal-gas equation of state enters.
 (two rotational degrees of freedom active), and a diatomic gas hot enough that its vibrational
 mode counts as two more.
 
-(c) The measured $\gamma$ of hydrogen is $1.41$ at $300\ \mathrm{K}$, $1.60$ at
-$50\ \mathrm{K}$, and near $1.30$ at $2000\ \mathrm{K}$. Explain the trend, and say which of
-the three values a purely classical theory can account for.
+(c) The measured $\gamma$ of hydrogen is about $1.41$ at $300\ \mathrm{K}$, $1.60$ at
+$50\ \mathrm{K}$, and $1.33$ at $2000\ \mathrm{K}$. Explain the trend, and say which of the
+three values a purely classical theory can account for. Note that none of the three equals
+$(f+2)/f$ for an integer $f$; say what that tells you about how a degree of freedom switches
+on.
 
 (d) Would $C_P - C_V = n R$ still hold for a van der Waals gas? Answer yes or no and justify
 it from where the derivation in (a) used ideality.

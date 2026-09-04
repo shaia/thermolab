@@ -147,6 +147,11 @@ Three things worth doing before you read the derivation:
 
 **System and boundary.** The gas in the cylinder; the piston is the moving boundary.
 
+**Independent variables.** $N$, $V$, $T$ and the number of quadratic degrees of freedom $f$
+per particle, with $P$ fixed by the equation of state. Every result below is macroscopic
+thermodynamics — no microstate is counted anywhere in this section — except the final check in
+the laboratory, which is kinetic.
+
 **Sign convention.** As everywhere in this course,
 
 $$
@@ -323,10 +328,25 @@ one, for an identical change of volume. The ordering is not an accident of these
 the reason it can never reverse is the subject of module 7.
 :::
 
+**Now run it backwards, which is prediction 4.** Compress the same gas to *half* its volume,
+insulated, two ways. Slowly, grain by grain: it ends at 476 K, having absorbed
+$0.881\,P_1V_1$ of work. Or drop a block heavy enough to hold $P_{\mathrm{ext}} = 6P_1$ until
+the piston stops — which is what "slamming" it means quantitatively — and it ends at 900 K,
+having absorbed $3.000\,P_1V_1$.
+
+The sudden compression costs **3.4 times the work** and leaves the gas 424 K hotter, for the
+identical change of volume. Both facts are the same fact: $Q = 0$, so $\Delta U =
+W_{\mathrm{on}}$, and work that went in had nowhere else to go. If you predicted that slamming
+the piston was cheaper because it was quicker, this is the paragraph to reread.
+
+So the slow route is the best of both worlds and it is not a coincidence: it extracts the most
+work on the way out and costs the least on the way in. Every departure from quasistatic is
+paid for, in the same direction, whichever way the piston is travelling.
+
 (06-processes-verify)=
 ## Verify computationally
 
-Five checks, each of which is also an automated test in the project's suite, so nothing on
+Six checks, each of which is also an automated test in the project's suite, so nothing on
 this page can quietly rot.
 
 **1. The closed forms.** Numerically integrating $-\int P\,dV$ along each family reproduces
@@ -338,11 +358,26 @@ the work is computed from $-P\Delta V$ and the heat from $C_P \Delta T$, by two 
 formulae. The first law then has to close, and it does — which is a live test of
 $C_P - C_V = N k_B$, since any other value would break it.
 
-**3. The adiabatic invariants.** Sampling the numerically integrated adiabat and evaluating
-$P V^{\gamma}$ and $T V^{\gamma-1}$ at every point gives two constants, flat to machine
-precision along the whole curve.
+**3. The adiabatic invariants, and what that check is worth.** Sampling the adiabat and
+evaluating $P V^{\gamma}$ and $T V^{\gamma-1}$ at every point gives two constants, flat to
+machine precision along the whole curve. Be clear about how much of that is evidence: the
+curve is *drawn* from $P V^{\gamma} = \text{constant}$, so the first invariant is true by
+construction and only the second — that the temperature form follows through the equation of
+state — is a result. A test that can only pass is worth naming as such rather than counting.
 
-**4. The ordering of the three routes.** The final temperatures come out 189.0 K, 225.0 K and
+**4. The adiabat rebuilt from below, which is the check that is not circular.** Divide the
+expansion into $n$ equal steps and let the gas expand irreversibly against a *constant* load
+at each one, matched to its pressure at the start of that step. No step uses $P V^{\gamma}$
+anywhere; each is nothing but the first law and the equation of state. One step lands at
+100 K, sixteen at 185.6 K, and 256 within 0.11% of the quasistatic 189.0 K, with the error
+falling as $1/n$.
+
+That is the sand-grain argument made numerically, and it is the module's strongest single
+verification: it shows the quasistatic adiabat is the *limit* of a sequence of irreversible
+processes rather than a separate law, and it reaches the same 189 K by a route that never
+assumes the answer.
+
+**5. The ordering of the three routes.** The final temperatures come out 189.0 K, 225.0 K and
 300.0 K, in that order, while the works run the other way. For the free expansion both
 $W_{\mathrm{on}}$ and $Q$ are exactly zero — they are not computed, they are put in — and its
 $\Delta U$ comes out within one part in $10^{15}$ of zero, which is as close to zero as a
@@ -350,7 +385,7 @@ float can get. Note that this is checked *fractionally*: these energies are arou
 $10^{-18}\,\mathrm{J}$, so an absolute tolerance would report every route's work as equal to
 every other's.
 
-**5. The free expansion from underneath.** This is the check worth running yourself.
+**6. The free expansion from underneath.** This is the check worth running yourself.
 
 :::{admonition} The free expansion, one level down
 :class: numerical-observation
