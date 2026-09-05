@@ -1,0 +1,19 @@
+# Line endings: LF, in the index and in the working tree alike.
+#
+# Git for Windows ships core.autocrlf=true in its system config, so it checks
+# files out as CRLF. Everything that writes files here — render_quizzes.py,
+# sync_notebooks.py, build_css.py, myst — emits LF, so a regenerated file is
+# reported as modified by `git status` forever while `git diff` shows nothing:
+# the bytes are identical, only the line-ending git expects on checkout differs.
+# All 175 tracked blobs are already LF-only, so this renormalizes nothing.
+* text=auto eol=lf
+
+# Binary: no conversion, no text diff. None of these are tracked today
+# (content/*/media/ is generated and gitignored), but a rendered animation or
+# an extracted frame that does get committed must not be line-ended.
+*.mp4 binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.woff binary
+*.woff2 binary
