@@ -79,3 +79,11 @@ misconceptions:
     statement: "Any sum of many random quantities is Gaussian."
     assigned_module: 03-random-walks
     status: addressed
+  - id: adiabatic-is-pv-gamma
+    statement: "Every adiabatic process obeys P V^gamma = constant."
+    assigned_module: 06-processes
+    status: addressed
+  - id: free-expansion-cools
+    statement: "A gas expanding into a vacuum must cool, because expanding gases cool."
+    assigned_module: 06-processes
+    status: addressed

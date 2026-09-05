@@ -116,5 +116,6 @@ state, probability, kinetic theory, first law, processes, second law, entropy, f
 relation, potentials, ensembles, partition functions) → 6 advanced modules (chemical potential,
 phase equilibrium, phase transitions, radiation & solids, quantum statistics, fluctuations &
 transport). Currently built: orientation, thermal equilibrium, equations of state, probability
-& emergence, the microscopic origin of pressure, work & thermodynamic paths, and entropy &
-multiplicity — plus two reference pages, the course conventions and a mathematics refresher.
+& emergence, the microscopic origin of pressure, work & thermodynamic paths, thermodynamic
+processes, and entropy & multiplicity — plus two reference pages, the course conventions and a
+mathematics refresher.

@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 from scipy.special import ndtr
 
-from thermolab import equilibrium, forms, gases, kinetics, paths, sampling
+from thermolab import equilibrium, forms, gases, kinetics, paths, processes, sampling
 from thermolab.constants import K_B
 from thermolab.validation import convergence_study, relative_error
 
@@ -283,3 +283,54 @@ def test_second_derivative_of_pressure_at_the_critical_point_vanishes_at_second_
 
     assert study.observed_order == pytest.approx(2.0, abs=0.3)
     assert study.errors[-1] < study.errors[0]
+
+
+def test_polytropic_work_quadrature_converges_for_an_arbitrary_index():
+    """Not just the named families: a polytrope at n = 1.27 must converge the same way.
+
+    A real compressor with an imperfect insulator sits between the isotherm and the adiabat,
+    so the fractional index is the case that actually gets fitted to data.
+    """
+    p1, v1, v2, index = 4.14e-15, 1e-3, 2.5e-3, 1.27
+    exact = processes.polytropic_work_on_gas(p1, v1, v2, index)
+
+    study = convergence_study(
+        lambda points: paths.work_along(
+            lambda v: processes.polytropic_pressure(v, p1, v1, index), v1, v2, n_points=points
+        ),
+        refinements=[17, 33, 65, 129, 257],
+        exact=exact,
+    )
+
+    assert study.observed_order == pytest.approx(2.0, abs=0.2)
+
+
+def test_a_staircase_of_constant_loads_converges_to_the_quasistatic_adiabat():
+    """Many small steps against a matched load approach the slow route, at first order in 1/n.
+
+    This is the module's claim that "quasistatic" is a limit rather than a synonym for slow,
+    made numerically. Each step is a genuinely irreversible expansion against a *constant*
+    load — the gas's pressure at the start of that step — so no step ever uses P V^gamma. Only
+    the limit does. A single step lands at 100 K against the adiabat's 189 K; 256 steps land
+    within 0.11%.
+
+    First order, not second: each step over-shoots by the amount the gas's pressure falls
+    during it, which is proportional to the step size.
+    """
+    start = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3)
+    v_end = 2e-3
+    exact = processes.adiabatic(start, v_end).end.temperature
+
+    def staircase(n_steps: int) -> float:
+        state = start
+        for volume in np.linspace(start.volume, v_end, n_steps + 1)[1:]:
+            state = processes.against_constant_external_pressure(
+                state, state.pressure, float(volume)
+            ).end
+        return state.temperature
+
+    study = convergence_study(staircase, refinements=[16, 32, 64, 128, 256], exact=exact)
+
+    assert study.observed_order == pytest.approx(1.0, abs=0.05)
+    assert staircase(1) < 0.6 * exact  # one step is not "nearly quasistatic"
+    assert relative_error(staircase(256), exact) < 2e-3

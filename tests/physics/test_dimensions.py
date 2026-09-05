@@ -23,6 +23,7 @@ from thermolab import (
     kinetics,
     multiplicity,
     paths,
+    processes,
     sampling,
 )
 from thermolab.units import K_B_Q, Quantity
@@ -204,3 +205,61 @@ def test_gases_functions_return_plain_si_floats():
     assert isinstance(v_c, float)
     assert isinstance(t_c, float)
     assert isinstance(p_c, float)
+
+
+def test_heat_capacities_are_energy_per_temperature():
+    """C_V = (f/2) N k_B and C_P = C_V + N k_B: k_B carries the units, the counts do not."""
+    n_particles, degrees_of_freedom = 1000, 3
+    c_v = 0.5 * degrees_of_freedom * n_particles * K_B_Q
+    c_p = c_v + n_particles * K_B_Q
+
+    assert c_v.check("[energy] / [temperature]")
+    assert c_p.check("[energy] / [temperature]")
+    assert (c_p - c_v).check("[energy] / [temperature]")
+
+
+def test_the_heat_capacity_ratio_is_dimensionless():
+    """gamma = C_P/C_V is a pure number, which is what lets it sit in an exponent at all.
+
+    An exponent that carried units would be meaningless, so this is the dimensional statement
+    behind P V^gamma = constant being writable in the first place.
+    """
+    c_v = 1.5 * 1000 * K_B_Q
+    c_p = 2.5 * 1000 * K_B_Q
+    assert (c_p / c_v).dimensionless
+
+
+def test_irreversible_work_against_a_constant_load_is_an_energy():
+    """W_on = -P_ext ΔV. The external pressure is still a pressure, so the product is energy."""
+    work = Quantity(9.35e4, "Pa") * Quantity(1e-2, "m**3")
+    assert work.check("[energy]")
+
+
+def test_the_constant_load_final_temperature_formula_is_a_temperature():
+    """T_2 = (C_V T_1 + P_ext V_1)/C_P: an energy over a heat capacity, back to a temperature.
+
+    Both terms in the numerator must independently be energies, which is exactly the check
+    that catches a dropped volume or a C_V written where a C_P belongs.
+    """
+    c_v = Quantity(12.47, "J/K")
+    c_p = Quantity(20.79, "J/K")
+    stored = c_v * Quantity(300.0, "K")
+    displaced = Quantity(9.35e4, "Pa") * Quantity(1e-2, "m**3")
+
+    assert stored.check("[energy]")
+    assert displaced.check("[energy]")
+    assert ((stored + displaced) / c_p).check("[temperature]")
+
+
+def test_processes_functions_return_plain_si_floats():
+    """`processes` stays unit-free like the rest of the library; pint lives in the tests."""
+    state = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3)
+    result = processes.adiabatic(state, 2e-3)
+
+    assert isinstance(processes.heat_capacity_constant_volume(1000), float)
+    assert isinstance(processes.heat_capacity_constant_pressure(1000), float)
+    assert isinstance(processes.gamma_from_dof(3), float)
+    assert isinstance(state.temperature, float)
+    assert isinstance(state.internal_energy, float)
+    assert isinstance(result.work_on_gas, float)
+    assert isinstance(result.first_law_residual, float)
