@@ -26,9 +26,9 @@ single thermometer once and then trust its reading on many different objects.
 
 <!-- objectives: OBJ-01-3 -->
 
-A cup containing $0.20\ \mathrm{kg}$ of coffee at $90\,^\circ\mathrm{C}$ (specific heat
+A cup containing $0.20\ \mathrm{kg}$ of coffee at $90\,{}^\circ\mathrm{C}$ (specific heat
 $c = 4200\ \mathrm{J\,kg^{-1}\,K^{-1}}$) is poured into an empty mug of heat capacity
-$C_{\text{mug}} = 150\ \mathrm{J/K}$, initially at $20\,^\circ\mathrm{C}$. Treat the pair as
+$C_{\text{mug}} = 150\ \mathrm{J/K}$, initially at $20\,{}^\circ\mathrm{C}$. Treat the pair as
 isolated once the coffee is poured.
 
 (a) Compute the coffee's heat capacity $C_A = mc$.
@@ -58,19 +58,19 @@ answer both symbolically (in terms of $\tau$) and numerically.
 
 <!-- objectives: OBJ-01-2, OBJ-01-4 -->
 
-A body is discovered in a room held at a constant $18\,^\circ\mathrm{C}$. Investigators
-measure the body's temperature to be $30\,^\circ\mathrm{C}$, and one hour later measure it
-again at $27\,^\circ\mathrm{C}$. Living human body temperature is $37\,^\circ\mathrm{C}$.
+A body is discovered in a room held at a constant $18\,{}^\circ\mathrm{C}$. Investigators
+measure the body's temperature to be $30\,{}^\circ\mathrm{C}$, and one hour later measure it
+again at $27\,{}^\circ\mathrm{C}$. Living human body temperature is $37\,{}^\circ\mathrm{C}$.
 
 (a) Using $T(t) - T_{\text{room}} = (T_0 - T_{\text{room}})e^{-t/\tau}$, use the two
 measurements to solve for $\tau$.
 
-(b) Using $\tau$ from (a) and an assumed starting temperature of $37\,^\circ\mathrm{C}$ at the
+(b) Using $\tau$ from (a) and an assumed starting temperature of $37\,{}^\circ\mathrm{C}$ at the
 moment of death, estimate how long before the first measurement death occurred.
 
 (c) Name two assumptions of the model that are most likely to be violated in a real forensic
 setting (consider: is $\kappa$ really constant? is the room temperature really constant? is
-$37\,^\circ\mathrm{C}$ a safe assumption for every individual?), and say which direction each
+$37\,{}^\circ\mathrm{C}$ a safe assumption for every individual?), and say which direction each
 violation would bias the estimated time of death.
 
 ## Problem 5 — where the model breaks

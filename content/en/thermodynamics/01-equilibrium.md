@@ -47,8 +47,8 @@ begins.
 
 Commit to an answer for each of these *before* running anything. Write them down.
 
-1. A block of copper at $80\,^\circ\mathrm{C}$ is pressed against an identical block of copper
-   at $20\,^\circ\mathrm{C}$, and the pair is otherwise isolated. Where do you expect the final
+1. A block of copper at $80\,{}^\circ\mathrm{C}$ is pressed against an identical block of copper
+   at $20\,{}^\circ\mathrm{C}$, and the pair is otherwise isolated. Where do you expect the final
    common temperature to sit? Now suppose the second block is ten times more massive — does
    the final temperature move toward the hot block's starting value, the cold block's, or stay
    at the midpoint?
