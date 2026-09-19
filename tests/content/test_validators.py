@@ -8,6 +8,7 @@ the load-bearing half of its pair.
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -16,6 +17,7 @@ import nbformat
 SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
+import build_site  # noqa: E402
 import check_assessment  # noqa: E402
 import check_glossary  # noqa: E402
 import check_modelspec  # noqa: E402
@@ -834,3 +836,59 @@ class TestCheckNotebooks:
         findings = check_notebooks.check(tmp_path)
         assert len(findings) == 1
         assert "he" in str(findings[0].path)
+
+
+# ---------------------------------------------------------------------------
+# build_site.py — equations KaTeX rejected
+# ---------------------------------------------------------------------------
+
+
+def write_page_ast(pages: Path, name: str, location: str, *math_nodes: dict) -> None:
+    """A page AST in the shape mystmd writes to `_build/site/content/<slug>.json`.
+
+    The equations sit inside a list item, as the module-01 predictions do, so the walk has to
+    descend to find them.
+    """
+    item = {"type": "listItem", "children": [{"type": "paragraph", "children": list(math_nodes)}]}
+    ast = {"type": "root", "children": [{"type": "list", "children": [item]}]}
+    write(pages / name, json.dumps({"location": location, "mdast": ast}))
+
+
+def inline_math(value: str, line: int, error: str | None = None) -> dict:
+    node = {"type": "inlineMath", "value": value, "position": {"start": {"line": line}}}
+    if error:
+        node |= {"error": True, "message": error}
+    return node
+
+
+class TestUnrenderableMath:
+    def test_fails_on_an_equation_katex_rejected(self, tmp_path):
+        write_page_ast(
+            tmp_path,
+            "thermodynamics.equilibrium.json",
+            "/thermodynamics/01-equilibrium.md",
+            inline_math(r"80\,^\circ\mathrm{C}", 47, error="Got group of unknown type: 'internal'"),
+        )
+        checked, problems = build_site.unrenderable_math(tmp_path, "content/he")
+        assert checked == 1
+        assert len(problems) == 1
+        assert problems[0].startswith("content/he/thermodynamics/01-equilibrium.md:47:")
+        assert r"$80\,^\circ\mathrm{C}$" in problems[0]
+        assert "unknown type: 'internal'" in problems[0]
+
+    def test_passes_and_counts_equations_katex_rendered(self, tmp_path):
+        write_page_ast(
+            tmp_path,
+            "thermodynamics.equilibrium.json",
+            "/thermodynamics/01-equilibrium.md",
+            inline_math(r"80\,{}^\circ\mathrm{C}", 47),
+            inline_math(r"T_A(t)", 51),
+        )
+        write_page_ast(
+            tmp_path, "conventions.json", "/conventions.md", {"type": "math", "value": "dU"}
+        )
+        assert build_site.unrenderable_math(tmp_path, "content/en") == (3, [])
+
+    def test_missing_ast_directory_checks_nothing(self, tmp_path):
+        """`verify_math` turns a zero count into a failure; this is the zero it sees."""
+        assert build_site.unrenderable_math(tmp_path / "absent", "content/en") == (0, [])

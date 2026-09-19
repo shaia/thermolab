@@ -10,7 +10,7 @@ here, in dependency order, because several of them are gitignored and therefore 
 fresh clone (`content/<lang>/_generated/`, `content/<lang>/media/`). Building only the MyST
 projects yields a site with empty quiz includes and broken image links.
 
-    stylesheets -> quizzes -> animations -> myst (per language) -> assemble -> jupyterlite
+    stylesheets -> quizzes -> animations -> myst (per language) -> math -> assemble -> jupyterlite
 
 Each language is an independent MyST project built with BASE_URL=<base>/<lang> so its internal
 links resolve under that prefix. `<base>` is empty for a site served from the root of a domain
@@ -53,6 +53,7 @@ import re
 import shutil
 import subprocess
 import sys
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -76,6 +77,8 @@ PACKAGE = "thermolab"
 MEDIA_SUFFIXES = {".gif", ".mp4", ".webm", ".png"}
 # A root-absolute link into the JupyterLite bundle, as written in a content page.
 LAB_LINK = re.compile(r"/lite/[^\s)\]\"'<>]+")
+# mdast node types that mystmd renders with KaTeX (display and inline).
+MATH_NODE_TYPES = {"math", "inlineMath"}
 
 ROOT_REDIRECT = """<!DOCTYPE html>
 <html lang="en">
@@ -311,6 +314,77 @@ def build_languages(clean: bool, base_path: str) -> tuple[dict[str, Path], Stage
     # holding a lock, which is a normal thing to be doing. It is loud in the summary because
     # the result can genuinely be wrong — a spared cache can pin a figure to superseded media.
     return builds, Stage("myst", detail=f"{len(builds)} language(s)", problems=problems)
+
+
+def math_nodes(node: object) -> Iterator[dict]:
+    """Every math node in a page AST, in document order."""
+    if isinstance(node, dict):
+        if node.get("type") in MATH_NODE_TYPES:
+            yield node
+            return
+        for value in node.values():
+            yield from math_nodes(value)
+    elif isinstance(node, list):
+        for item in node:
+            yield from math_nodes(item)
+
+
+def unrenderable_math(pages: Path, source_root: str) -> tuple[int, list[str]]:
+    """Count the equations in one language's page ASTs and list the ones KaTeX rejected.
+
+    `pages` is `content/<lang>/_build/site/content`, where mystmd writes one JSON AST per
+    page; `source_root` prefixes each page's `location` so a finding names the source file.
+    """
+    checked = 0
+    problems = []
+    for page in sorted(pages.glob("*.json")):
+        data = json.loads(page.read_text(encoding="utf-8"))
+        source = f"{source_root}{data.get('location') or '/' + page.name}"
+        for node in math_nodes(data.get("mdast")):
+            checked += 1
+            if not node.get("error"):
+                continue
+            line = ((node.get("position") or {}).get("start") or {}).get("line")
+            where = f"{source}:{line}" if line else source
+            message = node.get("message") or "no message"
+            problems.append(f"{where}: KaTeX cannot render ${node.get('value')}$ — {message}")
+    return checked, problems
+
+
+def verify_math() -> Stage:
+    """Fail the build on any equation KaTeX could not render.
+
+    mystmd typesets math with KaTeX at build time, and when KaTeX rejects an expression it
+    flags the node (`"error": true`) and prints nothing — the page ships the raw TeX inside a
+    yellow warning icon, in both languages, since equations are byte-identical. KaTeX is
+    stricter than LaTeX and MathJax, so source that is correct elsewhere can fail here:
+    `80\\,^\\circ\\mathrm{C}` hangs the superscript on the kern that `\\,` expands to ("Got
+    group of unknown type: 'internal'") and broke every temperature on both module-01 pages
+    until `80\\,{}^\\circ\\mathrm{C}` fixed it. Nothing that reads the sources can see this,
+    and neither can nbmake — notebooks render with MathJax — so it is read from the build.
+
+    Zero equations checked is itself a failure: it means mystmd moved its page ASTs and this
+    check has silently stopped looking.
+    """
+    heading("math")
+    checked = 0
+    problems: list[str] = []
+    for lang in LANGS:
+        pages = ROOT / "content" / lang / "_build" / "site" / "content"
+        count, found = unrenderable_math(pages, f"content/{lang}")
+        checked += count
+        problems += found
+
+    if not checked:
+        problems.append(
+            "no equations found under content/<lang>/_build/site/content — "
+            "has mystmd moved its page ASTs? Nothing was checked"
+        )
+    for problem in problems:
+        print(problem)
+    if not problems:
+        print(f"KaTeX rendered all {checked} equation(s)")
+    return Stage("math", ok=not problems, detail=f"{checked} equation(s)", problems=problems)
 
 
 def lab_link_targets() -> set[str]:
@@ -587,6 +661,7 @@ def main(argv: list[str] | None = None) -> int:
 
     builds, myst_stage = build_languages(clean=not args.no_clean, base_path=base_path)
     stages.append(myst_stage)
+    stages.append(verify_math())
     stages.append(assemble(builds))
 
     if args.no_lite:
