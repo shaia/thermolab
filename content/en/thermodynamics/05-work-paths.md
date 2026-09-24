@@ -145,6 +145,7 @@ Both conventions are correct; mixing them within one calculation is not, and it 
 of an enormous number of sign errors. Whenever you read a formula elsewhere, find out which
 convention it uses before you use it.
 :::
+<!-- /sign-convention-exception -->
 
 ### The work done in a small displacement
 

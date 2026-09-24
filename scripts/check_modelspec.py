@@ -72,13 +72,58 @@ SIGN_CONVENTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
 )
 
 ALLOWLIST_GLOBS = ("content/*/conventions.md",)
-EXCEPTION_MARKER = "<!-- sign-convention-exception -->"
+EXCEPTION_OPEN = "<!-- sign-convention-exception -->"
+EXCEPTION_CLOSE = "<!-- /sign-convention-exception -->"
 
 
-def is_sign_convention_exempt(rel_path: str, text: str) -> bool:
-    if any(fnmatch.fnmatch(rel_path, pattern) for pattern in ALLOWLIST_GLOBS):
-        return True
-    return EXCEPTION_MARKER in text
+def is_whole_page_exempt(rel_path: str) -> bool:
+    """`conventions.md` is the page that teaches both conventions, so it is exempt entire."""
+    return any(fnmatch.fnmatch(rel_path, pattern) for pattern in ALLOWLIST_GLOBS)
+
+
+def find_exception_block(lines: list[str]) -> tuple[set[int], list[tuple[int, str]]]:
+    """Line numbers inside the one marked exception block, plus complaints about the markers.
+
+    The convention (CLAUDE.md) is that a module may convert to the work-done-BY spelling in
+    ONE explicitly marked block. This used to be enforced by exempting the *whole page* as
+    soon as the opening marker appeared anywhere in it, which quietly disabled the check for
+    everything else on that page — precisely the thing the convention exists to prevent. The
+    block is delimited, and only the lines inside it are exempt.
+
+    An unclosed block exempts nothing. Exempting to end-of-file would reproduce the old hole
+    by accident, and the author who forgot the closing marker gets two findings that point
+    straight at the fix rather than silence.
+    """
+    opens = [n for n, line in enumerate(lines, start=1) if EXCEPTION_OPEN in line]
+    closes = [n for n, line in enumerate(lines, start=1) if EXCEPTION_CLOSE in line]
+    problems: list[tuple[int, str]] = []
+
+    if not opens:
+        problems.extend(
+            (lineno, f"{EXCEPTION_CLOSE} here closes a sign-convention exception that was "
+                     f"never opened")
+            for lineno in closes
+        )
+        return set(), problems
+
+    problems.extend(
+        (lineno, "a second sign-convention exception block on this page — the convention "
+                 "allows exactly one, so fold them together or drop one")
+        for lineno in opens[1:]
+    )
+
+    start = opens[0]
+    # `>=` rather than `>`: a short exception may open and close on one line, and that line
+    # is then the whole block. With `>` such a block reads as never closed.
+    following = [lineno for lineno in closes if lineno >= start]
+    if not following:
+        problems.append(
+            (start, f"sign-convention exception opened here is never closed with "
+                    f"{EXCEPTION_CLOSE} — nothing on the page is exempt until it is")
+        )
+        return set(), problems
+
+    return set(range(start, following[0] + 1)), problems
 
 
 def check_labels(page: ContentPage, slug: str) -> list[Finding]:
@@ -156,10 +201,18 @@ def check_model_spec_blocks(page: ContentPage) -> list[Finding]:
 
 
 def check_sign_convention(page: ContentPage) -> list[Finding]:
-    if is_sign_convention_exempt(page.rel_path, page.text):
+    if is_whole_page_exempt(page.rel_path):
         return []
-    findings: list[Finding] = []
-    for lineno, line in enumerate(page.text.splitlines(), start=1):
+
+    lines = page.text.splitlines()
+    exempt, problems = find_exception_block(lines)
+
+    findings = [
+        Finding(page.path, lineno, "error", message) for lineno, message in problems
+    ]
+    for lineno, line in enumerate(lines, start=1):
+        if lineno in exempt:
+            continue
         for pattern, message in SIGN_CONVENTION_PATTERNS:
             if pattern.search(line):
                 findings.append(Finding(page.path, lineno, "error", message))
