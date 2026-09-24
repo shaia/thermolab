@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 from scipy.special import ndtr
 
-from thermolab import equilibrium, forms, gases, kinetics, paths, processes, sampling
+from thermolab import engines, equilibrium, forms, gases, kinetics, paths, processes, sampling
 from thermolab.constants import K_B
 from thermolab.validation import convergence_study, relative_error
 
@@ -334,3 +334,64 @@ def test_a_staircase_of_constant_loads_converges_to_the_quasistatic_adiabat():
     assert study.observed_order == pytest.approx(1.0, abs=0.05)
     assert staircase(1) < 0.6 * exact  # one step is not "nearly quasistatic"
     assert relative_error(staircase(256), exact) < 2e-3
+
+
+def test_the_enclosed_loop_area_converges_on_the_work_the_cycle_delivers():
+    """"The work is the area enclosed" — checked, rather than drawn and asserted.
+
+    `work_output` comes from each stroke's closed form and does not move with `n_points` at
+    all. `enclosed_area` is trapezoid quadrature over the same strokes as actually sampled,
+    which is what a student measuring the loop on a plot is doing. So the two are genuinely
+    independent routes to one number, and the area approaches the work at the trapezoid
+    rule's O(h^2). A first-order quadrature slipped in anywhere would fail here.
+    """
+    exact = engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5).work_output
+
+    study = convergence_study(
+        lambda points: engines.carnot_cycle(
+            1000, 600.0, 300.0, 1e-3, 2.5, n_points=points
+        ).enclosed_area,
+        refinements=[17, 33, 65, 129, 257],
+        exact=exact,
+    )
+
+    assert study.observed_order > 1.9
+
+
+def test_the_cycles_own_work_does_not_move_with_the_sampling_at_all():
+    """The complement of the test above, and the reason it is worth having.
+
+    Every stroke's work here is a closed form, so refining the stroke changes nothing but the
+    stored curve. Pinning that makes the previous test meaningful: it shows the convergence
+    being measured is the quadrature's, not some residual dependence of the physics on how
+    many points happened to be stored.
+    """
+    works = [
+        engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5, n_points=points).work_output
+        for points in (5, 17, 65, 257)
+    ]
+
+    for work in works[1:]:
+        assert relative_error(work, works[0]) < 1e-14
+
+
+def test_entropy_production_vanishes_as_the_temperature_gaps_close():
+    """Shrink the gaps and the irreversibility goes away smoothly, first order in the gap.
+
+    This is the sense in which a reversible engine is a limit rather than a device: it is
+    approached by making the gaps small, and the price of small gaps is that the heat crosses
+    ever more slowly.
+    """
+    gaps = np.array([40.0, 20.0, 10.0, 5.0])
+    produced = np.array(
+        [
+            engines.endoreversible_cycle(
+                1000, 600.0, 300.0, 1e-3, 2.5, float(g), float(g)
+            ).entropy_produced
+            for g in gaps
+        ]
+    )
+
+    assert all(later < earlier for earlier, later in pairwise(produced))
+    ratios = produced[:-1] / produced[1:]
+    assert np.all(ratios > 1.8) and np.all(ratios < 2.2)

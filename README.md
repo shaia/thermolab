@@ -117,5 +117,5 @@ relation, potentials, ensembles, partition functions) → 6 advanced modules (ch
 phase equilibrium, phase transitions, radiation & solids, quantum statistics, fluctuations &
 transport). Currently built: orientation, thermal equilibrium, equations of state, probability
 & emergence, the microscopic origin of pressure, work & thermodynamic paths, thermodynamic
-processes, and entropy & multiplicity — plus two reference pages, the course conventions and a
+processes, the second law & heat engines, and entropy & multiplicity — plus two reference pages, the course conventions and a
 mathematics refresher.

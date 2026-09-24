@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import equilibrium, kinetics, multiplicity, processes, sampling
+from thermolab import engines, equilibrium, kinetics, multiplicity, processes, sampling
 from thermolab.constants import K_B
 from thermolab.validation import scaling_exponent, seed_study
 
@@ -282,3 +282,33 @@ def test_the_same_seed_reproduces_the_same_widened_gas():
     assert np.array_equal(first.positions, second.positions)
     assert np.array_equal(first.velocities, second.velocities)
     assert np.array_equal(first.box, second.box)
+
+
+def test_no_randomly_drawn_engine_ever_beats_the_carnot_bound():
+    """The module's central claim, posed as an experiment over 32 independent engines.
+
+    Each seed draws a different size, expansion ratio and quality of thermal contact. The
+    bound is a theorem, so the interesting outcome is not that the mean respects it but that
+    *every single draw* does — hence a hard assertion per seed rather than a statistic.
+    """
+    for seed in range(32):
+        cycle = engines.random_two_reservoir_engine(np.random.default_rng(seed), 600.0, 300.0)
+        assert cycle.efficiency <= cycle.carnot_bound
+        assert cycle.entropy_produced / cycle.entropy_scale > -1e-12
+
+
+def test_the_same_seed_builds_the_same_engine():
+    """Reproducibility: the rng is the only source of variation, and it is passed explicitly."""
+    a = engines.random_two_reservoir_engine(np.random.default_rng(7), 600.0, 300.0)
+    b = engines.random_two_reservoir_engine(np.random.default_rng(7), 600.0, 300.0)
+
+    assert a.efficiency == b.efficiency
+    assert a.entropy_produced == b.entropy_produced
+
+
+def test_different_seeds_really_do_build_different_engines():
+    """Guards the test above from passing trivially because the draw was being ignored."""
+    a = engines.random_two_reservoir_engine(np.random.default_rng(1), 600.0, 300.0)
+    b = engines.random_two_reservoir_engine(np.random.default_rng(2), 600.0, 300.0)
+
+    assert a.efficiency != b.efficiency

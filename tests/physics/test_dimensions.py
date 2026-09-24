@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 
 from thermolab import (
+    engines,
     equilibrium,
     forms,
     gases,
@@ -263,3 +264,60 @@ def test_processes_functions_return_plain_si_floats():
     assert isinstance(state.internal_energy, float)
     assert isinstance(result.work_on_gas, float)
     assert isinstance(result.first_law_residual, float)
+
+
+def test_an_efficiency_is_dimensionless():
+    """eta = 1 - T_c/T_h is a ratio of temperatures, so the result is a pure number.
+
+    Worth stating dimensionally because the most common wrong form of this expression — one
+    of the two temperatures left in Celsius — is not a ratio of absolute temperatures at all,
+    and the ratio it does form is not the dimensionless quantity this check describes.
+    """
+    t_hot = Quantity(600.0, "K")
+    t_cold = Quantity(300.0, "K")
+
+    assert (t_cold / t_hot).dimensionless
+    assert (1 - t_cold / t_hot).dimensionless
+
+
+def test_a_coefficient_of_performance_is_dimensionless():
+    """Heat moved per unit work: energy over energy, whatever the number comes out as."""
+    lifted = Quantity(4.2e3, "J")
+    driven = Quantity(1.4e3, "J")
+    assert (lifted / driven).dimensionless
+
+
+def test_the_clausius_sum_is_energy_per_temperature():
+    """A sum of Q/T carries entropy's dimensions — which is what lets it define one."""
+    total = Quantity(4.2e3, "J") / Quantity(600.0, "K") - Quantity(2.1e3, "J") / Quantity(
+        300.0, "K"
+    )
+    assert total.check("[energy] / [temperature]")
+
+
+def test_entropy_change_of_a_stroke_is_energy_per_temperature():
+    """N k_B ln(V2/V1) + C_V ln(T2/T1): both terms must land on J/K independently.
+
+    The logarithms are dimensionless because their arguments are ratios, so each term is a
+    heat capacity times a pure number. A dropped k_B in either term fails here.
+    """
+    volume_term = 1000 * K_B_Q * float(np.log(2.0))
+    thermal_term = 1.5 * 1000 * K_B_Q * float(np.log(1.4))
+
+    assert volume_term.check("[energy] / [temperature]")
+    assert thermal_term.check("[energy] / [temperature]")
+    assert (volume_term + thermal_term).check("[energy] / [temperature]")
+
+
+def test_engines_functions_return_plain_si_floats():
+    """`engines` stays unit-free like the rest of the library; pint lives in the tests."""
+    cycle = engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5)
+
+    assert isinstance(engines.carnot_efficiency(600.0, 300.0), float)
+    assert isinstance(engines.cop_refrigerator(600.0, 300.0), float)
+    assert isinstance(engines.cop_heat_pump(600.0, 300.0), float)
+    assert isinstance(engines.curzon_ahlborn_efficiency(600.0, 300.0), float)
+    assert isinstance(engines.otto_efficiency(9.0, 1.4), float)
+    assert isinstance(cycle.efficiency, float)
+    assert isinstance(cycle.work_output, float)
+    assert isinstance(cycle.clausius_sum, float)

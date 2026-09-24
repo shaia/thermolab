@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 
 from thermolab import (
+    engines,
     equilibrium,
     forms,
     gases,
@@ -844,3 +845,117 @@ def test_partial_work_is_zero_at_the_start_and_the_whole_work_at_the_end():
     for bad_fraction in (-0.1, 1.1, 2.0):
         with pytest.raises(ValueError, match=r"fraction must lie in \[0, 1\]"):
             result.partial_work_on_gas(bad_fraction)
+
+
+def test_a_carnot_cycle_reaches_exactly_the_carnot_efficiency():
+    """The cycle built stroke by stroke must reproduce 1 - T_c/T_h to rounding.
+
+    Nothing in the construction puts that number in: the strokes know only volumes and
+    temperatures, and the logarithms cancel only because both adiabats span the same
+    temperature ratio. Getting the bound back out is the check.
+    """
+    cycle = engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5)
+
+    assert relative_error(cycle.efficiency, engines.carnot_efficiency(600.0, 300.0)) < 1e-12
+    assert relative_error(cycle.heat_rejected / cycle.heat_absorbed, 300.0 / 600.0) < 1e-12
+
+
+@pytest.mark.parametrize("degrees_of_freedom", [3, 5, 6])
+def test_the_carnot_adiabats_land_exactly_on_the_reservoir_temperatures(degrees_of_freedom):
+    """The two adiabats must arrive at T_c and T_h, not merely close the loop.
+
+    This is where the efficiency result stops being circular. The heats come from closed
+    forms, so Q_c/Q_h = T_c/T_h only because the two isotherms span the *same* volume ratio,
+    and that holds only if each adiabat really does carry the gas between the two reservoir
+    temperatures. `carnot_cycle` picks the stretch factor analytically; `processes.adiabatic`
+    then computes the endpoint independently from P V^gamma. Agreement is the check.
+    """
+    cycle = engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5, degrees_of_freedom)
+    _, expansion, _, compression = (stroke.process for stroke in cycle.strokes)
+
+    assert relative_error(expansion.end.temperature, 300.0) < 1e-12
+    assert relative_error(compression.end.temperature, 600.0) < 1e-12
+
+    # ...and therefore the two isotherms span one common volume ratio.
+    hot, _, cold, _ = (stroke.process for stroke in cycle.strokes)
+    hot_ratio = hot.end.volume / hot.start.volume
+    cold_ratio = cold.start.volume / cold.end.volume
+    assert relative_error(hot_ratio, cold_ratio) < 1e-12
+
+
+@pytest.mark.parametrize("degrees_of_freedom", [3, 5, 6])
+@pytest.mark.parametrize("expansion_ratio", [1.2, 2.5, 8.0])
+def test_carnot_efficiency_forgets_the_gas_and_the_size_of_the_engine(
+    degrees_of_freedom, expansion_ratio
+):
+    """Carnot's theorem: only the two temperatures survive.
+
+    A monatomic and a polyatomic gas, expanded by a factor of 1.2 or of 8, all land on the
+    same number. That is the content of the theorem, and it is why the efficiency can be
+    quoted as a bound on *every* engine rather than on this one.
+    """
+    cycle = engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, expansion_ratio, degrees_of_freedom)
+    assert relative_error(cycle.efficiency, 0.5) < 1e-12
+
+
+def test_a_reversed_carnot_cycle_is_a_refrigerator_with_the_textbook_cop():
+    """Run the strokes backwards and COP = T_c/(T_h - T_c) comes out, work now consumed."""
+    fridge = engines.reversed_carnot_cycle(1000, 400.0, 300.0, 1e-3, 2.5)
+
+    assert fridge.work_output < 0.0
+    assert (
+        relative_error(
+            fridge.coefficient_of_performance, engines.cop_refrigerator(400.0, 300.0)
+        )
+        < 1e-12
+    )
+
+
+def test_a_heat_pump_delivers_exactly_one_more_than_it_lifts():
+    """COP_pump - COP_fridge = 1 identically: the work put in arrives as heat as well."""
+    for t_hot, t_cold in [(400.0, 300.0), (320.0, 273.0), (600.0, 300.0)]:
+        difference = engines.cop_heat_pump(t_hot, t_cold) - engines.cop_refrigerator(
+            t_hot, t_cold
+        )
+        assert relative_error(difference, 1.0) < 1e-12
+
+
+def test_an_otto_cycle_reaches_its_closed_form_efficiency():
+    """eta = 1 - r^(1-gamma), and it does not move when the fuel load changes."""
+    gamma = processes.gamma_from_dof(5)
+    lean = engines.otto_cycle(1000, 300.0, 5e-4, 9.0, 1e-17)
+    rich = engines.otto_cycle(1000, 300.0, 5e-4, 9.0, 4e-17)
+
+    assert relative_error(lean.efficiency, engines.otto_efficiency(9.0, gamma)) < 1e-12
+    assert relative_error(lean.efficiency, rich.efficiency) < 1e-12
+
+
+def test_a_reversible_cycle_produces_no_entropy():
+    """The Clausius sum vanishes for the reversible cycle — the equality case of the law.
+
+    Judged against `entropy_scale`, the size of a single term in the sum. The exact answer is
+    zero, so what is left is rounding of either sign; testing `>= 0` here would be flaky.
+    """
+    cycle = engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5)
+    assert abs(cycle.entropy_produced) / cycle.entropy_scale < 1e-12
+
+
+@pytest.mark.parametrize("hot_gap, cold_gap", [(10.0, 0.0), (0.0, 10.0), (60.0, 40.0)])
+def test_an_engine_with_imperfect_contact_falls_short_and_produces_entropy(hot_gap, cold_gap):
+    """Any temperature gap costs efficiency and shows up as strictly positive production.
+
+    The two statements are one statement, which is the bridge this module is built to cross:
+    lost work and produced entropy are a single quantity seen from two sides.
+    """
+    cycle = engines.endoreversible_cycle(1000, 600.0, 300.0, 1e-3, 2.5, hot_gap, cold_gap)
+
+    assert cycle.efficiency < cycle.carnot_bound
+    assert cycle.entropy_produced / cycle.entropy_scale > 1e-6
+
+
+def test_the_maximum_power_efficiency_sits_below_the_carnot_bound():
+    """1 - sqrt(T_c/T_h) < 1 - T_c/T_h whenever T_c < T_h, since sqrt(x) > x on (0, 1)."""
+    for t_hot, t_cold in [(600.0, 300.0), (800.0, 300.0), (310.0, 300.0)]:
+        assert engines.curzon_ahlborn_efficiency(t_hot, t_cold) < engines.carnot_efficiency(
+            t_hot, t_cold
+        )
