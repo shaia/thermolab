@@ -16,9 +16,11 @@ dependencies = [
     "matplotlib>=3.11.1",
     "numpy>=2.5.1",
     "pint>=0.25.3",
-    "scipy>=1.18.0",
     "sympy>=1.14.0",
 ]
+# scipy is deliberately NOT here: nothing under src/thermolab imports it, and a runtime
+# dependency the browser kernel does not preload is a notebook that dies on first import.
+# See tests/content/test_browser_imports.py. The test suite still uses it, via the dev group.
 
 [build-system]
 requires = ["uv_build>=0.8.22,<0.9.0"]
@@ -52,6 +54,7 @@ known-first-party = ["thermolab", "_common", "_content", "_findings"]
 [dependency-groups]
 dev = [
     "hypothesis>=6.165.2",
+    "scipy>=1.18.0",
     "imageio-ffmpeg>=0.6.0",
     "jupyterlab>=4.6.2",
     "jupyterlite-core>=0.8.1",
