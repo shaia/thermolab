@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import equilibrium, gases, kinetics, multiplicity, processes, sampling
+from thermolab import engines, equilibrium, gases, kinetics, multiplicity, processes, sampling
 from thermolab.constants import K_B
 from thermolab.validation import relative_error, scaling_exponent
 
@@ -339,3 +339,50 @@ def test_the_three_adiabatic_routes_keep_their_ordering_at_every_system_size():
     columns = np.array(finals)
     for column in columns.T:
         assert np.ptp(column) / column.mean() < 1e-12
+
+
+def test_carnot_efficiency_does_not_move_with_the_size_of_the_engine():
+    """N cancels out of the efficiency: it multiplies Q_h and Q_c identically.
+
+    The large-N statement for this module is not a fluctuation law — an engine here is
+    thermodynamics, with no microstates to fluctuate — but an *extensivity* one: the heats
+    scale with N and their ratio does not, over four decades of engine size.
+    """
+    for n_particles in (10, 100, 1000, 10_000, 100_000):
+        cycle = engines.carnot_cycle(n_particles, 600.0, 300.0, 1e-3, 2.5)
+        assert relative_error(cycle.efficiency, 0.5) < 1e-12
+
+
+def test_the_heats_themselves_scale_linearly_with_the_number_of_particles():
+    """Q_h = N k_B T_h ln(r): doubling the working substance doubles what it moves.
+
+    Measured as a fitted exponent rather than asserted, so a stray N^2 or a missing N fails
+    loudly instead of hiding inside a ratio that cancels it either way.
+
+    The range spans four decades because that is what the module page claims of it; a test
+    covering two would leave the page's "over four decades" unbacked.
+    """
+    sizes = np.array([10.0, 100.0, 1000.0, 10_000.0, 100_000.0])
+    heats = np.array(
+        [engines.carnot_cycle(int(n), 600.0, 300.0, 1e-3, 2.5).heat_absorbed for n in sizes]
+    )
+
+    assert relative_error(scaling_exponent(sizes, heats), 1.0) < 1e-6
+
+
+def test_entropy_production_scales_with_the_engine_but_its_relative_cost_does_not():
+    """A bigger sloppy engine wastes proportionally more, not proportionally worse.
+
+    The production is extensive; the efficiency shortfall it corresponds to is intensive.
+    Keeping those two apart is what makes "entropy produced per cycle" a usable number.
+    """
+    sizes = np.array([100.0, 1000.0, 10_000.0])
+    cycles = [
+        engines.endoreversible_cycle(int(n), 600.0, 300.0, 1e-3, 2.5, 40.0, 25.0)
+        for n in sizes
+    ]
+    produced = np.array([c.entropy_produced for c in cycles])
+
+    assert relative_error(scaling_exponent(sizes, produced), 1.0) < 1e-6
+    for cycle in cycles:
+        assert relative_error(cycle.efficiency, cycles[0].efficiency) < 1e-12

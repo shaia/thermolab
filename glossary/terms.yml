@@ -519,3 +519,58 @@ terms:
   - key: joule-thomson
     en: Joule-Thomson effect
     he: אפקט ג'אול-תומסון
+  - key: second-law
+    en: second law of thermodynamics
+    he: החוק השני של התרמודינמיקה
+  - key: kelvin-statement
+    en: Kelvin statement
+    he: ניסוח קלווין
+  - key: clausius-statement
+    en: Clausius statement
+    he: ניסוח קלאוזיוס
+  - key: carnot-cycle
+    en: Carnot cycle
+    he: מחזור קרנו
+  - key: carnot-theorem
+    en: Carnot theorem
+    he: משפט קרנו
+  - key: heat-reservoir
+    en: heat reservoir
+    he: מאגר חום
+  - key: efficiency
+    en: efficiency
+    he: נצילות
+    he_reject: [יעילות]
+  - key: refrigerator
+    en: refrigerator
+    he: מקרר
+  - key: heat-pump
+    en: heat pump
+    he: משאבת חום
+  - key: coefficient-of-performance
+    en: coefficient of performance
+    he: מקדם ביצועים
+  - key: working-substance
+    en: working substance
+    he: חומר העבודה
+  - key: waste-heat
+    en: waste heat
+    he: חום פסולת
+  - key: perpetual-motion
+    en: perpetual motion machine
+    he: מכונת תנועה תמידית
+  - key: clausius-inequality
+    en: Clausius inequality
+    he: אי-שוויון קלאוזיוס
+  - key: entropy-production
+    en: entropy production
+    he: ייצור אנטרופיה
+  - key: thermodynamic-temperature
+    en: thermodynamic temperature
+    he: טמפרטורה תרמודינמית
+  - key: otto-cycle
+    en: Otto cycle
+    he: מחזור אוטו
+  - key: compression-ratio
+    en: compression ratio
+    he: יחס דחיסה

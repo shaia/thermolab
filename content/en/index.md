@@ -37,6 +37,7 @@ Currently available:
 - **[Microscopic origin of pressure](thermodynamics/04-pressure.md)** — how steady pressure emerges from violent, irregular collisions.
 - **[Work and thermodynamic paths](thermodynamics/05-work-paths.md)** — why work depends on the road taken, not just the endpoints.
 - **[Thermodynamic processes](thermodynamics/06-processes.md)** — why a gas that expands into a vacuum does not cool, and what the slow route is worth.
+- **[The second law and heat engines](thermodynamics/07-second-law.md)** — why no engine, however well built, can turn all its heat into work.
 - **[Entropy and multiplicity](statistical-mechanics/08-multiplicity.md)** — why an isolated gas almost never gathers in one corner.
 
 Two reference pages sit outside the sequence and are meant to be returned to:

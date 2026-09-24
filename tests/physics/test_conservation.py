@@ -12,7 +12,16 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from thermolab import equilibrium, forms, gases, kinetics, multiplicity, processes, sampling
+from thermolab import (
+    engines,
+    equilibrium,
+    forms,
+    gases,
+    kinetics,
+    multiplicity,
+    processes,
+    sampling,
+)
 from thermolab.validation import relative_error
 
 pytestmark = pytest.mark.conservation
@@ -382,3 +391,68 @@ def test_a_free_expansion_widens_the_axis_it_was_asked_to():
     for bad_axis in (2, -3, 7):
         with pytest.raises(ValueError, match="out of range for a 2-dimensional box"):
             processes.free_expansion_microstate(gas, 2.0, axis=bad_axis)
+
+
+@pytest.mark.parametrize("degrees_of_freedom", [3, 5, 6])
+def test_a_carnot_cycle_returns_the_gas_to_its_starting_state(degrees_of_freedom):
+    """Closure is what makes an engine an engine, and it is measured here rather than assumed.
+
+    Each of the four strokes takes its endpoint from its own closed form, so agreement at the
+    end is four independent formulae meeting — not a loop that was forced shut.
+    """
+    cycle = engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5, degrees_of_freedom)
+    start = cycle.strokes[0].process.start
+    end = cycle.strokes[-1].process.end
+
+    assert relative_error(end.volume, start.volume) < 1e-12
+    assert relative_error(end.temperature, start.temperature) < 1e-12
+    assert relative_error(end.pressure, start.pressure) < 1e-12
+
+
+@pytest.mark.parametrize(
+    "build",
+    [
+        lambda: engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5),
+        lambda: engines.endoreversible_cycle(1000, 600.0, 300.0, 1e-3, 2.5, 40.0, 25.0),
+        lambda: engines.reversed_carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5),
+        lambda: engines.otto_cycle(1000, 300.0, 5e-4, 9.0, 2e-17),
+    ],
+    ids=["carnot", "endoreversible", "refrigerator", "otto"],
+)
+def test_the_first_law_closes_around_every_cycle(build):
+    """Q_net + W_on,net = ΔU = 0 around any closed loop, engine or refrigerator.
+
+    Compared against the internal energy rather than against zero: at 1e-17 J a naive
+    absolute tolerance would pass a cycle whose bookkeeping was entirely wrong.
+    """
+    cycle = build()
+    scale = abs(cycle.strokes[0].process.start.internal_energy)
+
+    assert abs(cycle.internal_energy_drift) / scale < 1e-12
+    assert abs(cycle.first_law_residual) / scale < 1e-12
+
+
+def test_the_work_delivered_is_the_net_heat_absorbed():
+    """W_out = Q_h - Q_c, which is the first law with ΔU = 0 and the sign convention flipped.
+
+    This is the one place in the course that converts to work-done-by, so it is worth pinning
+    that the conversion is a sign and nothing more.
+    """
+    cycle = engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5)
+
+    assert relative_error(cycle.work_output, cycle.heat_absorbed - cycle.heat_rejected) < 1e-12
+    assert cycle.work_output == -cycle.net_work_on_gas
+
+
+def test_the_gas_entropy_change_vanishes_around_a_closed_cycle():
+    """Entropy is a state function, so the gas's own ΔS is zero around any loop.
+
+    True of the irreversible cycle too — which is exactly why the gas's entropy is the wrong
+    thing to watch for the second law, and the reservoirs' entropy is the right one.
+    """
+    for cycle in (
+        engines.carnot_cycle(1000, 600.0, 300.0, 1e-3, 2.5),
+        engines.endoreversible_cycle(1000, 600.0, 300.0, 1e-3, 2.5, 40.0, 25.0),
+    ):
+        total = sum(engines.entropy_change_of_gas(s.process) for s in cycle.strokes)
+        assert abs(total) / cycle.entropy_scale < 1e-12

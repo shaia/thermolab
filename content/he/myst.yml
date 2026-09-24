@@ -30,6 +30,8 @@ project:
         - file: thermodynamics/05-work-paths-problems.md
         - file: thermodynamics/06-processes.md
         - file: thermodynamics/06-processes-problems.md
+        - file: thermodynamics/07-second-law.md
+        - file: thermodynamics/07-second-law-problems.md
     - title: מכניקה סטטיסטית
       children:
         - file: statistical-mechanics/03-random-walks.md

@@ -48,7 +48,8 @@ def adiabatic_pressure(volumes: np.ndarray, p_ref: float, v_ref: float,
     return p_ref * (v_ref / volumes) ** gamma
 
 
-def work_on_gas(volumes: Sequence[float], pressures: Sequence[float]) -> float:
+def work_on_gas(volumes: Sequence[float] | np.ndarray,
+                pressures: Sequence[float] | np.ndarray) -> float:
     """Work done ON the gas along a sampled path: W_on = -∫ P dV, by the trapezoid rule.
 
     The samples define the path, so this is exactly how a student's hand-drawn curve in the
@@ -61,7 +62,8 @@ def work_on_gas(volumes: Sequence[float], pressures: Sequence[float]) -> float:
     return float(-np.trapezoid(p, v))
 
 
-def work_by_system(volumes: Sequence[float], pressures: Sequence[float]) -> float:
+def work_by_system(volumes: Sequence[float] | np.ndarray,
+                   pressures: Sequence[float] | np.ndarray) -> float:
     """Work done BY the gas, +∫ P dV — the negation of `work_on_gas`.
 
     Defined only so that engine and efficiency discussions can use the conventional sign

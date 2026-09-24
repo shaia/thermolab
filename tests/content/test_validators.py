@@ -152,14 +152,82 @@ class TestCheckModelspec:
         findings = check_modelspec.check(tmp_path)
         assert has_error(findings, "W_{by}")
 
-    def test_sign_convention_exempt_with_marker_comment(self, tmp_path):
+    def test_sign_convention_exempt_inside_a_closed_marker_block(self, tmp_path):
+        text = good_module_page(
+            "04-demo",
+            extra_body=(
+                "<!-- sign-convention-exception -->\n"
+                "The engine does $W_{by}$ work.\n"
+                "<!-- /sign-convention-exception -->\n"
+            ),
+        )
+        write(tmp_path / "content" / "en" / "04-demo.md", text)
+        findings = check_modelspec.check(tmp_path)
+        assert not has_error(findings, "W_{by}")
+
+    def test_sign_convention_still_checked_outside_the_marker_block(self, tmp_path):
+        """The block exempts its own lines, not the rest of the page.
+
+        This is the fixture the check went without: the marker used to exempt the whole page,
+        so a stray work-done-BY spelling anywhere after it was invisible — on exactly the
+        pages most likely to contain one by accident.
+        """
+        text = good_module_page(
+            "04-demo",
+            extra_body=(
+                "<!-- sign-convention-exception -->\n"
+                "Here we convert once: $W_{by}$.\n"
+                "<!-- /sign-convention-exception -->\n\n"
+                "Much later, by accident, the page says $W_{by}$ again.\n"
+            ),
+        )
+        write(tmp_path / "content" / "en" / "04-demo.md", text)
+        findings = check_modelspec.check(tmp_path)
+        assert has_error(findings, "W_{by}")
+
+    def test_sign_convention_unclosed_marker_block_is_an_error(self, tmp_path):
         text = good_module_page(
             "04-demo",
             extra_body="<!-- sign-convention-exception -->\nThe engine does $W_{by}$ work.\n",
         )
         write(tmp_path / "content" / "en" / "04-demo.md", text)
         findings = check_modelspec.check(tmp_path)
-        assert not has_error(findings, "W_{by}")
+        assert has_error(findings, "never closed")
+        # And nothing is exempt while it is unclosed, so the spelling itself is flagged too.
+        assert has_error(findings, "W_{by}")
+
+    def test_sign_convention_block_may_open_and_close_on_one_line(self, tmp_path):
+        """A short exemption is allowed to be a single line, and still exempts only that line."""
+        text = good_module_page(
+            "04-demo",
+            extra_body=(
+                "<!-- sign-convention-exception -->$W_{by}$<!-- /sign-convention-exception -->\n"
+                "\nAnd on a later line, $W_{by}$ again.\n"
+            ),
+        )
+        write(tmp_path / "content" / "en" / "04-demo.md", text)
+        findings = check_modelspec.check(tmp_path)
+        assert not has_error(findings, "never closed")
+        # The one-line block is closed, so the *later* line is what must still be flagged.
+        assert [f for f in findings if "W_{by}" in f.message and f.line is not None]
+
+    def test_sign_convention_orphan_closing_marker_is_an_error(self, tmp_path):
+        text = good_module_page("04-demo", extra_body="<!-- /sign-convention-exception -->\n")
+        write(tmp_path / "content" / "en" / "04-demo.md", text)
+        findings = check_modelspec.check(tmp_path)
+        assert has_error(findings, "never opened")
+
+    def test_sign_convention_rejects_a_second_exception_block(self, tmp_path):
+        """CLAUDE.md allows exactly one marked block per page, so two is a finding."""
+        block = (
+            "<!-- sign-convention-exception -->\n"
+            "$W_{by}$\n"
+            "<!-- /sign-convention-exception -->\n"
+        )
+        text = good_module_page("04-demo", extra_body=block + "\n" + block)
+        write(tmp_path / "content" / "en" / "04-demo.md", text)
+        findings = check_modelspec.check(tmp_path)
+        assert has_error(findings, "exactly one")
 
     def test_sign_convention_exempt_in_conventions_file(self, tmp_path):
         write(tmp_path / "content" / "en" / "conventions.md", "The engine does $W_{by}$ work.\n")

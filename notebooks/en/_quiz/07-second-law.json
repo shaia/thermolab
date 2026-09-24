@@ -1,0 +1,160 @@
+[
+  {
+    "question": "An engine absorbs 1000 J of heat from a furnace each cycle and delivers 400 J of work. What is the status of the other 600 J?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "It must be dumped into a colder reservoir; no design can recover all of it.",
+        "correct": true,
+        "feedback": "Right. Around a cycle dU = 0, so the work delivered is Q_h - Q_c, and the second law forces Q_c > 0 for any cyclic engine. The rejected heat is a structural requirement, not a leak — the best conceivable engine between these reservoirs still rejects Q_c/Q_h = T_c/T_h of what it took in."
+      },
+      {
+        "answer": "It is lost to friction and heat leaks, and better engineering could recover most of it.",
+        "correct": false,
+        "feedback": "This is the single most common misreading of the second law. Friction and leaks are real and do cost you, but they are not what the law is about: a perfectly frictionless, perfectly insulated engine with reversible strokes still rejects heat. Set every loss to zero and the bound 1 - T_c/T_h remains."
+      },
+      {
+        "answer": "It is stored in the working substance and released on a later cycle.",
+        "correct": false,
+        "feedback": "A cycle returns the working substance to exactly its starting state, so its internal energy is the same at the end as at the beginning. There is nowhere for energy to accumulate — that is precisely what makes the bookkeeping W = Q_h - Q_c exact."
+      },
+      {
+        "answer": "It was never really absorbed; the 1000 J figure must be a measurement error.",
+        "correct": false,
+        "feedback": "The heat drawn from the furnace and the work delivered are independently measurable and routinely differ by exactly this kind of factor. Nothing is wrong with the numbers; an efficiency of 0.4 is ordinary."
+      }
+    ]
+  },
+  {
+    "question": "Two engines run between the same furnace and the same river. One uses steam, the other helium. Which can be made more efficient?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Neither — the maximum efficiency is the same, because it depends only on the two temperatures.",
+        "correct": true,
+        "feedback": "Correct, and this is the surprising half of Carnot's theorem. The proof never opens either engine: it uses only that one produces work from two reservoirs and that the other can be reversed. Since the working substance never enters the argument, it cannot appear in the answer."
+      },
+      {
+        "answer": "Steam, because its phase change lets it absorb much more heat per kilogram.",
+        "correct": false,
+        "feedback": "Steam really does carry more heat per kilogram, and that matters enormously for the size and cost of a plant. But efficiency is a ratio of work to heat absorbed, and the extra heat appears in both the numerator and the denominator. The ceiling does not move."
+      },
+      {
+        "answer": "Helium, because a monatomic gas has no internal modes to waste energy in.",
+        "correct": false,
+        "feedback": "Energy in rotational or vibrational modes is not wasted — it is returned when the gas is compressed again, since the cycle closes. Work through the Carnot derivation and watch gamma cancel: the efficiency comes out at 1 - T_c/T_h for every f."
+      },
+      {
+        "answer": "Whichever has the higher heat capacity, since it moves more energy per cycle.",
+        "correct": false,
+        "feedback": "More energy per cycle means a more powerful engine, not a more efficient one. These are different questions, and conflating them is worth guarding against — power and efficiency are traded against each other in every real design."
+      }
+    ]
+  },
+  {
+    "question": "A refrigerator lowers the entropy of the food inside it. Does this violate the second law?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "No — the entropy dumped into the kitchen exceeds the entropy removed from the interior.",
+        "correct": true,
+        "feedback": "Exactly. The second law constrains the total, not any one piece of it. The fridge rejects Q_c + W into the kitchen at the higher temperature, and the accounting comes out non-negative overall, with equality only for a reversible machine."
+      },
+      {
+        "answer": "Yes, but only slightly, and real refrigerators are allowed a small violation.",
+        "correct": false,
+        "feedback": "The second law admits no violations, small or otherwise. There is nothing to excuse here: the total entropy genuinely increases, because the heat rejected to the warm kitchen carries more entropy than the heat removed from the cold interior."
+      },
+      {
+        "answer": "No, because entropy does not apply to objects as ordinary as food.",
+        "correct": false,
+        "feedback": "Entropy is defined for any system in equilibrium, food very much included. The resolution is not that the law fails to apply but that the boundary was drawn too small — look at the fridge plus the kitchen."
+      },
+      {
+        "answer": "Yes, which is why refrigerators require a continuous supply of electricity.",
+        "correct": false,
+        "feedback": "The electricity is needed, and the intuition is pointing somewhere real, but the conclusion is backwards. The work input is what *allows* the machine to obey the Clausius statement, since moving heat from cold to hot is forbidden only as a *sole* result. Paying for it is what makes it legal."
+      }
+    ]
+  },
+  {
+    "question": "A power station's boiler is at 811 K and its condenser at 311 K. Compute the maximum possible efficiency, as a decimal fraction between 0 and 1.",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          0.6115,
+          0.6215
+        ],
+        "correct": true,
+        "feedback": "eta_max = 1 - T_c/T_h = 1 - 311/811 = 0.6165. If you got 0.3835 you computed T_c/T_h and forgot to subtract it from 1. If you got something near 0.93 you used Celsius: the ratio of temperatures is only meaningful on an absolute scale, and this is the most expensive single mistake available in this module. The plant actually achieves about 0.40, and that gap is mostly deliberate — see the maximum-power efficiency."
+      }
+    ]
+  },
+  {
+    "question": "Which of these machines, if built, would violate the Kelvin statement of the second law?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "A ship that draws heat from the ocean and converts it entirely to propulsion, cycle after cycle, changing nothing else.",
+        "correct": true,
+        "feedback": "Correct: this is a cyclic machine whose sole result is heat drawn from a single reservoir appearing as work. Both qualifiers matter — it repeats, and nothing else anywhere is left changed. Note that energy is perfectly conserved, which is why the first law has nothing to say about it."
+      },
+      {
+        "answer": "A gas expanding isothermally, absorbing heat and doing an equal amount of work.",
+        "correct": false,
+        "feedback": "This converts heat entirely to work at 100%, and it is entirely legal — because it is not cyclic. The gas ends up larger and lower in pressure, so the trick cannot be repeated without first paying to compress it back."
+      },
+      {
+        "answer": "A refrigerator moving heat from its cold interior to the warmer kitchen.",
+        "correct": false,
+        "feedback": "Legal, and sitting in your kitchen. The Clausius statement forbids this only as a *sole* result; a refrigerator also consumes electricity, so something else is left changed."
+      },
+      {
+        "answer": "An engine achieving an efficiency of 0.35 between reservoirs at 600 K and 300 K.",
+        "correct": false,
+        "feedback": "Perfectly legal: 0.35 sits below the bound of 1 - 300/600 = 0.50. The second law sets a ceiling, and this engine is under it."
+      }
+    ]
+  },
+  {
+    "question": "A heat pump warms a house at 295 K using outside air at 273 K. Compute its maximum possible coefficient of performance (heat delivered per unit work input).",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          13.21,
+          13.61
+        ],
+        "correct": true,
+        "feedback": "COP_pump = T_h/(T_h - T_c) = 295/22 = 13.41. If you got 12.41 you computed the refrigerator's coefficient T_c/(T_h - T_c) = 273/22, which differs by exactly 1 — the work input also arrives as heat on the hot side. A value far above 1 is not an error: nothing is being converted here, energy is being moved, and moving it costs less than the amount moved."
+      }
+    ]
+  },
+  {
+    "question": "Why can the ratio of heats exchanged by a reversible engine be used to define a temperature scale?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Because Carnot's theorem makes that ratio the same for every reversible engine between the same two reservoirs, whatever it is made of.",
+        "correct": true,
+        "feedback": "Exactly. A definition must not depend on the apparatus used to apply it, and this ratio provably does not. Fixing one reference point then fixes the whole scale, and the result refers to no material at all — which is what \"absolute\" means here."
+      },
+      {
+        "answer": "Because heat is easier to measure accurately than temperature.",
+        "correct": false,
+        "feedback": "It is generally the other way round, and in any case a reversible engine takes infinitely long per cycle and cannot be built. The value of the definition is conceptual: it says what temperature *is*, independently of any thermometer."
+      },
+      {
+        "answer": "Because the ideal gas law already relates pressure and temperature linearly.",
+        "correct": false,
+        "feedback": "That gives the ideal-gas scale, which is a perfectly good empirical thermometer but depends on a substance behaving ideally. The point of the thermodynamic definition is to need no substance whatever."
+      },
+      {
+        "answer": "Because entropy is defined as heat divided by temperature.",
+        "correct": false,
+        "feedback": "This reverses the logic. The reversible heat ratio comes first and defines the temperature scale; entropy is then constructed from delta-Q over that T. Using entropy to define T here would be circular."
+      }
+    ]
+  }
+]

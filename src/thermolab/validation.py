@@ -87,7 +87,8 @@ def convergence_study(compute: Callable[[int], float], refinements: Sequence[int
     return ConvergenceStudy(refinements=ref, values=values, errors=np.abs(values - exact) / scale)
 
 
-def scaling_exponent(sizes: Sequence[float], quantities: Sequence[float]) -> float:
+def scaling_exponent(sizes: Sequence[float] | np.ndarray,
+                     quantities: Sequence[float] | np.ndarray) -> float:
     """Fit `quantity ~ size**alpha` on a log-log plot and return alpha.
 
     The course uses this to check the N^(-1/2) law for relative fluctuations, which is the

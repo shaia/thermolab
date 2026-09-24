@@ -87,3 +87,15 @@ misconceptions:
     statement: "A gas expanding into a vacuum must cool, because expanding gases cool."
     assigned_module: 06-processes
     status: addressed
+  - id: efficiency-is-engineering
+    statement: "A well enough built engine could turn all the heat it absorbs into work; the limit is engineering quality."
+    assigned_module: 07-second-law
+    status: addressed
+  - id: carnot-depends-on-substance
+    statement: "A cleverer working substance gives a better maximum efficiency between the same two temperatures."
+    assigned_module: 07-second-law
+    status: addressed
+  - id: refrigerator-lowers-total-entropy
+    statement: "A refrigerator lowers the entropy of its contents, so it violates the second law."
+    assigned_module: 07-second-law
+    status: addressed
