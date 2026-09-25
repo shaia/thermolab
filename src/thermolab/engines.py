@@ -23,18 +23,20 @@ MODEL SPECIFICATION
     System:        a fixed amount of ideal gas (N particles, f quadratic degrees of freedom)
                    taken around a closed loop between heat reservoirs at fixed temperatures
     Dynamics:      quasistatic strokes from `processes` -- isothermal, adiabatic or
-                   isochoric -- joined into a closed curve in the P-V plane; the reservoir a
-                   stroke exchanges heat with is recorded separately from the gas's own
-                   temperature, which is what lets the two differ
+                   isochoric -- joined into a closed curve in the P-V plane, plus, for the
+                   Clausius-sum experiments, irreversible strokes known only by their end
+                   states (a `processes.free_expansion`); the reservoir a stroke exchanges
+                   heat with is recorded separately from the gas's own temperature, which is
+                   what lets the two differ
     Boundary:      a frictionless piston, and a wall switched between diathermal (touching
                    one named reservoir) and adiabatic
     Ensemble:      not applicable -- this is thermodynamics; nothing here counts microstates
     Ignored:       friction, the piston's mass, gas non-ideality, heat leaking through the
                    adiabatic strokes, the time a stroke takes, and the work spent moving the
                    working substance between reservoirs
-    Valid when:    every stroke is slow compared with the gas's relaxation time, and each
-                   reservoir is large enough that absorbing its heat leaves its temperature
-                   unchanged
+    Valid when:    every quasistatic stroke is slow compared with the gas's relaxation time,
+                   every irreversible one starts and ends in equilibrium, and each reservoir
+                   is large enough that absorbing its heat leaves its temperature unchanged
     Failure modes: finite-rate operation, where heat will not cross a vanishing temperature
                    difference and the efficiency falls toward the endoreversible value
                    (`curzon_ahlborn_efficiency`); regenerators, which store heat inside the

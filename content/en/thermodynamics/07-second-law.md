@@ -132,17 +132,18 @@ Every point is one engine, built with a randomly chosen size, expansion ratio an
 thermal contact, plotted against the curve $1 - T_c/T_h$. Engines with perfect contact
 (dark) sit exactly on the curve; every degree of temperature gap they need in order to move
 heat at a finite rate (lighter) pushes them below it. Nothing ever lands above. The dashed
-curve is the maximum-power efficiency $1 - \sqrt{T_c/T_h}$, which is where real plants live.
+curve is the maximum-power efficiency $1 - \sqrt{T_c/T_h}$, which is where real plants live; the
+advanced section derives it.
 :::
 
 :::{admonition} Model specification
 :class: model-spec
 - **System:** a fixed amount of ideal gas ($N$ particles, $f$ quadratic degrees of freedom) taken around a closed loop between heat reservoirs at fixed temperatures.
-- **Dynamics:** quasistatic strokes — isothermal, adiabatic or isochoric — joined end to end into a closed curve in the $P$–$V$ plane; the reservoir each stroke touches is recorded separately from the gas's own temperature.
+- **Dynamics:** quasistatic strokes — isothermal, adiabatic or isochoric — joined end to end into a closed curve in the $P$–$V$ plane, plus, for the Clausius-sum experiments, irreversible strokes known only by their end states, such as a free expansion; the reservoir each stroke touches is recorded separately from the gas's own temperature.
 - **Boundary:** a frictionless piston, and a wall switched between diathermal (touching one named reservoir) and adiabatic.
 - **Ensemble:** not applicable — this is thermodynamics; nothing here counts microstates.
 - **Ignored:** friction, the piston's mass, gas non-ideality, heat leaking through the adiabatic strokes, the time a stroke takes, and the work spent moving the working substance between reservoirs.
-- **Valid when:** every stroke is slow compared with the gas's relaxation time, and each reservoir is large enough that absorbing its heat leaves its own temperature unchanged.
+- **Valid when:** every quasistatic stroke is slow compared with the gas's relaxation time, every irreversible one starts and ends in equilibrium, and each reservoir is large enough that absorbing its heat leaves its own temperature unchanged.
 - **Failure modes:** finite-rate operation, where heat will not cross a vanishing temperature difference; regenerators, which store heat inside the engine between strokes — a Stirling engine with a perfect one reaches the Carnot bound on constant-volume strokes, and this model has no stroke that can represent the store; and any working substance near condensation, where the ideal-gas strokes are simply wrong.
 :::
 
@@ -178,6 +179,13 @@ Run the laboratory now, then come back. Four things are worth doing before you r
 
 **System and boundary.** The working substance, taken around a closed cycle. The reservoirs
 are outside it, and we keep separate books for what they lose and gain.
+
+**Independent variables and constraint.** The two reservoir temperatures $T_h$ and $T_c$,
+which nothing in the cycle changes, and the gas's own volume and temperature, which the cycle
+drives round the loop; every other state quantity follows from those through the equation of
+state. The one constraint is closure: the gas ends each cycle in the state it began, so its
+internal energy — and, once it has been defined, its entropy — returns to its starting value.
+The argument is thermodynamic throughout: no microstate is counted anywhere in this section.
 
 **Sign convention.** The course convention $\mathrm{d}U = \dbar Q + \dbar \Won$ holds
 throughout, with $\dbar Q$ positive into the system. Engines are conventionally rated by the
@@ -481,7 +489,7 @@ pump than the forward one was an engine. That is why the theorem compares every 
 reversible one, and why reversibility had to be defined first.
 
 :::{admonition} The step where the working substance vanishes
-:class: model-assumption
+:class: theorem
 Read back through the proof and notice what never appeared: what $X$ or $R$ is made of, how
 big they are, what shape their cycles trace. The argument uses only that $X$ produces work
 from two reservoirs and that $R$ can be reversed. So the maximum efficiency cannot depend on
@@ -614,7 +622,9 @@ $$
 
 :::{admonition} Why a coefficient above 1 is unremarkable
 :class: definition
-These are *not* efficiencies and are not bounded by 1. Nothing is being converted: energy is
+A **coefficient of performance** is the heat a driven machine moves per unit of work it
+consumes: the heat lifted out of the cold side for a refrigerator, the heat delivered to the
+hot side for a heat pump. These are *not* efficiencies and are not bounded by 1. Nothing is being converted: energy is
 being **moved**, and the work is what it costs to move it uphill. A kitchen refrigerator with
 $T_c = 275\ \mathrm{K}$ and $T_h = 300\ \mathrm{K}$ has a ceiling of $275/25 = 11$. That is
 the answer to prediction 3 — a value of 3 is not suspicious, it is mediocre. It is also why
@@ -863,13 +873,25 @@ The **entropy produced** by a process is the total entropy change of the system 
 reservoir it touched,
 
 $$
-S_{\text{gen}} = \Delta S + \sum_i \frac{Q_i}{T_i} \ge 0 ,
+S_{\text{gen}} = \Delta S + \sum_i \frac{Q_i}{T_i} ,
 $$
 
 where $\Delta S$ is the system's own change and $Q_i$ is the heat that reservoir $i$, at
-temperature $T_i$, *received*. It is zero for a reversible process and positive for every
-other. Over a complete cycle the system contributes nothing, and
-$S_{\text{gen}} = -\oint \dbar Q / T_{\text{res}}$.
+temperature $T_i$, *received*.
+:::
+
+The heat each reservoir received is the heat the system took from it with the sign flipped, so
+the inequality above is a statement about this sum.
+
+:::{admonition} The second law, as entropy produced
+:class: theorem
+Every process has $S_{\text{gen}} \ge 0$: zero if it is reversible, positive if it is not. Over
+a complete cycle the system contributes nothing, and the entropy produced is minus the Clausius
+sum,
+
+$$
+S_{\text{gen}} = -\oint \frac{\dbar Q}{T_{\text{res}}} .
+$$
 :::
 
 **The refrigerator and its food — prediction 4.** A refrigerator holds its interior at $T_c$
@@ -985,7 +1007,9 @@ their *ratio* does not move at all.
 $\Delta T$ below the hot reservoir and $\Delta T$ above the cold one — which is what it takes
 to make heat flow at a finite rate — and two numbers move together: the efficiency falls, and
 the entropy produced per cycle, $S_{\text{gen}} = -\oint \dbar Q / T_{\text{res}}$, rises
-from zero.
+from zero. Every stroke of this engine is quasistatic, so it is also the counterexample
+prediction 6 was after: as slow as you like, and irreversible all the same, because its heat
+crosses a finite temperature gap however slowly it moves.
 
 :::{admonition} Lost work and produced entropy are one quantity
 :class: numerical-observation
@@ -1045,7 +1069,8 @@ forbids — reaches well past engines.
 - **Power stations.** Steam at $550\,{}^\circ\mathrm{C}$ against a river at
   $20\,{}^\circ\mathrm{C}$ gives a Carnot bound of $0.64$, from $1 - 293/823$. Real plants
   reach about $0.40$. That is not a $24$-point engineering failure: the maximum-*power*
-  efficiency $1 - \sqrt{T_c/T_h} = 0.40$ lands almost exactly on it, because a plant optimised
+  efficiency $1 - \sqrt{T_c/T_h} = 0.40$, derived in the advanced section, lands almost exactly
+  on it, because a plant optimised
   for output rather than for thermodynamic virtue is solving a different problem.
 - **Why aircraft run their turbines hot.** Every gain in $\eta$ has to come from raising
   $T_h$, since $T_c$ is the sky and is not negotiable. The history of the jet engine is very
