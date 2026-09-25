@@ -601,8 +601,9 @@ the curvature is the sign of the heat capacity, reversed.
 :::{admonition} Stability
 :class: theorem
 A concave entropy is a positive heat capacity: $\partial^2 S/\partial U^2 \le 0$ exactly when
-$C_V \ge 0$. The same argument applied to the volume, at fixed temperature, gives a positive
-isothermal compressibility, $\kappa_T \ge 0$: squeeze a stable substance and its pressure rises.
+$C_V \ge 0$. Concavity in the volume direction as well gives a positive isothermal
+compressibility, $\kappa_T \ge 0$: squeeze a stable substance at fixed temperature and its
+pressure rises. Both halves are derived below.
 :::
 
 **The runaway.** Take two identical pieces of a substance, each with energy $U$, in contact.
@@ -631,7 +632,65 @@ fluctuation lowers the total entropy and is undone. (b) A convex $S$: the midpoi
 curve, so the fluctuation raises the total entropy and grows.
 :::
 
-This is not hypothetical. A star is a ball of gas held together by its own gravity, and the
+**The volume direction.** With two variables in play, "curves downwards in every direction"
+has a precise meaning. Write $S_{UU}$, $S_{VV}$ and $S_{UV}$ for the second partial derivatives
+of $S(U, V)$ at fixed $N$, the last being the mixed one. A small step $\mathrm{d}U$,
+$\mathrm{d}V$ in any direction must change $S$, at second order, by a negative amount:
+
+$$
+S_{UU}\,\mathrm{d}U^2 + 2 S_{UV}\,\mathrm{d}U\,\mathrm{d}V + S_{VV}\,\mathrm{d}V^2 \le 0 .
+$$
+
+A quadratic expression like this is never positive, whatever the step, exactly when
+
+$$
+S_{UU} \le 0 ,
+\qquad
+S_{VV} \le 0 ,
+\qquad
+S_{UU} S_{VV} - S_{UV}^2 \ge 0 .
+$$
+
+Now squeeze the system at fixed temperature. Its first slope $S_U$ is $1/T$, so keeping $T$
+fixed means an energy change must accompany the volume change and cancel its effect on that
+slope:
+
+$$
+S_{UU}\,\mathrm{d}U + S_{UV}\,\mathrm{d}V = 0 .
+$$
+
+The volume slope $S_V$ is $P/T$, and with $T$ fixed its change is the change in pressure
+divided by $T$. Substituting the energy change from the line above,
+
+$$
+\frac{\mathrm{d}P}{T} = S_{UV}\,\mathrm{d}U + S_{VV}\,\mathrm{d}V
+= \left( S_{VV} - \frac{S_{UV}^2}{S_{UU}} \right) \mathrm{d}V ,
+$$
+
+and so
+
+$$
+\left(\frac{\partial P}{\partial V}\right)_T
+= \frac{T\,\big(S_{UU} S_{VV} - S_{UV}^2\big)}{S_{UU}} \le 0 .
+$$
+
+The numerator is not negative and the denominator is negative, so compressing at fixed
+temperature can only raise the pressure. That is the statement that the isothermal
+compressibility,
+
+$$
+\kappa_T = -\frac{1}{V}\left(\frac{\partial V}{\partial P}\right)_T ,
+$$
+
+is never negative. On the Sackur–Tetrode surface the mixed derivative vanishes, and the formula
+returns exactly one over the pressure — the ideal gas's compressibility, read off the curvature
+of its entropy. The runaway argument has a mechanical twin here: if a substance's pressure
+*fell* when it was squeezed, a movable wall between two identical samples would be pushed
+further by any small displacement, and the pair would separate into a dense region and a dilute
+one. That is exactly what the van der Waals loop below its critical temperature would do, and it
+is why a real gas condenses there instead.
+
+The energy runaway, for its part, is not hypothetical. A star is a ball of gas held together by its own gravity, and the
 virial theorem says its total energy is minus its kinetic energy:
 
 $$
@@ -787,7 +846,9 @@ $|U|$: the relation misses exactly twice the energy, as its non-extensive entrop
 
 **5. The curvature is the heat capacity.** The second derivative of Sackur–Tetrode gives a heat
 capacity of $\tfrac{3}{2} N \kB$ to one part in $10^{5}$. The star gives $-\tfrac{3}{2} N \kB$,
-and the stability test rejects it.
+and the stability test rejects it. The full curvature in energy and volume, fed through the
+formula of step 7, gives the gas's isothermal compressibility as one over its pressure, again to
+one part in $10^{5}$.
 
 **6. The ledger of module 01's simulation.** Two solids of 300 and 100 oscillators, started at
 $500\ \mathrm{K}$ and $250\ \mathrm{K}$ with quanta of $\varepsilon = (5\ \mathrm{K})\,\kB$, relax as in
@@ -806,8 +867,8 @@ module 08.
 :::
 
 The module-01 hop rule moves quanta as if they were labelled, so its own long-run distribution
-is not exactly the Einstein count: it peaks at the same partition, but its jitter about the
-peak is narrower than a true Einstein solid's. The rise and the plateau, which are what the
+is not exactly the Einstein count: it peaks at almost the same partition — here within two
+tenths of a percent — but its jitter about the peak is narrower than a true Einstein solid's. The rise and the plateau, which are what the
 ledger tests, are unaffected.
 
 **7. Three entropies of one contact.** The same relaxation can be priced three ways. The exact

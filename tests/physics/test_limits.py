@@ -1251,3 +1251,26 @@ def test_the_ledger_climbs_to_the_peak_of_the_exact_count():
 
     assert ledger[-1] <= ceiling
     assert relative_error(ledger[-1], ceiling) < 0.01
+
+
+def test_the_entropy_hessian_gives_the_ideal_gas_compressibility():
+    """kappa_T from concavity of S(U, V) is 1/P for an ideal gas -- read off S, not put in."""
+    kappa = fundamental.isothermal_compressibility_of(ARGON, GAS_U, GAS_V, GAS_N)
+    assert relative_error(kappa, 1.0 / GAS_P) < 1e-5
+
+
+def test_the_exchange_rule_samples_labelled_quanta_not_the_einstein_count():
+    """Module 01's hop rule: the binomial law of labelled quanta, 1:4:6:4:1 for 2+2 oscillators.
+
+    The Einstein count of unlabelled quanta would give 5:8:9:8:5. The two are far apart at this
+    size, which is what makes the test decisive; module 01's model spec says which one it is.
+    """
+    state = equilibrium.TwoBodyState(n_a=2, n_b=2, q_a=4, q_b=0, quantum=1e-21)
+    result = equilibrium.simulate_energy_exchange(state, 400_000, np.random.default_rng(1))
+    visits = np.bincount(result.q_a[1000:], minlength=5) / result.q_a[1000:].size
+
+    binomial = np.array([1, 4, 6, 4, 1]) / 16
+    einstein = np.array([5, 8, 9, 8, 5]) / 35
+    # Occupation probabilities are O(1) numbers, so an absolute tolerance is meaningful here.
+    assert np.max(np.abs(visits - binomial)) < 0.01
+    assert np.max(np.abs(visits - einstein)) > 0.05
