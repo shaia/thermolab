@@ -113,9 +113,12 @@ in module 8 as the multiplicity peak.
   uniformly random oscillator among both bodies.
 - **Boundary:** the pair is closed and isolated together; nothing enters or leaves the
   combined system, so the total number of quanta — the total energy — is exactly conserved.
-- **Ensemble:** microcanonical for the joint system, exactly as in module 8: every accessible
-  joint microstate is equally probable, and each body's own temperature is read off its own
-  quanta by equipartition.
+- **Ensemble:** microcanonical for the joint system, with the quanta counted as if each were a
+  distinguishable particle: every way of placing those labelled quanta on the oscillators of
+  both bodies is equally probable. A real Einstein solid's quanta cannot be told apart, and
+  module 9 counts them that way; the two counts settle the energy in almost the same place
+  and differ mainly in how far it wanders about it. Each body's own temperature is read off
+  its own quanta by equipartition.
 - **Ignored:** the physical rate at which exchanges are attempted (time is counted in steps,
   not seconds), any spatial structure inside a body, and any coupling besides the quantum
   exchange itself.

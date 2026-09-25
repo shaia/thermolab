@@ -10,9 +10,13 @@ MODEL SPECIFICATION
                    `multiplicity.sample_two_box`
     Boundary:      closed and isolated as a pair; the total number of quanta -- hence the
                    total energy -- is exactly conserved
-    Ensemble:      microcanonical for the joint system -- every accessible joint microstate
-                   is equally probable, exactly as in module 8; each body's own temperature
-                   is read off its own quanta by equipartition, T = (quanta x quantum)/(n k_B)
+    Ensemble:      microcanonical for the joint system, with the quanta counted as if they
+                   were labelled particles: every assignment of the labelled quanta to the
+                   oscillators of both bodies is equally probable, which is the hop rule's
+                   own stationary law. A real Einstein solid's quanta are unlabelled and its
+                   count is different -- see THE ENTROPY LEDGER below. Each body's own
+                   temperature is read off its own quanta by equipartition,
+                   T = (quanta x quantum)/(n k_B)
     Ignored:       the physical attempt rate of an exchange (time is measured in steps, not
                    seconds), any spatial structure inside a body, and any coupling besides
                    the quantum exchange itself
@@ -43,11 +47,14 @@ THE ENTROPY LEDGER (module 09)
 
     The hop rule above moves one *labelled* quantum at a time, so its own stationary
     distribution of q_a is the binomial one of Q labelled quanta spread over n_a + n_b
-    oscillators -- not the Einstein count. The two share their peak exactly: both put
-    q_a/n_a = q_b/n_b, which is what the ledger climbs to. They differ in the spread about it,
-    the labelled model's being narrower by a factor sqrt(1 + Q/(n_a + n_b)). So the ledger's
-    rise and plateau are faithful; its jitter on the plateau is quieter than a real Einstein
-    solid's would be.
+    oscillators -- not the Einstein count. (Two oscillators a side sharing four quanta make
+    the difference plain: the rule visits q_a = 0..4 in the ratio 1 : 4 : 6 : 4 : 1, where the
+    Einstein count would give 5 : 8 : 9 : 8 : 5; a test pins this.) The two peak at almost the
+    same partition: the binomial at q_a/n_a = q_b/n_b, the exact Einstein count at
+    q_a/(n_a - 1) = q_b/(n_b - 1), a relative shift of order 1/n that vanishes for macroscopic
+    bodies. They differ more in the spread about the peak, the labelled model's being narrower
+    by a factor sqrt(1 + Q/(n_a + n_b)). So the ledger's rise and plateau are faithful; its
+    jitter on the plateau is quieter than a real Einstein solid's would be.
 
     And the ledger ticks *down* on a large fraction of single steps -- every time a quantum
     happens to hop the "wrong" way. That is not a bug. It is module 08's point that the second

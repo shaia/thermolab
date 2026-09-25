@@ -326,6 +326,30 @@ def heat_capacity_of(relation: Relation, u: float, v: float, n: float,
     return -1.0 / (t**2 * entropy_curvature(relation, u, v, n, rel_step))
 
 
+def isothermal_compressibility_of(relation: Relation, u: float, v: float, n: float,
+                                  rel_step: float = CURVATURE_REL_STEP) -> float:
+    """kappa_T = -(1/V) (dV/dP)_T [1/Pa], from the Hessian of S in (U, V) at fixed N.
+
+    Holding T fixed means holding S_U fixed, so a volume change drags an energy change with it,
+    dU/dV = -S_UV/S_UU. The pressure slope S_V = P/T then changes by
+    (S_VV - S_UV^2/S_UU) dV, and at fixed T that is dP/T. So
+
+        (dP/dV)_T = T (S_UU S_VV - S_UV^2) / S_UU,
+
+    which is negative -- kappa_T positive -- exactly when S is concave in (U, V): S_UU < 0 and
+    a non-negative Hessian determinant. The module-09 page derives the same line; this is it,
+    evaluated. A relation with no volume dependence has no compressibility to report, and the
+    division by zero says so.
+    """
+    point = (float(u), float(v), float(n))
+    s_uu = _second(relation, point, 0, 0, rel_step)
+    s_vv = _second(relation, point, 1, 1, rel_step)
+    s_uv = _second(relation, point, 0, 1, rel_step)
+    t = temperature_of(relation, u, v, n)
+    dp_dv = t * (s_uu * s_vv - s_uv**2) / s_uu
+    return float(-1.0 / (v * dp_dv))
+
+
 def concavity_check(relation: Relation, u_grid, v: float, n: float) -> np.ndarray:
     """Second differences of S(U) along `u_grid` at fixed (v, n); all <= 0 where S is concave.
 

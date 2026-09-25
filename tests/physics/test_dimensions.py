@@ -379,3 +379,12 @@ def test_fundamental_functions_return_plain_si_floats():
     assert isinstance(fundamental.contact_entropy_production(1.0, 300.0, 2.0, 200.0), float)
     assert isinstance(equilibrium.total_entropy(
         equilibrium.from_temperatures(30, 10, 400.0, 200.0, 7e-23)), float)
+
+
+def test_the_compressibility_from_the_entropy_hessian_is_an_inverse_pressure():
+    """kappa_T = -S_UU / (V T (S_UU S_VV - S_UV^2)) -- in the units the Hessian carries."""
+    s_uu = Quantity(-1.0, "J/K") / Quantity(1.0, "J") ** 2
+    s_vv = Quantity(-1.0, "J/K") / Quantity(1.0, "m**3") ** 2
+    s_uv = Quantity(0.1, "J/K") / (Quantity(1.0, "J") * Quantity(1.0, "m**3"))
+    kappa = -s_uu / (Quantity(1.0, "m**3") * Quantity(300.0, "K") * (s_uu * s_vv - s_uv**2))
+    assert kappa.check("1/[pressure]")
