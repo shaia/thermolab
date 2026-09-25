@@ -37,9 +37,11 @@ MODEL SPECIFICATION
                    unchanged
     Failure modes: finite-rate operation, where heat will not cross a vanishing temperature
                    difference and the efficiency falls toward the endoreversible value
-                   (`curzon_ahlborn_efficiency`); regenerators, which recycle heat internally
-                   and break two-reservoir bookkeeping; and any working substance near
-                   condensation, where the ideal-gas strokes are simply wrong
+                   (`curzon_ahlborn_efficiency`); regenerators, which store heat inside the
+                   engine between strokes -- a Stirling engine with a perfect one reaches the
+                   Carnot bound on constant-volume strokes, and no `Stroke` here can represent
+                   the store; and any working substance near condensation, where the
+                   ideal-gas strokes are simply wrong
 """
 
 from __future__ import annotations

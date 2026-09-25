@@ -2,7 +2,8 @@
 
 Every `render_<module>.py` builds a `FuncAnimation` from `thermolab` and hands it to `save()`
 here. Before this module existed the same twenty lines were copy-pasted into all four scripts;
-the MP4 writer needs enough setup that a fifth copy was not worth having.
+the MP4 writer needs enough setup that a fifth copy was not worth having. The one exception is
+a static diagram, which goes through `save_still()` as PNG instead.
 
 WHY MP4 AND NOT GIF
     mystmd renders a `.mp4` in a `{figure}` directive through the book theme's own React
@@ -70,9 +71,9 @@ def ffmpeg_path() -> str:
     )
 
 
-def output_paths(name: str) -> list[Path]:
+def output_paths(name: str, suffix: str = SUFFIX) -> list[Path]:
     """The same file in each language project — MyST resolves images inside its own tree."""
-    return [ROOT / "content" / lang / "media" / f"{name}{SUFFIX}" for lang in LANGUAGES]
+    return [ROOT / "content" / lang / "media" / f"{name}{suffix}" for lang in LANGUAGES]
 
 
 def snap_to_even_pixels(figure: Figure) -> None:
@@ -119,3 +120,25 @@ def save(animation: FuncAnimation, figure: Figure, name: str, fps: int = FPS) ->
     size_kb = first.stat().st_size / 1024
     listed = ", ".join(str(p.relative_to(ROOT)) for p in targets)
     print(f"[render] {name}{SUFFIX} ({size_kb:.0f} KB) -> {listed}")
+
+
+def save_still(figure: Figure, name: str) -> None:
+    """Write a static figure as PNG and place an identical copy in every language tree.
+
+    For diagrams rather than animations: an energy-flow schematic has nothing to play, and a
+    one-frame MP4 would autoplay and loop a picture that never moves. PNG is in the build's
+    `MEDIA_SUFFIXES`, so the staleness check sees these files like any other render output.
+    The same language-neutrality rule applies — symbols and numbers only, no words — because
+    one file serves both sites and the explanation lives in the translated caption.
+    """
+    targets = output_paths(name, ".png")
+    first = targets[0]
+    first.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(first, dpi=DPI, facecolor="white", bbox_inches="tight", pad_inches=0.15)
+    for other in targets[1:]:
+        other.parent.mkdir(parents=True, exist_ok=True)
+        other.write_bytes(first.read_bytes())
+
+    size_kb = first.stat().st_size / 1024
+    listed = ", ".join(str(p.relative_to(ROOT)) for p in targets)
+    print(f"[render] {name}.png ({size_kb:.0f} KB) -> {listed}")

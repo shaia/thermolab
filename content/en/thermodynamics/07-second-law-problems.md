@@ -131,3 +131,64 @@ at small gap and state the power law you find.
 (d) Attempt to construct any cycle from the library that exceeds $1 - T_c/T_h$. Report what
 you tried. Then state precisely why failing to find one is *not* a proof of Carnot's theorem,
 and what it is evidence of instead.
+
+## Problem 7 — the cost of irreversibility
+
+<!-- objectives: OBJ-07-8, OBJ-07-9, OBJ-07-7 -->
+
+(a) A block sliding across a table at $300\ \mathrm{K}$ is brought to rest by friction,
+converting $50\ \mathrm{J}$ of kinetic energy into heat that ends up in the table. Show that
+undoing this process without trace would violate the Kelvin statement, and compute the entropy
+produced.
+
+(b) On a winter day, $500\ \mathrm{J}$ of heat leaks through a window from a room at
+$293\ \mathrm{K}$ to the outside air at $263\ \mathrm{K}$. Compute the entropy produced, and
+the work that an ideal engine placed across the window could have delivered from the same
+heat. Show that the two answers are related as the lost-work theorem says they must be.
+
+(c) One mole of ideal gas ($N = 6.022 \times 10^{23}$) at $300\ \mathrm{K}$ expands freely into
+a vacuum, doubling its volume inside an insulated box. Compute its entropy change by choosing a
+suitable reversible process between the same end states, and explain why that is legitimate
+although the real process is nothing like it. How much work would the reversible process have
+delivered, and how is that number related to the entropy produced?
+
+(d) Two identical blocks, each of heat capacity $C = 500\ \mathrm{J\,K^{-1}}$, one at
+$400\ \mathrm{K}$ and the other at $200\ \mathrm{K}$, are put in thermal contact inside an
+insulated box. Find the final temperature and the total entropy change. Then show, for any
+starting temperatures $T_1$ and $T_2$, that
+
+$$
+\Delta S = C \ln \frac{(T_1 + T_2)^2}{4\, T_1 T_2} \ge 0 ,
+$$
+
+with equality only when $T_1 = T_2$.
+
+(e) Suppose instead that a reversible engine runs between the two blocks of (d) until they
+reach a common temperature. Find that temperature and the total work delivered, and explain in
+one sentence why the final temperature is lower than in (d).
+
+## Problem 8 — the Otto engine
+
+<!-- objectives: OBJ-07-4, OBJ-07-9 -->
+
+An idealised petrol engine takes in air at $T_1 = 300\ \mathrm{K}$ and compresses it
+adiabatically by a factor $r = 10$; treat air as an ideal gas with $\gamma = 7/5$. Burning the
+fuel then heats it at constant volume to $T_3 = 2200\ \mathrm{K}$, it expands adiabatically
+back to its original volume, and it gives up its remaining heat at constant volume.
+
+(a) Show that the efficiency is $\eta = 1 - r^{1-\gamma}$, independent of $T_3$, and evaluate
+it.
+
+(b) Find the temperatures $T_2$ after compression and $T_4$ after expansion. Compare the
+efficiency with the Carnot bound between the coldest and hottest temperatures the air reaches.
+
+(c) Every stroke of this cycle is reversible, yet it falls short of that bound. Explain why,
+by dividing the cycle into thin slices with adiabats.
+
+(d) Compute the entropy change of the air on the heating stroke and on the cooling stroke.
+Dividing each stroke's heat by its entropy change defines an average temperature for that
+stroke; compute both, and show that the engine's efficiency is that of a Carnot engine between
+them.
+
+(e) The efficiency grows with $r$. What stops petrol engines from using much higher
+compression ratios, and how does the diesel engine of module 06 get around it?

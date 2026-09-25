@@ -574,3 +574,66 @@ terms:
   - key: compression-ratio
     en: compression ratio
     he: יחס דחיסה
+  - key: lost-work
+    en: lost work
+    he: עבודה אבודה
+  - key: entropy-produced
+    en: entropy produced
+    he: אנטרופיה מיוצרת
+  - key: gouy-stodola-theorem
+    en: Gouy–Stodola theorem
+    he: משפט גואי–סטודולה
+  - key: friction
+    en: friction
+    he: חיכוך
+  - key: dissipation
+    en: dissipation
+    he: דיסיפציה
+  - key: hysteresis
+    en: hysteresis
+    he: היסטרזיס
+  - key: stroke
+    en: stroke
+    he: צעד
+  - key: triple-point
+    en: triple point
+    he: נקודה משולשת
+  - key: regenerator
+    en: regenerator
+    he: מחדש חום
+  - key: stirling-engine
+    en: Stirling engine
+    he: מנוע סטירלינג
+  - key: caloric
+    en: caloric
+    he: קלוריק
+  - key: isentrope
+    en: isentrope
+    he: איזנטרופה
+  - key: endoreversible
+    en: endoreversible
+    he: אנדו-הפיך
+  - key: curzon-ahlborn-efficiency
+    en: Curzon–Ahlborn efficiency
+    he: נצילות קורזון–אלבורן
+  - key: maximum-power
+    en: maximum power
+    he: הספק מרבי
+  - key: isolated-system
+    en: isolated system
+    he: מערכת מבודדת
+  - key: auxiliary-engine
+    en: auxiliary engine
+    he: מנוע עזר
+  - key: reference-reservoir
+    en: reference reservoir
+    he: מאגר ייחוס
+  - key: phase-transition
+    en: phase transition
+    he: מעבר פאזה
+  - key: debye-temperature
+    en: Debye temperature
+    he: טמפרטורת דבאי
+  - key: specific-heat
+    en: specific heat
+    he: חום סגולי

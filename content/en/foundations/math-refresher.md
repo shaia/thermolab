@@ -265,7 +265,7 @@ $$
 which is exact on any region avoiding $y = 0$. The function you multiplied by — here $1/y^2$ —
 is called an **integrating factor**.
 
-This is not a curiosity. The single most important statement in module 8 is that heat, which
+This is not a curiosity. The single most important statement in module 7 is that heat, which
 is inexact, acquires an integrating factor $1/T$ — and that the resulting exact form is the
 differential of entropy. You are not expected to anticipate that now. It is here so that when
 it arrives, it arrives as a piece of mathematics you have already met.

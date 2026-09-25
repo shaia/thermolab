@@ -201,22 +201,23 @@ questions:
     type: prediction
     objectives: [OBJ-07-7]
     prompt: >-
-      Before reading the advanced section: an engine between reservoirs at 600 K and 300 K has
-      imperfect heat exchangers, so its gas sits at 560 K while absorbing and 340 K while
-      rejecting. Every stroke it performs is internally reversible. Predict (a) its
-      efficiency, (b) whether the loop integral of delta-Q over the reservoir temperature is
-      zero or negative, and (c) where the work it fails to deliver has gone.
+      Before reading the section on entropy produced: an engine between reservoirs at 600 K
+      and 300 K has imperfect heat exchangers, so its gas sits at 560 K while absorbing and
+      340 K while rejecting. Every stroke it performs is internally reversible. Predict (a)
+      its efficiency, (b) whether the loop integral of delta-Q over the reservoir temperature
+      is zero or negative, and (c) where the work it fails to deliver has gone.
     discussion: >-
       (a) The efficiency is set by the temperatures the *gas* works between, not the
       reservoirs': 1 - 340/560 = 0.393, against a Carnot bound of 0.500. (b) The loop integral
       is strictly negative, -0.357 J/K per 1000 J absorbed, because the denominators are the
       reservoir temperatures 600 and 300 rather than 560 and 340. Dividing by the gas's own
-      temperature instead gives exactly zero for any closed cycle whatever and proves nothing
-      — the entire inequality lives in the gap between the two temperatures. (c) The lost work
-      is 500 - 393 = 107 J, and it equals T_c times the magnitude of the loop integral:
-      300 * 0.357 = 107 J. Lost work and produced entropy are one quantity seen from two
-      sides. If you predicted the efficiency from the reservoir temperatures, note what the
-      engine can actually "see": it only ever touches its own gas.
+      temperature instead gives exactly zero for this cycle of quasistatic strokes and proves
+      nothing — the entire inequality lives in the gap between the two temperatures. The
+      entropy produced per cycle is therefore S_gen = +0.357 J/K. (c) The lost work is
+      500 - 393 = 107 J, and it equals T_c times the entropy produced: 300 * 0.357 = 107 J.
+      Lost work and produced entropy are one quantity seen from two sides. If you predicted
+      the efficiency from the reservoir temperatures, note what the engine can actually
+      "see": it only ever touches its own gas.
 
   - id: Q-07-9
     type: short-answer
@@ -232,3 +233,135 @@ questions:
       this is why the rejected heat is structural rather than wasteful. Answers that say
       "some energy is always lost" have not distinguished the second law from sloppy
       engineering and should be pushed: ask them what a perfect, frictionless engine does.
+
+  - id: Q-07-10
+    type: multiple-choice
+    objectives: [OBJ-07-8]
+    misconception: slow-means-reversible
+    prompt: >-
+      Each of these processes is carried out extremely slowly. Which one can be made
+      reversible?
+    choices:
+      - text: A gas compressed by a frictionless piston while in contact with a reservoir at the gas's own temperature.
+        correct: true
+        feedback: >-
+          Right. It is quasistatic, frictionless, and the heat it gives up crosses no
+          temperature difference, so every condition holds: run it backwards and gas and
+          reservoir both return exactly to where they were.
+      - text: A block pushed very slowly across a rough table, its friction heating the table.
+        correct: false
+        feedback: >-
+          Slowness does not remove friction. However gently the block moves, the work spent
+          against friction ends up as heat in the table, and getting it back as work with no
+          other change would violate the Kelvin statement. Slow is necessary for
+          reversibility, never sufficient.
+      - text: Heat leaking very slowly through a thick wall from a room at 300 K to outside air at 270 K.
+        correct: false
+        feedback: >-
+          The leak is slow, but the heat still crosses a 30 K gap, and slowness does not
+          shrink the gap. Sending that heat back from 270 K to 300 K with nothing else changed
+          is exactly what the Clausius statement forbids.
+      - text: A gas leaking very slowly through a pinhole into an evacuated chamber.
+        correct: false
+        feedback: >-
+          This is a free expansion done gradually: nothing pushes back on the gas, no work is
+          extracted, and the gas's entropy rises by N k_B ln(V_final/V_initial) with nothing
+          received to account for it. The rate of leaking changes none of that.
+
+  - id: Q-07-11
+    type: numeric
+    objectives: [OBJ-07-7]
+    prompt: >-
+      1000 J of heat conducts through a metal bar from a reservoir at 800 K to a reservoir at
+      400 K. The bar ends in the same state it began. How much entropy is produced, in J/K?
+    answer: 1.25
+    tolerance: 0.02
+    feedback: >-
+      S_gen = 1000/400 - 1000/800 = 2.50 - 1.25 = 1.25 J/K: the cold reservoir gains more
+      entropy than the hot one loses, because the same heat is divided by a smaller
+      temperature. If you got -1.25 you swapped the signs; entropy produced is never negative.
+      Multiply by T_c and you get the work thrown away, 400 * 1.25 = 500 J - exactly what a
+      Carnot engine across the same gap would have delivered from the same 1000 J.
+
+  - id: Q-07-12
+    type: multiple-choice
+    objectives: [OBJ-07-4]
+    prompt: >-
+      An idealised petrol (Otto) engine has no friction and every one of its four strokes is
+      reversible, yet its efficiency is well below 1 - T_min/T_max, where T_min and T_max are
+      the coldest and hottest temperatures its gas reaches. Why?
+    choices:
+      - text: It takes in heat while its gas is still heating up, below T_max, and rejects it while cooling down, above T_min.
+        correct: true
+        feedback: >-
+          Correct. The Carnot bound is reached only if all the heat enters at the top
+          temperature and all of it leaves at the bottom. Slice the Otto cycle with adiabats
+          and every slice is a small Carnot engine working across a narrower span than
+          T_max to T_min, which is why the whole engine lands at 1 - r^(1-gamma).
+      - text: Some of the work is always lost to friction in the pistons.
+        correct: false
+        feedback: >-
+          The idealised engine has no friction by construction, and it still falls short.
+          Friction lowers real engines further, but it is not what separates the ideal Otto
+          cycle from the Carnot bound.
+      - text: Air is not an ideal gas, so the Carnot formula does not apply to it.
+        correct: false
+        feedback: >-
+          The Carnot bound applies to every working substance - that is the point of Carnot's
+          theorem. In the idealised model air is treated as an ideal gas anyway, and the
+          shortfall is still there.
+      - text: Its compression ratio is too low; at a high enough ratio it would reach the Carnot bound.
+        correct: false
+        feedback: >-
+          Raising the compression ratio raises the efficiency, but it also raises the
+          temperature at which heat starts to enter, and the heat still enters over a range
+          of temperatures. At any finite ratio the engine stays below the bound between its
+          own extremes.
+
+  - id: Q-07-13
+    type: numeric
+    objectives: [OBJ-07-9]
+    prompt: >-
+      1.0e23 particles of an ideal gas double their volume at a constant temperature of
+      300 K. Take k_B = 1.381e-23 J/K. What is the gas's entropy change, in J/K?
+    answer: 0.957
+    tolerance: 0.01
+    feedback: >-
+      Delta S = N k_B ln 2 = (1.0e23)(1.381e-23)(0.6931) = 0.957 J/K. The temperature does not
+      enter, because the heat absorbed is N k_B T ln 2 and it is divided by the same T. The
+      answer is identical if the gas doubles its volume by free expansion into a vacuum,
+      where no heat is absorbed at all: entropy is a function of state, and the reversible
+      isotherm is only the instrument for computing it.
+
+  - id: Q-07-14
+    type: multiple-choice
+    objectives: [OBJ-07-9]
+    misconception: subsystem-entropy-increase
+    prompt: >-
+      A cup of hot coffee cools on a desk until it reaches room temperature, and its entropy
+      decreases. Which statement is correct?
+    choices:
+      - text: The room's entropy rises by more than the coffee's falls, so the total entropy increases.
+        correct: true
+        feedback: >-
+          Right. The room receives the coffee's heat at the lower temperature, so the same
+          heat brings it more entropy than the coffee lost. The second law constrains the
+          total; any one part may lose entropy as long as the rest gains more.
+      - text: The second law is violated, but only briefly, until the coffee reaches room temperature.
+        correct: false
+        feedback: >-
+          The second law admits no temporary violations. Nothing needs excusing here: the
+          coffee's entropy genuinely falls, and the room's rises by more at every instant of
+          the cooling.
+      - text: The coffee's entropy cannot really decrease; it only appears to, because heat is leaving it.
+        correct: false
+        feedback: >-
+          It really decreases. For a body of heat capacity C cooling from T_1 to T_2 the change
+          is C ln(T_2/T_1), which is negative. The second law never said every part must gain
+          entropy.
+      - text: The total entropy is unchanged, because the heat the coffee loses equals the heat the room gains.
+        correct: false
+        feedback: >-
+          Equal heats are not equal entropies. Entropy change is heat divided by temperature,
+          and the room receives the heat at a lower temperature than the coffee gave it up,
+          so the room's gain is larger. The difference is the entropy produced.
