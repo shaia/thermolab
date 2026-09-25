@@ -103,3 +103,15 @@ misconceptions:
     statement: "Any process carried out slowly enough is reversible."
     assigned_module: 07-second-law
     status: addressed
+  - id: equal-energy-equilibrium
+    statement: "Equilibrium means both bodies end with equal energies."
+    assigned_module: 09-fundamental-relation
+    status: addressed
+  - id: entropy-flow-is-production
+    statement: "Entropy is produced whenever entropy flows."
+    assigned_module: 09-fundamental-relation
+    status: addressed
+  - id: entropy-undefined-off-equilibrium
+    statement: "S is only defined at equilibrium, so Delta S of an irreversible process cannot be computed."
+    assigned_module: 09-fundamental-relation
+    status: addressed

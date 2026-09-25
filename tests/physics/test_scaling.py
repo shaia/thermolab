@@ -10,7 +10,16 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import engines, equilibrium, gases, kinetics, multiplicity, processes, sampling
+from thermolab import (
+    engines,
+    equilibrium,
+    fundamental,
+    gases,
+    kinetics,
+    multiplicity,
+    processes,
+    sampling,
+)
 from thermolab.constants import K_B
 from thermolab.validation import relative_error, scaling_exponent
 
@@ -386,3 +395,63 @@ def test_entropy_production_scales_with_the_engine_but_its_relative_cost_does_no
     assert relative_error(scaling_exponent(sizes, produced), 1.0) < 1e-6
     for cycle in cycles:
         assert relative_error(cycle.efficiency, cycles[0].efficiency) < 1e-12
+
+
+# ---------------------------------------------------------------------------
+# Module 09: the maximum sharpens, and production is extensive
+# ---------------------------------------------------------------------------
+
+
+def exact_partition_width(scale: int) -> tuple[float, float]:
+    """Mean and standard deviation of q_a under P(q_a) ~ Omega_A Omega_B, exactly counted."""
+    n_a, n_b = 3 * scale, scale
+    total = 20 * (n_a + n_b)
+    q = np.arange(total + 1)
+    log_weight = (equilibrium.einstein_log_multiplicity(q, n_a)
+                  + equilibrium.einstein_log_multiplicity(total - q, n_b))
+    weight = np.exp(log_weight - log_weight.max())
+    weight /= weight.sum()
+    mean = float((q * weight).sum())
+    return mean, float(np.sqrt(((q - mean) ** 2 * weight).sum()))
+
+
+def test_the_total_entropy_peak_narrows_as_n_to_the_minus_one_half():
+    """Why the maximum is all that matters: its relative width falls as N^(-1/2)."""
+    scales = np.array([25, 100, 400, 1600])
+    widths = []
+    for scale in scales:
+        mean, spread = exact_partition_width(int(scale))
+        widths.append(spread / mean)
+
+    assert abs(scaling_exponent(4 * scales, widths) + 0.5) < 0.02
+
+
+def test_the_entropy_produced_by_contact_is_extensive():
+    """Double both bodies at the same temperatures and the entropy produced doubles."""
+    quantum = 5.0 * K_B
+    produced = []
+    for scale in (100, 200, 400):
+        state = equilibrium.from_temperatures(3 * scale, scale, 500.0, 250.0, quantum)
+        produced.append(fundamental.contact_entropy_production(
+            state.heat_capacity_a, state.temperature_a,
+            state.heat_capacity_b, state.temperature_b) / scale)
+    assert relative_error(produced[0], produced[-1]) < 1e-2
+
+
+def test_the_ledgers_final_value_is_relatively_sharper_for_bigger_bodies():
+    """Seed-to-seed spread of the plateau is O(k_B) while its mean grows ~N: relative ~ 1/N."""
+    quantum = 5.0 * K_B
+    sizes, relative_spreads = [], []
+    for scale in (25, 100, 400):
+        finals = []
+        for seed in range(8):
+            state = equilibrium.from_temperatures(3 * scale, scale, 500.0, 250.0, quantum)
+            result = equilibrium.simulate_energy_exchange(state, 8 * state.total_quanta,
+                                                          np.random.default_rng(seed))
+            finals.append(equilibrium.entropy_produced(result)[-1])
+        finals = np.array(finals)
+        sizes.append(4 * scale)
+        relative_spreads.append(finals.std(ddof=1) / finals.mean())
+
+    exponent = scaling_exponent(sizes, relative_spreads)
+    assert exponent < -0.6  # at least as fast as N^(-1/2); the argument above says ~ -1

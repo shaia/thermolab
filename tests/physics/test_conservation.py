@@ -16,6 +16,7 @@ from thermolab import (
     engines,
     equilibrium,
     forms,
+    fundamental,
     gases,
     kinetics,
     multiplicity,
@@ -456,3 +457,61 @@ def test_the_gas_entropy_change_vanishes_around_a_closed_cycle():
     ):
         total = sum(engines.entropy_change_of_gas(s.process) for s in cycle.strokes)
         assert abs(total) / cycle.entropy_scale < 1e-12
+
+
+# ---------------------------------------------------------------------------
+# Module 09: releasing a constraint redistributes, never creates
+# ---------------------------------------------------------------------------
+
+ARGON_09 = fundamental.monatomic_ideal_gas(39.948 * 1.66053906660e-27)
+
+
+@settings(max_examples=40, deadline=None)
+@given(
+    share_u=st.floats(0.05, 0.95),
+    share_v=st.floats(0.05, 0.95),
+    channels=st.sampled_from([("energy",), ("energy", "volume"), ("energy", "particles")]),
+)
+def test_releasing_a_wall_conserves_every_total(share_u, share_v, channels):
+    u_total, v_total, n_side = 1e-2, 1e-4, 1e20
+    start = fundamental.Composite(
+        ARGON_09, ARGON_09,
+        fundamental.Part(share_u * u_total, share_v * v_total, n_side),
+        fundamental.Part((1 - share_u) * u_total, (1 - share_v) * v_total, n_side),
+    )
+
+    end = start.released(*channels)
+
+    for channel in fundamental.CHANNELS:
+        assert relative_error(end.total(channel), start.total(channel)) < 1e-15
+    assert end.total_entropy >= start.total_entropy
+
+
+def test_releasing_a_wall_leaves_the_original_composite_untouched():
+    solid = fundamental.einstein_solid(5.0 * 1.380649e-23)
+    before = fundamental.Part(1e-19, 1.0, 40.0)
+    start = fundamental.Composite(solid, solid, before, fundamental.Part(1e-20, 1.0, 400.0))
+
+    start.released("energy")
+
+    assert start.a == before
+
+
+def test_the_entropy_ledger_does_not_modify_the_run_it_reads():
+    state = equilibrium.from_temperatures(60, 20, 500.0, 250.0, 5.0 * 1.380649e-23)
+    result = equilibrium.simulate_energy_exchange(state, 3000, np.random.default_rng(2))
+    q_before = result.q_a.copy()
+
+    equilibrium.entropy_produced(result)
+
+    np.testing.assert_array_equal(result.q_a, q_before)
+    assert result.initial == state
+
+
+def test_the_isolated_pair_conserves_energy_along_the_whole_ledger():
+    """The ledger is entropy *produced* only because nothing crosses the boundary: check that."""
+    state = equilibrium.from_temperatures(60, 20, 500.0, 250.0, 5.0 * 1.380649e-23)
+    result = equilibrium.simulate_energy_exchange(state, 3000, np.random.default_rng(3))
+
+    assert np.all(result.q_a + result.q_b == state.total_quanta)
+    assert equilibrium.entropy_produced(result).shape == result.q_a.shape

@@ -20,6 +20,7 @@ from thermolab import (
     engines,
     equilibrium,
     forms,
+    fundamental,
     gases,
     kinetics,
     multiplicity,
@@ -321,3 +322,60 @@ def test_engines_functions_return_plain_si_floats():
     assert isinstance(cycle.efficiency, float)
     assert isinstance(cycle.work_output, float)
     assert isinstance(cycle.clausius_sum, float)
+
+
+# ---------------------------------------------------------------------------
+# Module 09: the fundamental relation
+# ---------------------------------------------------------------------------
+
+PLANCK_Q = Quantity(6.62607015e-34, "joule * second")
+
+
+def test_the_sackur_tetrode_logarithm_is_dimensionless():
+    """(V/N) (4 pi m U / (3 N h^2))^(3/2): a wrong power of h or m would leave a unit behind."""
+    volume = Quantity(1e-3, "m**3")
+    energy = Quantity(10.0, "J")
+    mass = Quantity(6.6e-26, "kg")
+    n = 1e22
+    argument = (volume / n) * (4 * np.pi * mass * energy / (3 * n * PLANCK_Q**2)) ** 1.5
+    assert argument.to("dimensionless").check("[]")
+
+
+def test_the_entropy_slopes_are_inverse_temperature_pressure_over_temperature_and_mu_over_t():
+    entropy = Quantity(1.0, "J/K")
+    assert (entropy / Quantity(1.0, "J")).check("1/[temperature]")
+    assert (entropy / Quantity(1.0, "m**3")).check("[pressure]/[temperature]")
+    # N is a pure count, so -T dS/dN is an energy per particle.
+    assert (Quantity(300.0, "K") * entropy / 1.0).check("[energy]")
+
+
+def test_the_einstein_closed_form_temperature_is_a_temperature():
+    quantum = Quantity(6.9e-23, "J")
+    temperature = quantum / (K_B_Q * np.log1p(300 * 1.0 / 20.0))
+    assert temperature.check("[temperature]")
+
+
+def test_the_heat_capacity_from_curvature_is_energy_per_temperature():
+    """C = -1/(T^2 d^2S/dU^2): (J/K) / (K^2 * (J/K)/J^2) = J/K."""
+    curvature = Quantity(-1.0, "J/K") / Quantity(1.0, "J") ** 2
+    capacity = -1.0 / (Quantity(300.0, "K") ** 2 * curvature)
+    assert capacity.check("[energy]/[temperature]")
+
+
+def test_contact_entropy_production_is_energy_per_temperature():
+    capacity = Quantity(4184.0, "J/K")
+    produced = capacity * np.log(320.0 / 350.0) + capacity * np.log(320.0 / 290.0)
+    assert produced.check("[energy]/[temperature]")
+
+
+def test_fundamental_functions_return_plain_si_floats():
+    gas = fundamental.monatomic_ideal_gas(6.6e-26)
+    point = (6.2, 4.1e-2, 1e21)
+    assert isinstance(fundamental.temperature_of(gas, *point), float)
+    assert isinstance(fundamental.pressure_of(gas, *point), float)
+    assert isinstance(fundamental.chemical_potential_of(gas, *point), float)
+    assert isinstance(fundamental.heat_capacity_of(gas, *point), float)
+    assert isinstance(fundamental.euler_residual(gas, *point), float)
+    assert isinstance(fundamental.contact_entropy_production(1.0, 300.0, 2.0, 200.0), float)
+    assert isinstance(equilibrium.total_entropy(
+        equilibrium.from_temperatures(30, 10, 400.0, 200.0, 7e-23)), float)

@@ -39,6 +39,7 @@ Currently available:
 - **[Thermodynamic processes](thermodynamics/06-processes.md)** — why a gas that expands into a vacuum does not cool, and what the slow route is worth.
 - **[The second law and heat engines](thermodynamics/07-second-law.md)** — why no engine, however well built, can turn all its heat into work.
 - **[Entropy and multiplicity](statistical-mechanics/08-multiplicity.md)** — why an isolated gas almost never gathers in one corner.
+- **[The fundamental relation](thermodynamics/09-fundamental-relation.md)** — why two bodies in contact end at equal temperatures and not equal energies, and how one function predicts everything else.
 
 Two reference pages sit outside the sequence and are meant to be returned to:
 [conventions](conventions.md) and the [mathematics refresher](foundations/math-refresher.md).

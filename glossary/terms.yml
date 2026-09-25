@@ -637,3 +637,80 @@ terms:
   - key: specific-heat
     en: specific heat
     he: חום סגולי
+  - key: fundamental-relation
+    en: fundamental relation
+    he: היחס היסודי
+    he_reject: [יחס פונדמנטלי]
+  - key: euler-relation
+    en: Euler relation
+    he: יחס אוילר
+  - key: gibbs-duhem-relation
+    en: Gibbs–Duhem relation
+    he: יחס גיבס–דוהם
+    he_reject: [גיבס דוהם]
+  - key: chemical-potential
+    en: chemical potential
+    he: פוטנציאל כימי
+  - key: thermodynamic-stability
+    en: thermodynamic stability
+    he: יציבות תרמודינמית
+  - key: diathermal
+    en: diathermal
+    he: דיאתרמי
+  - key: concave
+    en: concave
+    he: קעורה
+  - key: convex
+    en: convex
+    he: קמורה
+  - key: homogeneous-function
+    en: homogeneous function
+    he: פונקציה הומוגנית
+  - key: einstein-solid
+    en: Einstein solid
+    he: מוצק איינשטיין
+  - key: sackur-tetrode-equation
+    en: Sackur–Tetrode equation
+    he: משוואת סאקור–טטרודה
+  - key: virial-theorem
+    en: virial theorem
+    he: משפט הוויריאל
+  - key: thermal-wavelength
+    en: thermal wavelength
+    he: אורך גל תרמי
+  - key: internal-constraint
+    en: internal constraint
+    he: אילוץ פנימי
+  - key: composite-system
+    en: composite system
+    he: מערכת מורכבת
+  - key: entropy-flow
+    en: entropy flow
+    he: זרימת אנטרופיה
+  - key: energy-minimum-principle
+    en: energy-minimum principle
+    he: עקרון מינימום האנרגיה
+  - key: phase-rule
+    en: phase rule
+    he: כלל הפאזות
+  - key: stars-and-bars
+    en: stars and bars
+    he: כוכבים ומחיצות
+  - key: oscillator
+    en: oscillator
+    he: מתנד
+  - key: planck-constant
+    en: Planck's constant
+    he: קבוע פלאנק
+  - key: isothermal-compressibility
+    en: isothermal compressibility
+    he: דחיסות איזותרמית
+  - key: calorimetry
+    en: calorimetry
+    he: קלורימטריה
+  - key: central-difference
+    en: central difference
+    he: הפרש מרכזי
+  - key: water-equivalent
+    en: water equivalent
+    he: שווה-ערך המים

@@ -312,3 +312,47 @@ def test_different_seeds_really_do_build_different_engines():
     b = engines.random_two_reservoir_engine(np.random.default_rng(2), 600.0, 300.0)
 
     assert a.efficiency != b.efficiency
+
+
+# ---------------------------------------------------------------------------
+# Module 09: the entropy ledger
+# ---------------------------------------------------------------------------
+
+LEDGER_QUANTUM = 5.0 * K_B
+
+
+def ledger_final(rng: np.random.Generator) -> float:
+    state = equilibrium.from_temperatures(300, 100, 500.0, 250.0, LEDGER_QUANTUM)
+    result = equilibrium.simulate_energy_exchange(state, 8 * state.total_quanta, rng)
+    return float(equilibrium.entropy_produced(result)[-1])
+
+
+def test_the_ledgers_final_value_agrees_across_seeds_with_its_exact_expectation():
+    """The expectation over the hop rule's own stationary law (binomial, labelled quanta)."""
+    state = equilibrium.from_temperatures(300, 100, 500.0, 250.0, LEDGER_QUANTUM)
+    total = state.total_quanta
+    q = np.arange(total + 1)
+    ledger = K_B * (equilibrium.einstein_log_multiplicity(q, 300)
+                    + equilibrium.einstein_log_multiplicity(total - q, 100)
+                    - equilibrium.einstein_log_multiplicity(state.q_a, 300)
+                    - equilibrium.einstein_log_multiplicity(state.q_b, 100))
+    p = 300 / 400
+    log_binomial = (multiplicity.log_multiplicity_array(total, q)
+                    + q * np.log(p) + (total - q) * np.log(1 - p))
+    expected = float((np.exp(log_binomial) * ledger).sum())
+
+    study = seed_study(ledger_final, n_seeds=8)
+
+    assert study.agrees_with(expected, n_sigma=3.5)
+
+
+def test_the_ledger_is_monotone_within_noise_for_every_seed():
+    """It dips on single steps -- by far less than it rises. Never 'proved' monotone."""
+    state = equilibrium.from_temperatures(300, 100, 500.0, 250.0, LEDGER_QUANTUM)
+    for seed in range(6):
+        result = equilibrium.simulate_energy_exchange(state, 8 * state.total_quanta,
+                                                      np.random.default_rng(seed))
+        ledger = equilibrium.entropy_produced(result)
+        drawdown = np.max(np.maximum.accumulate(ledger) - ledger)
+        assert np.any(np.diff(ledger) < 0)  # it does tick down
+        assert drawdown < 0.02 * ledger[-1]  # but never by more than 2% of the rise

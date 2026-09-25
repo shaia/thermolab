@@ -15,6 +15,7 @@ from thermolab import (
     engines,
     equilibrium,
     forms,
+    fundamental,
     gases,
     kinetics,
     multiplicity,
@@ -1052,3 +1053,201 @@ def test_a_free_expansion_cycle_has_a_clausius_sum_of_minus_n_kb_ln2():
     assert relative_error(engines.entropy_change_of_gas(expansion), expected) < 1e-12
     assert relative_error(cycle.clausius_sum, -expected) < 1e-9
     assert relative_error(cycle.entropy_produced, expected) < 1e-9
+
+
+# ---------------------------------------------------------------------------
+# Module 09: the fundamental relation
+# ---------------------------------------------------------------------------
+
+ARGON = fundamental.monatomic_ideal_gas(ARGON_MASS)
+GAS_N, GAS_T, GAS_P = 1e22, 300.0, 1e5
+GAS_U = 1.5 * GAS_N * K_B * GAS_T
+GAS_V = GAS_N * K_B * GAS_T / GAS_P
+QUANTUM_09 = 5.0 * K_B
+SOLID_09 = fundamental.einstein_solid(QUANTUM_09)
+SOLID_POINT = (20.0 * 300 * QUANTUM_09, 1.0, 300.0)
+
+
+def test_the_slopes_of_sackur_tetrode_return_the_ideal_gas_equations_of_state():
+    """1/T = dS/dU and P/T = dS/dV, read off S alone, give back U = 3/2 N k_B T and PV = N k_B T."""
+    slopes = fundamental.entropy_slopes(ARGON, GAS_U, GAS_V, GAS_N)
+
+    assert relative_error(slopes.temperature, GAS_T) < 1e-7
+    assert relative_error(slopes.pressure, GAS_P) < 1e-7
+
+
+def test_the_particle_slope_of_sackur_tetrode_is_k_t_ln_of_n_lambda_cubed():
+    wavelength = fundamental.PLANCK_H / np.sqrt(2.0 * np.pi * ARGON_MASS * K_B * GAS_T)
+    expected = K_B * GAS_T * np.log(GAS_N / GAS_V * wavelength**3)
+
+    measured = fundamental.chemical_potential_of(ARGON, GAS_U, GAS_V, GAS_N)
+
+    assert expected < 0  # dilute classical regime: n lambda^3 << 1
+    assert relative_error(measured, expected) < 1e-6
+
+
+def test_the_einstein_slope_matches_its_closed_form_temperature():
+    for quanta_per_oscillator in (0.5, 2.0, 20.0, 200.0):
+        u = quanta_per_oscillator * 300 * QUANTUM_09
+        measured = fundamental.temperature_of(SOLID_09, u, 1.0, 300)
+        expected = float(fundamental.einstein_solid_temperature(u, 300, QUANTUM_09))
+        assert relative_error(measured, expected) < 1e-7
+
+
+def test_the_einstein_temperature_approaches_module_01s_equipartition_map_when_hot():
+    """T -> q quantum/(n k_B) + quantum/(2 k_B): an offset of half a quantum, whatever q is."""
+    half_quantum = QUANTUM_09 / (2.0 * K_B)
+    relative_gaps = []
+    for quanta_per_oscillator in (10.0, 100.0, 1000.0):
+        u = quanta_per_oscillator * 300 * QUANTUM_09
+        exact = float(fundamental.einstein_solid_temperature(u, 300, QUANTUM_09))
+        equipartition = u / (300 * K_B)
+        relative_gaps.append((exact - equipartition) / equipartition)
+    offset = float(fundamental.einstein_solid_temperature(1000.0 * 300 * QUANTUM_09, 300,
+                                                          QUANTUM_09)) - 1000.0 * 5.0
+    assert relative_error(offset, half_quantum) < 1e-3
+    # The *fractional* difference from module 01's map therefore falls as 1/q.
+    assert relative_error(relative_gaps[1] / relative_gaps[2], 10.0) < 0.01
+
+
+@pytest.mark.parametrize("relation, point", [
+    (ARGON, (GAS_U, GAS_V, GAS_N)),
+    (SOLID_09, SOLID_POINT),
+])
+def test_the_euler_relation_holds_for_an_extensive_relation(relation, point):
+    assert fundamental.euler_residual(relation, *point) < 1e-8
+
+
+def test_the_euler_relation_fails_for_a_relation_that_is_not_extensive():
+    """The check can fail: gravity's long range breaks extensivity, and Euler notices."""
+    star = fundamental.self_gravitating_gas(1e-20)
+    # With S ~ -(3/2) N k_B ln(-U/N^3), mu N = -T (S + (9/2) N k_B) and so U - TS - mu N = -2U:
+    # the relation misses twice the energy, and the check reports exactly that.
+    assert relative_error(fundamental.euler_residual(star, -1e-16, 1.0, 1000.0), 2.0) < 1e-6
+
+
+@pytest.mark.parametrize("relation, point", [
+    (ARGON, (GAS_U, GAS_V, GAS_N)),
+    (SOLID_09, SOLID_POINT),
+])
+def test_the_gibbs_duhem_relation_holds_along_a_small_displacement(relation, point):
+    u, v, n = point
+    residual = fundamental.gibbs_duhem_residual(relation, u, v, n, 1e-3 * u, 2e-3 * v, -1e-3 * n)
+    assert residual < 1e-5
+
+
+def test_the_curvature_of_s_gives_the_ideal_gas_heat_capacity():
+    capacity = fundamental.heat_capacity_of(ARGON, GAS_U, GAS_V, GAS_N)
+    assert relative_error(capacity, 1.5 * GAS_N * K_B) < 1e-5
+    assert fundamental.is_stable(ARGON, GAS_U, GAS_V, GAS_N)
+    assert fundamental.is_stable(SOLID_09, *SOLID_POINT)
+
+
+def test_a_convex_entropy_has_a_negative_heat_capacity_and_is_unstable():
+    star = fundamental.self_gravitating_gas(1e-20)
+    capacity = fundamental.heat_capacity_of(star, -1e-16, 1.0, 1000.0)
+    assert relative_error(capacity, -1.5 * 1000.0 * K_B) < 1e-5
+    assert not fundamental.is_stable(star, -1e-16, 1.0, 1000.0)
+    curvature = fundamental.concavity_check(star, np.linspace(-2e-16, -1e-16, 50), 1.0, 1000.0)
+    assert np.all(curvature > 0)
+
+
+def test_unequal_solids_share_one_temperature_and_split_their_energy_by_size():
+    """The equal-energy misconception, falsified: n_B = 10 n_A ends at a 1:10 energy split."""
+    total = 20.0 * 440 * QUANTUM_09
+    start = fundamental.Composite(SOLID_09, SOLID_09,
+                                  fundamental.Part(0.9 * total, 1.0, 40.0),
+                                  fundamental.Part(0.1 * total, 1.0, 400.0))
+
+    end = start.released("energy")
+
+    assert relative_error(end.slopes_a().temperature, end.slopes_b().temperature) < 1e-6
+    assert relative_error(end.b.energy / end.a.energy, 10.0) < 1e-6
+    assert end.total_entropy > start.total_entropy
+
+
+def test_freeing_the_piston_equalises_pressure_and_leaves_the_chemical_potential_matched():
+    """Gibbs-Duhem in action: once T and P agree, mu has nothing left to disagree about."""
+    start = fundamental.Composite(ARGON, ARGON,
+                                  fundamental.Part(1.5 * GAS_U, 0.5 * GAS_V, GAS_N),
+                                  fundamental.Part(0.5 * GAS_U, 1.5 * GAS_V, GAS_N))
+
+    end = start.released("energy", "volume")
+    a, b = end.slopes_a(), end.slopes_b()
+
+    assert relative_error(a.temperature, b.temperature) < 1e-6
+    assert relative_error(a.pressure, b.pressure) < 1e-6
+    assert relative_error(a.chemical_potential, b.chemical_potential) < 1e-6
+    perforated = end.released("energy", "particles")
+    assert relative_error(perforated.total_entropy, end.total_entropy) < 1e-12
+
+
+def test_a_movable_wall_that_keeps_each_sides_energy_is_refused():
+    start = fundamental.Composite(ARGON, ARGON,
+                                  fundamental.Part(GAS_U, GAS_V, GAS_N),
+                                  fundamental.Part(GAS_U, GAS_V, GAS_N))
+    with pytest.raises(ValueError, match="adiabatic-piston"):
+        start.released("volume")
+    with pytest.raises(ValueError, match="removes the wall"):
+        start.released("energy", "volume", "particles")
+
+
+def test_free_expansion_entropy_from_sackur_tetrode_matches_a_reversible_isotherm():
+    """Delta S = N k_B ln 2 three ways: the surface, 07's formula, and Q_rev/T on an isotherm."""
+    n_particles = 10_000
+    v1 = 1e-20
+    u = 1.5 * n_particles * K_B * GAS_T
+    from_surface = float(ARGON(u, 2.0 * v1, n_particles) - ARGON(u, v1, n_particles))
+
+    state = processes.EquilibriumState.from_temperature(n_particles, GAS_T, v1)
+    via_formula = engines.entropy_change_of_gas(processes.free_expansion(state, 2.0 * v1))
+    via_isotherm = processes.isothermal(state, 2.0 * v1).heat / GAS_T
+
+    expected = n_particles * K_B * np.log(2.0)
+    assert relative_error(from_surface, expected) < 1e-9
+    assert relative_error(via_formula, expected) < 1e-12
+    assert relative_error(via_isotherm, expected) < 1e-9
+
+
+def test_contact_between_equal_temperatures_produces_no_entropy():
+    assert fundamental.contact_entropy_production(4184.0, 300.0, 1000.0, 300.0) == 0.0
+
+
+@pytest.mark.parametrize("t_a, t_b", [(350.0, 290.0), (290.0, 350.0), (1000.0, 10.0)])
+def test_contact_across_a_temperature_difference_produces_entropy(t_a, t_b):
+    assert fundamental.contact_entropy_production(4184.0, t_a, 2000.0, t_b) > 0.0
+
+
+def test_the_stirling_surface_approaches_the_calorimetry_formula_linearly_in_the_quantum():
+    """C ln(T_eq/T_0) is the classical (high-T) limit of the Einstein surface; the gap ~ quantum."""
+    gaps = []
+    for quantum_in_kb in (10.0, 5.0, 2.5):
+        quantum = quantum_in_kb * K_B
+        state = equilibrium.from_temperatures(300, 100, 500.0, 250.0, quantum)
+        q = np.arange(state.total_quanta + 1)
+        surface = (fundamental.einstein_solid_entropy(q * quantum, 300, quantum)
+                   + fundamental.einstein_solid_entropy((state.total_quanta - q) * quantum, 100,
+                                                        quantum))
+        from_surface = surface.max() - surface[state.q_a]
+        closed = fundamental.contact_entropy_production(
+            state.heat_capacity_a, state.temperature_a, state.heat_capacity_b, state.temperature_b)
+        gaps.append(relative_error(from_surface, closed))
+    assert gaps[0] > gaps[1] > gaps[2]
+    assert relative_error(gaps[0] / gaps[1], 2.0) < 0.1
+    assert relative_error(gaps[1] / gaps[2], 2.0) < 0.1
+
+
+def test_the_ledger_climbs_to_the_peak_of_the_exact_count():
+    """The entropy ledger of module 01's run ends at the maximum of the pair's exact S_total."""
+    state = equilibrium.from_temperatures(300, 100, 500.0, 250.0, QUANTUM_09)
+    result = equilibrium.simulate_energy_exchange(state, 8 * state.total_quanta,
+                                                  np.random.default_rng(5))
+    ledger = equilibrium.entropy_produced(result)
+
+    q = np.arange(state.total_quanta + 1)
+    exact = (equilibrium.einstein_log_multiplicity(q, 300)
+             + equilibrium.einstein_log_multiplicity(state.total_quanta - q, 100))
+    ceiling = K_B * (exact.max() - exact[state.q_a])
+
+    assert ledger[-1] <= ceiling
+    assert relative_error(ledger[-1], ceiling) < 0.01

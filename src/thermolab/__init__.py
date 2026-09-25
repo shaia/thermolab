@@ -10,6 +10,7 @@ Modules:
     sampling             independent draws: sample averages, random walks, and the CLT
     forms                differential forms in the plane; exact versus inexact, as pure mathematics
     equilibrium          two bodies exchanging energy quanta until they share one temperature
+    fundamental          the fundamental relation S(U, V, N): slopes, extensivity, stability
     engines              closed cycles between reservoirs; efficiency and the second-law bound
     gases                the ideal gas, the van der Waals correction, and the critical point
     kinetics             free particles in a box; the microscopic origin of pressure
@@ -25,6 +26,7 @@ from . import (
     engines,
     equilibrium,
     forms,
+    fundamental,
     gases,
     kinetics,
     multiplicity,
@@ -45,6 +47,7 @@ __all__ = [
     "engines",
     "equilibrium",
     "forms",
+    "fundamental",
     "gases",
     "kinetics",
     "multiplicity",
