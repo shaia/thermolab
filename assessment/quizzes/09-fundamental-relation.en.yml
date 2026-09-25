@@ -1,0 +1,342 @@
+module: 09-fundamental-relation
+questions:
+  - id: Q-09-1
+    type: multiple-choice
+    objectives: [OBJ-09-1]
+    prompt: >-
+      This module takes four properties of the entropy as its starting point. Which of the
+      following is one that module 08 had already PROVED from counting, rather than one that
+      this module simply assumes?
+    choices:
+      - text: Entropies of independent subsystems add, because their multiplicities multiply and the logarithm turns a product into a sum.
+        correct: true
+        feedback: >-
+          Right. Given S = k_B ln Omega and independent subsystems, additivity is a theorem:
+          Omega_AB = Omega_A Omega_B, so S_AB = S_A + S_B. The postulates list it anyway,
+          because the thermodynamic argument has to stand on its own, whichever construction of
+          S you started from.
+      - text: The entropy surface is concave in every direction.
+        correct: false
+        feedback: >-
+          Concavity is the one postulate neither module 07 nor module 08 established. It is
+          assumed here, and its content is stability: a concave S is a positive heat capacity.
+          Stars break it, so it cannot be a theorem about all matter.
+      - text: Entropy is exactly extensive at every system size.
+        correct: false
+        feedback: >-
+          Module 08 measured the opposite: k_B ln Omega is extensive only in the limit of large
+          N, with ln N corrections that never vanish exactly. The postulate takes the limit as
+          given, which is an assumption, not something 08 proved.
+      - text: The equilibrium temperature is the heat-capacity-weighted average of the starting temperatures.
+        correct: false
+        feedback: >-
+          That is module 01's result from energy conservation, not a property of the entropy
+          function at all. This module explains why the flow stops there; it does not take it
+          as a postulate.
+
+  - id: Q-09-2
+    type: multiple-choice
+    objectives: [OBJ-09-3]
+    misconception: equal-energy-equilibrium
+    prompt: >-
+      A hot 2 kg block of copper and a cold 0.2 kg block of copper are pressed together and
+      insulated from everything else. What is true once they stop changing?
+    choices:
+      - text: They have equal temperatures, and the big block holds about ten times the small block's energy.
+        correct: true
+        feedback: >-
+          Right. Maximising the total entropy sets the slopes dS/dU of the two blocks equal,
+          and that slope is 1/T. Nothing ties a slope to a size, so the energies end in the
+          ratio of the heat capacities, here 10 : 1.
+      - text: They have equal energies, because equilibrium shares the energy out evenly.
+        correct: false
+        feedback: >-
+          This is the equal-energy misconception. What equilibrium maximises is the total
+          entropy, and at the maximum the two slopes of S(U) agree, not the two energies. A
+          pebble dropped in a lake ends at the lake's temperature holding almost none of the
+          energy.
+      - text: They have equal temperatures and equal energies, since each follows from the other.
+        correct: false
+        feedback: >-
+          Equal temperatures imply equal energies only for two identical bodies. For bodies of
+          different sizes the same temperature means different energies, in proportion to their
+          heat capacities.
+      - text: Neither is equal; the flow stops when the entropy of each block separately stops rising.
+        correct: false
+        feedback: >-
+          The hot block's entropy falls the whole time, so waiting for each block's entropy to
+          stop rising gives nothing. What stops rising is the TOTAL, and it peaks exactly
+          where the temperatures agree.
+
+  - id: Q-09-3
+    type: numeric
+    objectives: [OBJ-09-2]
+    prompt: >-
+      A table of a system's entropy at fixed volume and particle number gives S = 2.3400 J/K at
+      U = 99.0 J and S = 2.3466 J/K at U = 101.0 J. Estimate the system's temperature at
+      U = 100 J, in kelvin.
+    answer: 303.0
+    tolerance: 3.0
+    feedback: >-
+      The slope is dS/dU = (2.3466 - 2.3400) / (101.0 - 99.0) = 0.0033 K^-1, and that slope is
+      1/T, so T = 1/0.0033 = 303 K. A central difference like this one is accurate to second
+      order in the step. If you got 0.0033 you stopped at the slope; if you got about 7 you
+      divided S by U, which is not a derivative.
+
+  - id: Q-09-4
+    type: multiple-choice
+    objectives: [OBJ-09-3]
+    prompt: >-
+      Two systems share a heat-conducting wall. At the moment, the slope dS_1/dU_1 of system 1
+      is larger than the slope dS_2/dU_2 of system 2. Which way does energy flow?
+    choices:
+      - text: Into system 1, which is the colder of the two.
+        correct: true
+        feedback: >-
+          Right. Moving dU into system 1 changes the total entropy by (dS_1/dU_1 - dS_2/dU_2) dU,
+          which is positive, so the transfer is favoured. A larger slope is a larger 1/T, a
+          lower temperature: heat flows to the colder body because that raises the total
+          entropy.
+      - text: Into system 2, because a steeper slope means a hotter body.
+        correct: false
+        feedback: >-
+          The slope is 1/T, so steeper means colder, not hotter. Check with the sign of the
+          entropy change: moving energy into system 2 lowers the total entropy here.
+      - text: Nowhere; energy flows only when the energies differ, not the slopes.
+        correct: false
+        feedback: >-
+          Energy keeps flowing until the slopes match, whatever the energies are. Two bodies of
+          very different energy can be in equilibrium, and two of equal energy need not be.
+      - text: It cannot be decided without knowing the two heat capacities.
+        correct: false
+        feedback: >-
+          The heat capacities decide how far each temperature moves, and so where the flow
+          stops. The direction is fixed by the slopes alone.
+
+  - id: Q-09-5
+    type: numeric
+    objectives: [OBJ-09-4]
+    prompt: >-
+      For some one-component system, T = 300 K, S = 150 J/K, P = 1.00e5 Pa, V = 0.0250 m^3,
+      and the product mu N = -40000 J. Use the Euler relation to find the internal energy U,
+      in joules.
+    answer: 2500
+    tolerance: 20
+    feedback: >-
+      U = T S - P V + mu N = 45000 - 2500 - 40000 = 2500 J. Watch the two signs: the PV term
+      enters with a minus, and mu N is itself negative here. The Euler relation needs nothing
+      but extensivity, so these numbers are consistent with any extensive system.
+
+  - id: Q-09-6
+    type: multiple-choice
+    objectives: [OBJ-09-4]
+    prompt: >-
+      A one-component system's temperature is changed by dT and its pressure by dP. Can its
+      chemical potential change by any amount you like?
+    choices:
+      - text: No. The Gibbs-Duhem relation fixes it at dmu = (V dP - S dT) / N.
+        correct: true
+        feedback: >-
+          Right. S dT - V dP + N dmu = 0 leaves no freedom: of the three intensive variables,
+          only two can be chosen. This is why, once two subsystems of the same substance agree
+          on T and P, they automatically agree on mu.
+      - text: Yes. T, P and mu are three independent state variables.
+        correct: false
+        feedback: >-
+          They look independent, but extensivity ties them together through Gibbs-Duhem. A
+          single phase has only two independent intensive variables.
+      - text: Only if the system is an ideal gas; otherwise it is free.
+        correct: false
+        feedback: >-
+          Gibbs-Duhem uses nothing about the ideal gas. It follows from the Euler relation,
+          which needs only extensivity, so it holds for every substance.
+      - text: Yes, but only if N is also allowed to change.
+        correct: false
+        feedback: >-
+          The relation involves N itself, not dN; changing the amount of substance at fixed T
+          and P changes nothing intensive. mu is fixed by T and P either way.
+
+  - id: Q-09-7
+    type: multiple-choice
+    objectives: [OBJ-09-5]
+    prompt: >-
+      Suppose a substance's entropy S(U) curved UPWARDS over some range of energy. Two
+      identical pieces of it, in that range and at the same temperature, are put in contact.
+      What happens?
+    choices:
+      - text: Any small transfer of energy between them raises the total entropy and grows, so the pieces run away to a hot one and a cold one.
+        correct: true
+        feedback: >-
+          Right. On a convex curve the chord lies above the curve, so S(U + delta) + S(U -
+          delta) exceeds 2 S(U): every fluctuation is rewarded. Equivalently the heat capacity
+          is negative, and the piece that loses energy gets hotter. A star is such a system.
+      - text: Nothing observable; they stay in equilibrium, because their temperatures are equal.
+        correct: false
+        feedback: >-
+          Equal temperatures make the equal split a stationary point of S_total, but on a
+          convex curve it is a minimum, not a maximum. Any fluctuation moves the pair away,
+          and nothing moves it back.
+      - text: They stay at equal temperatures but their energies oscillate back and forth forever.
+        correct: false
+        feedback: >-
+          Oscillation would need a restoring tendency, and a convex entropy supplies the
+          opposite: every departure from the equal split raises the total entropy further.
+      - text: The substance would have to be at negative absolute temperature.
+        correct: false
+        feedback: >-
+          The slope can be positive while the curvature is positive, as it is for a star. What
+          a convex S gives is a negative heat capacity, not a negative temperature.
+
+  - id: Q-09-8
+    type: numeric
+    objectives: [OBJ-09-6]
+    prompt: >-
+      One kilogram of water at 350 K is mixed with one kilogram of water at 290 K in an
+      insulated flask. Take the specific heat as 4184 J/(kg K). Compute the total entropy
+      produced, in J/K.
+    answer: 36.94
+    tolerance: 0.5
+    feedback: >-
+      T_eq = 320 K. Delta S_total = 4184 ln(320/350) + 4184 ln(320/290) = -374.9 + 411.9 =
+      36.9 J/K. The hot water's entropy fell and the cold water's rose by more. If you got
+      zero you assumed the heat Q carried equal entropy out and in, but it left at a higher
+      temperature than it arrived: Q/T_hot is less than Q/T_cold.
+
+  - id: Q-09-9
+    type: multiple-choice
+    objectives: [OBJ-09-6]
+    misconception: entropy-flow-is-production
+    prompt: >-
+      An ideal gas expands slowly along an isotherm at 300 K, in contact with a bath at exactly
+      300 K, absorbing 600 J of heat. What happens to entropy?
+    choices:
+      - text: 2 J/K flows from the bath into the gas, and none is produced.
+        correct: true
+        feedback: >-
+          Right. The gas gains Q/T = 2 J/K and the bath loses exactly 2 J/K: entropy has moved,
+          and the total has not changed. Production needs an irreversibility, such as heat
+          crossing a temperature difference; flow on its own is not one.
+      - text: 2 J/K is produced, because entropy moved into the gas.
+        correct: false
+        feedback: >-
+          This is the flow-is-production misconception. The bath's entropy fell by exactly what
+          the gas's rose, so the total change, which is what production means, is zero.
+      - text: 4 J/K is produced, 2 J/K in the gas and 2 J/K in the bath.
+        correct: false
+        feedback: >-
+          The bath gave up heat, so its entropy fell, it did not rise. The two changes cancel
+          exactly for a reversible exchange.
+      - text: No entropy moves at all, because the temperature stayed constant.
+        correct: false
+        feedback: >-
+          Constant temperature does not mean constant entropy. The gas took in 600 J of heat at
+          300 K, and that carried 2 J/K of entropy in with it.
+
+  - id: Q-09-10
+    type: multiple-choice
+    objectives: [OBJ-09-6]
+    misconception: entropy-undefined-off-equilibrium
+    prompt: >-
+      A gas at 300 K rushes freely from 1 L into an evacuated 2 L box. None of the states in
+      between is an equilibrium state. What can be said about the gas's entropy change?
+    choices:
+      - text: It is N k_B ln 2, found by any reversible path between the same two equilibrium end states.
+        correct: true
+        feedback: >-
+          Right. S is a function of the equilibrium state, and both end states are equilibrium
+          states. A reversible isotherm from 1 L to 2 L connects them, and integrating delta-Q_rev/T
+          along it gives N k_B ln 2. The same number comes from the Sackur-Tetrode function and
+          from counting positions.
+      - text: It cannot be computed, because entropy is defined only at equilibrium and the process passed through none.
+        correct: false
+        feedback: >-
+          The intermediate states do not need to be equilibrium states, only the endpoints do.
+          Entropy belongs to states, not to the route, so any reversible route between the same
+          endpoints is a legitimate instrument for computing it.
+      - text: It is zero, because no heat was exchanged.
+        correct: false
+        feedback: >-
+          dS = delta-Q/T holds only for a reversible exchange. In a free expansion the entropy rises
+          by N k_B ln 2 with no heat at all: it is all produced, none received.
+      - text: It is negative, because the gas cooled as it expanded.
+        correct: false
+        feedback: >-
+          An ideal gas expanding into vacuum does no work and receives no heat, so its energy
+          and temperature are unchanged. And even a gas that did cool could not lower its
+          entropy in an isolated process.
+
+  - id: Q-09-11
+    type: prediction
+    objectives: [OBJ-09-7, OBJ-09-1]
+    prompt: >-
+      Before running the ledger in the laboratory: module 01's two solids relax toward a common
+      temperature, one random quantum hop per step. You track their exact total entropy after
+      every step. Predict (a) whether it ever goes down on a single step, (b) where it ends, and
+      (c) what its overall rise does and does not prove.
+    discussion: >-
+      (a) Yes, often: on roughly a fifth of all steps a quantum hops the "wrong" way and the
+      total entropy dips, by about 0.01 k_B at most, while the whole rise is about 15 k_B. (b)
+      It flattens just under the maximum total entropy any partition of that energy has, at
+      exactly the moment the temperatures meet. (c) It illustrates the maximum postulate on one
+      run, and the fact that it is monotone only within noise is the statistical character of
+      the second law made visible. It proves nothing: a finite run cannot establish a law, and
+      the proof is module 08's counting, which says the macrostates near the peak have
+      overwhelmingly more microstates. If you predicted that it could never dip, notice that
+      nothing in the dynamics knows about entropy at all.
+
+  - id: Q-09-12
+    type: multiple-choice
+    objectives: [OBJ-09-7, OBJ-09-3]
+    prompt: >-
+      Einstein solid A has 100 oscillators and solid B has 300. Together they hold 2000 energy
+      quanta. At equilibrium, how are the quanta shared?
+    choices:
+      - text: 500 in A and 1500 in B, the same average per oscillator.
+        correct: true
+        feedback: >-
+          Right. Equal slopes of S(U, n) = k_B [(q + n) ln(q + n) - q ln q - n ln n] mean equal
+          ln(1 + n/q), so q_A/n_A = q_B/n_B: 5 quanta per oscillator in each.
+      - text: 1000 in each, so that the energies are equal.
+        correct: false
+        feedback: >-
+          Equal energies would leave A with 10 quanta per oscillator and B with 3.3: A would
+          be much hotter, and energy would still be flowing from A to B.
+      - text: 1500 in A and 500 in B, since the smaller solid gets hotter more easily.
+        correct: false
+        feedback: >-
+          A smaller solid does heat up more for the same energy, which is exactly why it ends
+          with LESS of the energy at a shared temperature, not more.
+      - text: It depends on how the quanta were shared at the start.
+        correct: false
+        feedback: >-
+          The starting split decides how much entropy is produced on the way, not where the
+          pair ends. The maximum of the total entropy depends only on the total energy and the
+          two sizes.
+
+  - id: Q-09-13
+    type: multiple-choice
+    objectives: [OBJ-09-2]
+    prompt: >-
+      The Sackur-Tetrode entropy of a monatomic gas depends on the volume only through a term
+      N k_B ln V. What does the slope dS/dV at fixed U and N give?
+    choices:
+      - text: P/T = N k_B / V, which is the ideal gas law.
+        correct: true
+        feedback: >-
+          Right. The volume slope of S is P/T, so the one ln V term alone yields P V = N k_B T.
+          The equation of state was never put in; it was read off the fundamental relation.
+      - text: The pressure P itself, P = N k_B / V.
+        correct: false
+        feedback: >-
+          The slope dS/dV is P/T, not P. Check the units: an entropy per volume is J/(K m^3),
+          which is a pressure divided by a temperature.
+      - text: Nothing physical; only the energy slope of S has a meaning.
+        correct: false
+        feedback: >-
+          All three slopes of S(U, V, N) have a meaning: 1/T, P/T and -mu/T. That the volume
+          slope is P/T was checked on this page with a reversible adiabatic compression.
+      - text: The heat capacity at constant volume.
+        correct: false
+        feedback: >-
+          Heat capacities come from SECOND derivatives of S with respect to U: the curvature
+          d^2S/dU^2 = -1/(T^2 C_V). A first derivative with respect to V gives P/T.

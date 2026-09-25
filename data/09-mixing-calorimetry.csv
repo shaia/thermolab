@@ -1,0 +1,98 @@
+# NOTE: byte-identical copies at notebooks/{en,he}/labs/data/09-mixing-calorimetry.csv --
+# JupyterLite only bundles the notebooks/ tree (jupyter_lite_config.json: "contents":
+# ["notebooks"]), so each language's laboratory notebook needs its own co-located copy to
+# run in the browser. Keep all three in sync -- scripts/check_parity.py enforces it.
+#
+# Mixing calorimetry: 0.150 kg of hot water poured into 0.200 kg of cold water in a foam cup
+# at t = 0, with the lid on and a thermometer in each vessel beforehand and one in the mixture
+# afterwards, read every 10 s to 0.01 K.
+#
+# Hand-constructed for this course as one representative run, not a transcription of a
+# measurement made in this room. The numbers follow what the experiment really does, including
+# the two things that make it an experiment rather than an exercise: the hot water cools
+# slowly toward the room before it is poured, and the mixture keeps losing heat to the room
+# afterwards, so no single reading is "the" final temperature -- it has to be extrapolated back
+# to the moment of mixing. The cup and the probe also absorb a little of the heat. Readings
+# carry +-0.03 K of random scatter.
+#
+# If you do the experiment -- two mugs, a foam cup, a kitchen thermometer, a kitchen scale --
+# replace this file with your own readings in the same four columns and rerun the notebook.
+#
+# Columns: t_s,T_hot_K,T_cold_K,T_mix_K -- time in seconds (mixing at t = 0), then kelvin.
+# Before mixing only the two separate vessels are read; afterwards only the mixture. An empty
+# field is a reading that does not exist. The column names stay inside this comment block
+# because the notebook reads the file with np.genfromtxt(comments="#"), which turns the empty
+# fields into NaN.
+-120,345.38,291.06,
+-110,345.29,291.10,
+-100,345.32,291.05,
+-90,345.24,291.07,
+-80,345.19,291.06,
+-70,345.17,291.09,
+-60,345.10,291.07,
+-50,345.05,291.06,
+-40,344.99,291.10,
+-30,344.95,291.04,
+-20,344.89,291.11,
+-10,344.84,291.09,
+0,344.82,291.15,
+10,,,313.44
+20,,,313.65
+30,,,313.58
+40,,,313.58
+50,,,313.50
+60,,,313.54
+70,,,313.48
+80,,,313.46
+90,,,313.36
+100,,,313.37
+110,,,313.29
+120,,,313.26
+130,,,313.25
+140,,,313.22
+150,,,313.17
+160,,,313.10
+170,,,313.06
+180,,,313.09
+190,,,313.03
+200,,,312.99
+210,,,313.00
+220,,,312.87
+230,,,312.94
+240,,,312.92
+250,,,312.84
+260,,,312.78
+270,,,312.70
+280,,,312.71
+290,,,312.63
+300,,,312.61
+310,,,312.56
+320,,,312.54
+330,,,312.54
+340,,,312.45
+350,,,312.40
+360,,,312.36
+370,,,312.33
+380,,,312.28
+390,,,312.26
+400,,,312.29
+410,,,312.19
+420,,,312.18
+430,,,312.10
+440,,,312.11
+450,,,312.02
+460,,,312.01
+470,,,312.07
+480,,,311.95
+490,,,311.96
+500,,,311.91
+510,,,311.85
+520,,,311.80
+530,,,311.83
+540,,,311.75
+550,,,311.77
+560,,,311.66
+570,,,311.65
+580,,,311.63
+590,,,311.59
+600,,,311.51

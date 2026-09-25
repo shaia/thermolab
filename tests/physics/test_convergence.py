@@ -13,7 +13,17 @@ import numpy as np
 import pytest
 from scipy.special import ndtr
 
-from thermolab import engines, equilibrium, forms, gases, kinetics, paths, processes, sampling
+from thermolab import (
+    engines,
+    equilibrium,
+    forms,
+    fundamental,
+    gases,
+    kinetics,
+    paths,
+    processes,
+    sampling,
+)
 from thermolab.constants import K_B
 from thermolab.validation import convergence_study, relative_error
 
@@ -395,3 +405,53 @@ def test_entropy_production_vanishes_as_the_temperature_gaps_close():
     assert all(later < earlier for earlier, later in pairwise(produced))
     ratios = produced[:-1] / produced[1:]
     assert np.all(ratios > 1.8) and np.all(ratios < 2.2)
+
+
+# ---------------------------------------------------------------------------
+# Module 09: slopes by central differences
+# ---------------------------------------------------------------------------
+
+
+def test_the_numerical_temperature_converges_at_second_order_in_the_step():
+    """Halving the step quarters the error: a central difference, not a one-sided one."""
+    quantum = 5.0 * K_B
+    solid = fundamental.einstein_solid(quantum)
+    u, n = 2.0 * 300 * quantum, 300
+    exact = float(fundamental.einstein_solid_temperature(u, n, quantum))
+
+    study = convergence_study(
+        lambda k: fundamental.temperature_of(solid, u, 1.0, n, rel_step=1.0 / k),
+        refinements=[5, 10, 20, 40, 80],
+        exact=exact,
+    )
+
+    assert 1.9 < study.observed_order < 2.1
+
+
+def test_the_gibbs_duhem_residual_vanishes_as_the_displacement_shrinks():
+    gas = fundamental.monatomic_ideal_gas(ARGON_MASS)
+    u, v, n = 6.2, 4.1e-2, 1e21
+    residuals = [
+        fundamental.gibbs_duhem_residual(gas, u, v, n, d * u, 2 * d * v, -d * n)
+        for d in (4e-2, 2e-2, 1e-2)
+    ]
+    assert residuals[0] > residuals[1] > residuals[2]
+    assert residuals[1] / residuals[2] > 3.0  # second order: ~4 per halving
+
+
+def test_the_scanned_peak_converges_on_the_maximiser_as_the_grid_refines():
+    quantum = 5.0 * K_B
+    solid = fundamental.einstein_solid(quantum)
+    total = 20.0 * 440 * quantum
+    start = fundamental.Composite(solid, solid,
+                                  fundamental.Part(0.9 * total, 1.0, 40.0),
+                                  fundamental.Part(0.1 * total, 1.0, 400.0))
+    exact_share = start.released("energy").a.energy / total
+
+    def scanned_share(n_points: int) -> float:
+        u_a, s_a, s_b = start.energy_scan(n_points)
+        return float(u_a[np.argmax(s_a + s_b)] / total)
+
+    errors = [abs(scanned_share(k) - exact_share) for k in (101, 1001, 10001)]
+    assert errors[-1] < 1e-4
+    assert errors[-1] < errors[0]

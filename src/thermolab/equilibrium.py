@@ -34,15 +34,41 @@ T_A - T_B is itself linear in q_a at fixed Q. The result is the macroscopic expo
 relaxation this module derives on the page, T_A(t) - T_B(t) = (T_A(0) - T_B(0)) exp(-t/tau),
 with the pair settling at T_eq = (C_A T_A + C_B T_B) / (C_A + C_B). Module 8 stops at "the
 even split dominates"; this module adds the dynamics that gets there and clocks how fast.
+
+THE ENTROPY LEDGER (module 09)
+    `entropy_produced` follows the pair's total entropy along a run, counting each body's
+    microstates exactly: n oscillators holding q unlabelled quanta have C(q + n - 1, q) of them
+    (stars and bars). Two things about that count and this dynamics are worth knowing before
+    reading a ledger.
+
+    The hop rule above moves one *labelled* quantum at a time, so its own stationary
+    distribution of q_a is the binomial one of Q labelled quanta spread over n_a + n_b
+    oscillators -- not the Einstein count. The two share their peak exactly: both put
+    q_a/n_a = q_b/n_b, which is what the ledger climbs to. They differ in the spread about it,
+    the labelled model's being narrower by a factor sqrt(1 + Q/(n_a + n_b)). So the ledger's
+    rise and plateau are faithful; its jitter on the plateau is quieter than a real Einstein
+    solid's would be.
+
+    And the ledger ticks *down* on a large fraction of single steps -- every time a quantum
+    happens to hop the "wrong" way. That is not a bug. It is module 08's point that the second
+    law is a statement about overwhelming probability, not a rule obeyed step by step.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import numpy as np
 
 from .constants import K_B
+
+# ln Γ(x), elementwise, from the standard library -- see `multiplicity` for why not scipy.
+_log_gamma_elementwise = np.frompyfunc(math.lgamma, 1, 1)
+
+
+def _log_gamma(values) -> np.ndarray:
+    return np.asarray(_log_gamma_elementwise(np.asarray(values, dtype=float)), dtype=float)
 
 
 @dataclass(frozen=True)
@@ -223,3 +249,51 @@ def relaxation_time(state: TwoBodyState) -> float:
     if q < 2:
         raise ValueError("relaxation_time needs at least two quanta to exchange")
     return float(-1.0 / np.log(1.0 - 1.0 / q))
+
+
+# ---------------------------------------------------------------------------
+# The entropy ledger (module 09)
+# ---------------------------------------------------------------------------
+
+
+def einstein_log_multiplicity(quanta, oscillators: int) -> np.ndarray:
+    """Exact ln Omega = ln C(q + n - 1, q) for n oscillators sharing q quanta, elementwise.
+
+    Stars and bars: arrange q identical quanta and n - 1 dividers in a row. Exact at every
+    size, through log-gamma, so a ledger built from it carries no Stirling error at all -- the
+    smooth `fundamental.einstein_solid_entropy` is then an approximation that can be measured
+    against it, the way module 08 measured Stirling itself.
+    """
+    if oscillators < 1:
+        raise ValueError("a solid needs at least one oscillator")
+    q = np.asarray(quanta, dtype=float)
+    if np.any(q < 0):
+        raise ValueError("quanta must be non-negative")
+    return _log_gamma(q + oscillators) - _log_gamma(q + 1.0) - math.lgamma(oscillators)
+
+
+def total_entropy(state: TwoBodyState) -> float:
+    """S_A + S_B = k_B (ln Omega_A + ln Omega_B) of the pair's current macrostate [J/K]."""
+    return float(K_B * (einstein_log_multiplicity(state.q_a, state.n_a)
+                        + einstein_log_multiplicity(state.q_b, state.n_b)))
+
+
+def entropy_produced(result: ExchangeResult) -> np.ndarray:
+    """Cumulative Delta S_total(t) along a run, one entry per step [J/K].
+
+        Delta S_total(t) = k_B [ln Omega_A(q_a(t)) + ln Omega_B(q_b(t))] - S_total(0)
+
+    The pair is isolated, so nothing crosses its outer boundary: every change in its total
+    entropy is entropy produced, none of it received. Evaluated in one vectorised pass, and
+    `result` is only read -- its arrays are not modified.
+
+    Expect it to rise and flatten as the temperatures meet, and expect it to dip on single
+    steps; see the module docstring. That it rises *overall* is an observation about this run,
+    never a proof: the proof is the counting argument on the module-09 page.
+    """
+    initial = result.initial
+    ln_omega = (einstein_log_multiplicity(result.q_a, initial.n_a)
+                + einstein_log_multiplicity(result.q_b, initial.n_b))
+    start = (einstein_log_multiplicity(initial.q_a, initial.n_a)
+             + einstein_log_multiplicity(initial.q_b, initial.n_b))
+    return K_B * (ln_omega - start)
