@@ -33,3 +33,13 @@ pre * {
 table {
   direction: rtl;
 }
+
+/* Never break inline math across lines. KaTeX offers a line break after every relation and
+   binary operator (`=`, `>`, `-`), and in an RTL paragraph the two halves then land on
+   separate lines in the wrong reading order — the right-hand side of an equation printed
+   above its left-hand side. Only Hebrew needs this: in the LTR build a split formula still
+   reads in order. The cost is that a very long inline formula overflows a narrow column
+   instead of wrapping, which is why long relations still belong in display math. */
+.katex {
+  white-space: nowrap;
+}
