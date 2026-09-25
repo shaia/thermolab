@@ -286,11 +286,14 @@ The state-versus-path distinction is not a quirk of gases.
 
 :::{admonition} Reversible does not simply mean "can run backwards"
 :class: model-assumption
-A quasistatic process can be reversed *and leave no trace*: run it backwards and both system
-and surroundings return to their original states. Many processes can be run backwards in the
-weaker sense of returning the system alone — a gas can be compressed back to its old volume
-after a free expansion — while leaving the surroundings permanently changed. That distinction
-is what the second law is about, and confusing the two makes module 7 impossible.
+A reversible process can be reversed *and leave no trace*: run it backwards and both system
+and surroundings return to their original states. Being quasistatic is necessary for that but
+not enough — the process must also be free of friction, and no heat may cross a finite
+temperature difference. Many processes can be run backwards in the weaker sense of returning
+the system alone — a gas can be compressed back to its old volume after a free expansion —
+while leaving the surroundings permanently changed. That distinction is what the second law is
+about, and confusing the two makes
+[module 7](07-second-law.md#07-second-law-reversibility) impossible.
 :::
 
 (05-work-paths-quiz)=
@@ -343,7 +346,8 @@ $$
 and now the cross-derivatives both vanish. The inexact $\delta Q$ has become an exact
 differential, and the state function whose differential it is has a name: the entropy,
 $dS = \delta Q_{\text{rev}}/T$. That $1/T$ is an integrating factor for heat is one way to
-state the second law, and it is where module 8 begins.
+state the second law, and it is what
+[module 7's Clausius inequality](07-second-law.md#07-second-law-entropy) establishes.
 
 **Irreversible work, properly.** When a piston is slammed down, the gas near it is compressed
 before the far side knows anything has happened; there is no single $P$ and the $P$–$V$ plane

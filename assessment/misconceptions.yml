@@ -99,3 +99,7 @@ misconceptions:
     statement: "A refrigerator lowers the entropy of its contents, so it violates the second law."
     assigned_module: 07-second-law
     status: addressed
+  - id: slow-means-reversible
+    statement: "Any process carried out slowly enough is reversible."
+    assigned_module: 07-second-law
+    status: addressed

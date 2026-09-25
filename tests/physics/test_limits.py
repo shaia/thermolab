@@ -959,3 +959,96 @@ def test_the_maximum_power_efficiency_sits_below_the_carnot_bound():
         assert engines.curzon_ahlborn_efficiency(t_hot, t_cold) < engines.carnot_efficiency(
             t_hot, t_cold
         )
+
+
+def test_lost_work_equals_the_cold_temperature_times_the_entropy_produced():
+    """Gouy–Stodola: what a gapped engine fails to deliver is exactly T_c S_gen.
+
+    Compared against a perfect Carnot engine drawing the *same* heat from the hot reservoir.
+    The two sides are computed by unrelated routes — one from the work ledger, one from the
+    Clausius sum over the reservoirs — so their agreement is a real check, and it is the
+    number the module's lost-work section promises.
+    """
+    for hot_gap, cold_gap in [(10.0, 0.0), (0.0, 10.0), (40.0, 40.0), (100.0, 100.0)]:
+        cycle = engines.endoreversible_cycle(1000, 600.0, 300.0, 1e-3, 2.5, hot_gap, cold_gap)
+        lost = cycle.heat_absorbed * cycle.carnot_bound - cycle.work_output
+
+        assert relative_error(lost, cycle.t_cold * cycle.entropy_produced) < 1e-9
+
+
+@pytest.mark.parametrize("degrees_of_freedom", [3, 5])
+@pytest.mark.parametrize("compression_ratio", [2.0, 8.0, 12.0])
+def test_an_otto_cycle_falls_below_carnot_between_its_own_extreme_temperatures(
+    degrees_of_freedom, compression_ratio
+):
+    """Every stroke is reversible, yet the engine cannot reach 1 - T_min/T_max.
+
+    Its heat enters while the gas climbs from T_2 to T_max and leaves while it falls from T_4
+    to T_min, so no joule is taken in at the top or rejected at the bottom. And because no
+    single reservoir temperature describes either transfer, the Clausius sum refuses to
+    exist rather than inventing a denominator.
+    """
+    cycle = engines.otto_cycle(1000, 300.0, 5e-4, compression_ratio, 3e-17, degrees_of_freedom)
+
+    assert cycle.efficiency < cycle.carnot_bound
+    assert (cycle.carnot_bound - cycle.efficiency) / cycle.carnot_bound > 1e-3
+    with pytest.raises(ValueError, match="names no reservoir"):
+        _ = cycle.clausius_sum
+
+
+@pytest.mark.parametrize("degrees_of_freedom", [3, 5])
+@pytest.mark.parametrize(
+    "load_ratio", [0.02, 0.1, 0.3, 0.6, 0.85, 1.2, 1.5, 3.0, 6.0]
+)
+def test_no_adiabatic_route_ends_colder_than_the_quasistatic_adiabat(
+    degrees_of_freedom, load_ratio
+):
+    """The Kelvin statement's consequence for module 06's three routes.
+
+    Release the piston against any constant load, expanding (load below the gas's pressure)
+    or compressing (load above it), and compare with the quasistatic adiabat taken to the
+    *same* final volume. The loaded route always ends hotter. If one ended colder, warming it
+    at fixed volume from a single reservoir and returning along the quasistatic adiabat
+    would turn that reservoir's heat wholly into work.
+
+    Loads near the gas's own pressure are left out: there the gap vanishes as the square of
+    the mismatch and rounding, not physics, would decide its sign.
+    """
+    start = processes.EquilibriumState.from_temperature(1000, 300.0, 1e-3, degrees_of_freedom)
+    gamma = processes.gamma_from_dof(degrees_of_freedom)
+
+    loaded = processes.adiabatic_against_constant_pressure(start, load_ratio * start.pressure)
+    quasistatic = float(
+        processes.adiabatic_final_temperature(
+            start.temperature, start.volume, loaded.end.volume, gamma
+        )
+    )
+
+    assert (loaded.end.temperature - quasistatic) / quasistatic > 1e-6
+
+
+def test_a_free_expansion_cycle_has_a_clausius_sum_of_minus_n_kb_ln2():
+    """Free expansion to 2V, then isothermal recompression against a reservoir at T.
+
+    The gas's entropy is a state function: it rises by N k_B ln 2 on the free expansion,
+    exactly what the reversible isotherm would have given, though no heat crossed. The loop
+    integral over the reservoir sees only the recompression, and comes out at -N k_B ln 2 —
+    strictly negative, the Clausius inequality with an irreversible stroke in the loop.
+    """
+    n_particles, temperature = 1000, 300.0
+    start = processes.EquilibriumState.from_temperature(n_particles, temperature, 1e-3)
+    expansion = processes.free_expansion(start, 2e-3)
+    recompression = processes.isothermal(expansion.end, 1e-3)
+    # One reservoir only. CycleResult insists on a hot/cold pair for its Carnot bound, which
+    # this test never reads, so the hot one is a placeholder no stroke touches.
+    cycle = engines.CycleResult(
+        label="free expansion and back",
+        strokes=(engines.Stroke(expansion), engines.Stroke(recompression, temperature)),
+        t_hot=temperature * 1.5,
+        t_cold=temperature,
+    )
+    expected = n_particles * K_B * np.log(2.0)
+
+    assert relative_error(engines.entropy_change_of_gas(expansion), expected) < 1e-12
+    assert relative_error(cycle.clausius_sum, -expected) < 1e-9
+    assert relative_error(cycle.entropy_produced, expected) < 1e-9
