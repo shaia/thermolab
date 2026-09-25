@@ -20,10 +20,25 @@ N^(-1/2), so by N ~ 10^20 the gas has no realistic chance of visibly departing f
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
-from scipy.special import gammaln
 
 from .constants import K_B
+
+# ln Γ(x), elementwise. `scipy.special.gammaln` computes exactly this and computes it faster,
+# but scipy is the one dependency this package must not have. JupyterLite's kernel loads
+# Pyodide packages by scanning the *executed cell* for imports, so it never sees a transitive
+# import inside an installed package: `from thermolab import ...` reached this line and died
+# on a missing scipy in the browser while every local check passed. `math.lgamma` is in the
+# standard library, is the same function to the last bit, and needs nothing installed.
+# `tests/content/test_browser_imports.py` now fails if a third-party import creeps back in.
+_log_gamma_elementwise = np.frompyfunc(math.lgamma, 1, 1)
+
+
+def _log_gamma(values: float | np.ndarray) -> np.ndarray:
+    """ln Γ(x) for a scalar or an array, returned as float (frompyfunc yields object dtype)."""
+    return np.asarray(_log_gamma_elementwise(np.asarray(values, dtype=float)), dtype=float)
 
 
 def multiplicity(n_objects: int, n_in_first_state: int) -> float:
@@ -40,14 +55,14 @@ def log_multiplicity(n_objects: int, n_in_first_state: int) -> float:
     """ln Ω(N, n), computed with log-gamma so it stays exact for large N."""
     _validate(n_objects, n_in_first_state)
     n, k = float(n_objects), float(n_in_first_state)
-    return float(gammaln(n + 1) - gammaln(k + 1) - gammaln(n - k + 1))
+    return float(_log_gamma(n + 1) - _log_gamma(k + 1) - _log_gamma(n - k + 1))
 
 
 def log_multiplicity_array(n_objects: int, counts: np.ndarray) -> np.ndarray:
     """Vectorised ln Ω over an array of macrostate labels."""
     counts = np.asarray(counts, dtype=float)
     n = float(n_objects)
-    return gammaln(n + 1) - gammaln(counts + 1) - gammaln(n - counts + 1)
+    return _log_gamma(n + 1) - _log_gamma(counts + 1) - _log_gamma(n - counts + 1)
 
 
 def entropy(n_objects: int, n_in_first_state: int) -> float:
@@ -65,7 +80,7 @@ def stirling_log_factorial(n: int, order: int = 1) -> float:
     """Stirling's approximation to ln(N!).
 
     order=0 gives the form used in most thermodynamics derivations, N ln N - N;
-    order=1 adds the (1/2) ln(2πN) term. The exact value is `gammaln(n+1)`, so the tests can
+    order=1 adds the (1/2) ln(2πN) term. The exact value is `math.lgamma(n+1)`, so the tests can
     measure how good the approximation is instead of taking it on faith.
     """
     if n < 1:

@@ -74,10 +74,13 @@ jobs:
 
       # After the build, not before: check_parity.py resolves every figure target on disk and the
       # module pages include generated quiz files — both are gitignored and only exist once the
-      # build has produced them. --fast skips the notebook execution pass; ruff, the physics tests
-      # and the four content validators still gate the deployment.
+      # build has produced them.
+      #
+      # No --fast here. It skips the notebook execution pass, which meant CI never ran a
+      # notebook at all — not in the browser, not even on the desktop — while deploying the
+      # bundle that contains them.
       - name: Validate
-        run: uv run python scripts/validate_all.py --fast
+        run: uv run python scripts/validate_all.py
 
       # Actions deployments never run Jekyll, so this is only insurance against a future change
       # in how the artifact is served: the bundle contains _quiz/ path segments that Jekyll drops.
@@ -87,9 +90,61 @@ jobs:
         with:
           path: _site
 
+      # Only the JupyterLite bundle travels to the browser job: it navigates straight to
+      # /lite/lab/index.html and never loads a MyST page, so the other 85 MB of _site would be
+      # transferred for nothing.
+      - name: Upload the laboratory bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: lite-bundle
+          path: _site/lite
+          retention-days: 1
+
+  # The one job that runs the artifact in the environment the artifact is for.
+  #
+  # Five browser-only failures have reached the published site — a wrong bootstrap cell, a
+  # missing wheel, a requires-python ceiling that excluded Pyodide, a data file copied into one
+  # language tree only, and a transitive import of scipy. Every one was invisible to the build
+  # job above, because everything there runs on the desktop where the package is installed and
+  # the files sit where the desktop expects them. Each was then patched with a bespoke
+  # validator aimed at that one failure, which is why there were five.
+  #
+  # Split by language rather than run serially: 18 laboratories take about 29 minutes end to
+  # end, and two parallel legs bring that back to about 15. fail-fast is off so a Hebrew-only
+  # break still gets reported when English has already failed.
+  browser:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: [en, he]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+
+      - name: Download the laboratory bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: lite-bundle
+          path: _site/lite
+
+      # --with-deps pulls the system libraries a headless browser needs on a bare runner.
+      - name: Install browser
+        run: uv run playwright install --with-deps chromium
+
+      - name: Run the laboratories
+        run: uv run python scripts/check_browser_labs.py --lang ${{ matrix.lang }}
+
   deploy:
     if: github.event_name != 'pull_request'
-    needs: build
+    # Gated on the browser job too: a bundle whose laboratories do not run is not deployable,
+    # which is the whole point of measuring it before the upload rather than after.
+    needs: [build, browser]
     runs-on: ubuntu-latest
     environment:
       name: github-pages
