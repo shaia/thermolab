@@ -20,6 +20,7 @@ from thermolab import (
     kinetics,
     multiplicity,
     paths,
+    potentials,
     processes,
     sampling,
 )
@@ -1274,3 +1275,221 @@ def test_the_exchange_rule_samples_labelled_quanta_not_the_einstein_count():
     # Occupation probabilities are O(1) numbers, so an absolute tolerance is meaningful here.
     assert np.max(np.abs(visits - binomial)) < 0.01
     assert np.max(np.abs(visits - einstein)) > 0.05
+
+
+# ---------------------------------------------------------------------------
+# Module 10: thermodynamic potentials
+# ---------------------------------------------------------------------------
+
+N_A_10 = 6.02214076e23
+VDW_A = 0.1355 / N_A_10**2  # argon, per particle (Pa m^6)
+VDW_B = 3.201e-5 / N_A_10   # argon, per particle (m^3)
+ARGON_VDW = potentials.van_der_waals_gas(ARGON_MASS, VDW_A, VDW_B)
+
+
+def ideal_gas_helmholtz(t, v, n):
+    """F = -N k_B T [ln(V / (N lambda^3)) + 1], the closed form Sackur-Tetrode implies."""
+    wavelength = fundamental.PLANCK_H / np.sqrt(2.0 * np.pi * ARGON_MASS * K_B * t)
+    return -n * K_B * t * (np.log(v / (n * wavelength**3)) + 1.0)
+
+
+def test_helmholtz_from_sackur_tetrode_matches_its_closed_form():
+    for t in (50.0, 300.0, 1000.0):
+        measured = potentials.helmholtz_from(ARGON, t, GAS_V, GAS_N)
+        assert relative_error(measured, ideal_gas_helmholtz(t, GAS_V, GAS_N)) < 1e-9
+
+
+def test_helmholtz_from_the_einstein_solid_matches_n_k_t_ln_one_minus_e_to_the_minus_x():
+    """F = n k_B T ln(1 - exp(-epsilon/k_B T)): the Stirling surface, Legendre-transformed."""
+    for t in (0.5, 2.5, 10.0, 250.0):
+        measured = potentials.helmholtz_from(SOLID_09, t, 1.0, 300.0)
+        expected = 300.0 * K_B * t * np.log1p(-np.exp(-QUANTUM_09 / (K_B * t)))
+        assert relative_error(measured, expected) < 1e-9
+
+
+def test_the_numerical_legendre_transform_of_u_of_s_lies_on_the_closed_form_f_of_t():
+    s_mid = float(ARGON(GAS_U, GAS_V, GAS_N))
+    s_grid = np.linspace(0.8 * s_mid, 1.2 * s_mid, 10_000)
+    u_grid = np.asarray(potentials.energy_at_entropy(ARGON, s_grid, GAS_V, GAS_N))
+
+    temperature, helmholtz = potentials.legendre_transform(u_grid, s_grid)
+
+    expected = ideal_gas_helmholtz(temperature, GAS_V, GAS_N)
+    assert np.max(np.abs(helmholtz - expected) / np.abs(expected)) < 1e-6
+
+
+def test_gibbs_per_particle_is_the_chemical_potential():
+    """G = mu N: the Euler relation of module 09, reached through a Legendre transform."""
+    g = potentials.gibbs_from(ARGON, GAS_T, GAS_P, GAS_N)
+    mu = fundamental.chemical_potential_of(ARGON, GAS_U, GAS_V, GAS_N)
+    assert relative_error(g / GAS_N, mu) < 1e-6
+
+
+def test_the_enthalpy_of_an_ideal_gas_is_five_halves_n_k_t():
+    s = float(ARGON(GAS_U, GAS_V, GAS_N))
+    assert relative_error(potentials.enthalpy_from(ARGON, s, GAS_P, GAS_N),
+                          2.5 * GAS_N * K_B * GAS_T) < 1e-7
+
+
+def test_the_slopes_of_each_potential_are_its_conjugate_variables():
+    """dF = -S dT - P dV, dG = -S dT + V dP, dH = T dS + V dP: checked by differencing."""
+    s = float(ARGON(GAS_U, GAS_V, GAS_N))
+    d = 1e-4
+
+    def central(f, x):
+        return (f(x * (1 + d)) - f(x * (1 - d))) / (2 * d * x)
+
+    df_dt = central(lambda t: potentials.helmholtz_from(ARGON, t, GAS_V, GAS_N), GAS_T)
+    df_dv = central(lambda v: potentials.helmholtz_from(ARGON, GAS_T, v, GAS_N), GAS_V)
+    dg_dp = central(lambda p: potentials.gibbs_from(ARGON, GAS_T, p, GAS_N), GAS_P)
+    dh_ds = central(lambda x: potentials.enthalpy_from(ARGON, x, GAS_P, GAS_N), s)
+    dh_dp = central(lambda p: potentials.enthalpy_from(ARGON, s, p, GAS_N), GAS_P)
+
+    assert relative_error(-df_dt, s) < 1e-6
+    assert relative_error(-df_dv, GAS_P) < 1e-6
+    assert relative_error(dg_dp, GAS_V) < 1e-6
+    assert relative_error(dh_ds, GAS_T) < 1e-6
+    assert relative_error(dh_dp, GAS_V) < 1e-6
+
+
+def test_the_van_der_waals_relation_returns_its_equations_of_state():
+    t, v = 300.0, 2e-3
+    u = potentials.energy_at_temperature(ARGON_VDW, t, v, N_A_10)
+    pressure = potentials.pressure_at(ARGON_VDW, t, v, N_A_10)
+
+    assert relative_error(u, 1.5 * N_A_10 * K_B * t - VDW_A * N_A_10**2 / v) < 1e-8
+    assert relative_error(pressure,
+                          float(gases.van_der_waals_pressure(v / N_A_10, t, VDW_A, VDW_B))) < 1e-7
+
+
+def test_the_van_der_waals_relation_is_sackur_tetrode_when_a_and_b_vanish():
+    plain = potentials.van_der_waals_gas(ARGON_MASS, 0.0, 0.0)
+    assert relative_error(float(plain(GAS_U, GAS_V, GAS_N)),
+                          float(ARGON(GAS_U, GAS_V, GAS_N))) < 1e-14
+
+
+@pytest.mark.parametrize("relation, volumes", [
+    (ARGON, np.geomspace(1e-3, 1e-1, 4)),
+    (ARGON_VDW, np.geomspace(2e-4, 1e-2, 4)),
+])
+def test_the_helmholtz_maxwell_relation_holds_for_a_genuine_relation(relation, volumes):
+    """(dS/dV)_T = (dP/dT)_V, with S a value of the relation and P a ratio of its slopes."""
+    t, v = np.meshgrid(np.linspace(200.0, 600.0, 4), volumes)
+    m, n = potentials.helmholtz_form(relation, N_A_10)
+    assert np.max(np.abs(potentials.maxwell_check(m, n, t, v, rel_step=1e-3))) < 1e-6
+
+
+def test_the_maxwell_check_catches_a_pressure_and_entropy_from_different_substances():
+    """Ideal-gas S with van der Waals P: the gap is Nb / (2V - Nb), and refining does not help."""
+    minus_entropy, _ = potentials.helmholtz_form(ARGON, N_A_10)
+    _, minus_pressure = potentials.helmholtz_form(ARGON_VDW, N_A_10)
+    v = np.array([1.5e-4, 1e-3])
+    expected = N_A_10 * VDW_B / (2.0 * v - N_A_10 * VDW_B)
+    for step in (1e-2, 1e-3):
+        gap = potentials.maxwell_check(minus_entropy, minus_pressure, np.full(2, 300.0), v,
+                                       rel_step=step)
+        assert np.all(np.abs(gap / expected - 1.0) < 1e-3)
+
+
+def test_legendre_refuses_a_dented_relation_that_tangent_intercepts_shows_going_multivalued():
+    """Below T_c the van der Waals F(V) has a dent: -P = dF/dV is not monotone, G(P) folds."""
+    _, t_c, _ = gases.vdw_critical_point(VDW_A, VDW_B)
+    v = np.geomspace(1.6 * N_A_10 * VDW_B, 40 * N_A_10 * VDW_B, 2000)
+    f = np.asarray(potentials.helmholtz_from(ARGON_VDW, 0.85 * t_c, v, N_A_10))
+
+    with pytest.raises(ValueError, match="not strictly monotone"):
+        potentials.legendre_transform(f, v)
+
+    slope, _ = potentials.tangent_intercepts(f, v)
+    pressure = -slope
+    rising = np.diff(pressure) > 0  # where squeezing would lower the pressure: unstable
+    assert rising.any() and not rising.all()
+
+
+def test_at_fixed_t_and_v_free_energy_falls_to_a_minimum_while_energy_climbs_to_a_maximum():
+    """The systems-minimize-energy misconception, falsified by a van der Waals gas and a piston."""
+    trace = potentials.free_energy_minimization(ARGON_VDW, 300.0, 4e-3, 2 * N_A_10, N_A_10,
+                                                start_share=0.25, n_steps=101)
+
+    assert np.all(np.diff(trace.free_energy) <= 0)
+    assert np.all(np.diff(trace.total_entropy_change) >= 0)
+    assert np.all(np.diff(trace.energy) >= 0)
+    assert trace.energy[-1] > trace.energy[0]
+    # It stops at equal pressures -- which for one substance at one T means equal densities.
+    assert relative_error(trace.pressure_a[-1], trace.pressure_b[-1]) < 1e-6
+    assert relative_error(trace.share[-1], 2.0 / 3.0) < 1e-6
+    # And the books balance: Delta S_total = -Delta F / T.
+    assert relative_error(trace.total_entropy_change[-1],
+                          -(trace.free_energy[-1] - trace.free_energy[0]) / 300.0) < 1e-10
+
+
+def test_an_ideal_gas_piston_changes_no_energy_at_fixed_temperature():
+    trace = potentials.free_energy_minimization(ARGON, 300.0, 4e-3, 2 * N_A_10, N_A_10,
+                                                start_share=0.25, n_steps=21)
+    assert np.max(np.abs(trace.energy - trace.energy[0])) < 1e-9 * trace.energy[0]
+    assert trace.free_energy[-1] < trace.free_energy[0]
+
+
+def test_throttling_leaves_an_ideal_gas_at_its_temperature():
+    result = potentials.throttle(ARGON, N_A_10, 300.0, 50e5, 1e5)
+    assert relative_error(result.temperature_out, 300.0) < 1e-9
+
+
+def test_a_small_throttle_matches_the_low_density_joule_thomson_coefficient():
+    """mu_JT = (2a/(k_B T) - b) / c_P for a dilute van der Waals gas: cooling at 300 K."""
+    result = potentials.throttle(ARGON_VDW, N_A_10, 300.0, 1.1e5, 1.0e5)
+    measured = result.temperature_change / (1.0e5 - 1.1e5)
+    expected = (2.0 * VDW_A / (K_B * 300.0) - VDW_B) / (2.5 * K_B)
+    assert measured > 0  # temperature falls as pressure falls
+    assert relative_error(measured, expected) < 5e-3
+
+
+def test_entropy_from_a_noiseless_gauge_is_n_k_ln_2_exactly_for_an_ideal_gas():
+    temperatures = np.linspace(280.0, 320.0, 5)
+    volumes = 1e-3 * np.geomspace(1.0, 2.0, 5)
+    n = 1e21
+    readings = np.asarray(potentials.pressure_at(ARGON, temperatures[None, :],
+                                                 volumes[:, None], n))
+    result = potentials.entropy_from_gauge(temperatures, volumes, readings)
+    assert relative_error(result.entropy_change[-1], n * K_B * np.log(2.0)) < 1e-7
+
+
+def test_entropy_from_a_gauge_on_a_van_der_waals_gas_is_n_k_ln_of_the_free_volume_ratio():
+    """(dP/dT)_V = N k_B / (V - N b): the attraction drops out, the excluded volume does not."""
+    temperatures = np.linspace(280.0, 320.0, 5)
+    volumes = np.geomspace(2e-4, 4e-4, 257)
+    readings = np.asarray(potentials.pressure_at(ARGON_VDW, temperatures[None, :],
+                                                 volumes[:, None], N_A_10))
+    result = potentials.entropy_from_gauge(temperatures, volumes, readings)
+    free = volumes - N_A_10 * VDW_B
+    expected = N_A_10 * K_B * np.log(free[-1] / free[0])
+    assert relative_error(result.entropy_change[-1], expected) < 1e-5
+
+
+def test_natural_variables_name_the_variables_each_potential_is_a_function_of():
+    assert potentials.natural_variables("F").variables == ("T", "V", "N")
+    assert potentials.natural_variables("G").variables == ("T", "P", "N")
+    assert potentials.natural_variables("H").variables == ("S", "P", "N")
+    with pytest.raises(ValueError):
+        potentials.natural_variables("Q")
+
+
+def test_helmholtz_of_a_dense_van_der_waals_gas_is_right_where_its_energy_is_negative():
+    """Below V ~ 2.7 N b at 0.85 T_c the attraction outweighs the motion and U < 0.
+
+    F = -N k_B T [ln((V - N b)/(N lambda^3)) + 1] - a N^2 / V, the closed form, pins the
+    state location at negative energies, which a bisection bracketed only above zero misses.
+    """
+    _, t_c, _ = gases.vdw_critical_point(VDW_A, VDW_B)
+    t = 0.85 * t_c
+    nb = N_A_10 * VDW_B
+    v = np.geomspace(1.52 * nb, 30.0 * nb, 200)
+    wavelength = fundamental.PLANCK_H / np.sqrt(2.0 * np.pi * ARGON_MASS * K_B * t)
+    expected = (-N_A_10 * K_B * t * (np.log((v - nb) / (N_A_10 * wavelength**3)) + 1.0)
+                - VDW_A * N_A_10**2 / v)
+
+    energy = np.asarray(potentials.energy_at_temperature(ARGON_VDW, t, v, N_A_10))
+    measured = np.asarray(potentials.helmholtz_from(ARGON_VDW, t, v, N_A_10))
+
+    assert np.any(energy < 0)
+    assert np.max(np.abs(measured - expected) / np.abs(expected)) < 1e-9

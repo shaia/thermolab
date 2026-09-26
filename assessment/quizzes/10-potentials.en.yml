@@ -1,0 +1,322 @@
+module: 10-potentials
+questions:
+  - id: Q-10-1
+    type: multiple-choice
+    objectives: [OBJ-10-2]
+    prompt: >-
+      A reaction runs in an open beaker on a laboratory bench, at room temperature and
+      atmospheric pressure, until it stops. Which quantity of the beaker's contents has reached
+      its minimum?
+    choices:
+      - text: The Gibbs free energy G = U - TS + PV.
+        correct: true
+        feedback: >-
+          Right. The room holds the temperature and the atmosphere holds the pressure, and at
+          fixed T and P the second law, applied to the contents plus their surroundings, becomes
+          dG <= 0. G is the potential whose natural variables are the two things the bench
+          controls.
+      - text: The internal energy U.
+        correct: false
+        feedback: >-
+          U is minimised only at fixed entropy and volume, and nothing on a bench holds the
+          entropy fixed. A reaction that absorbs heat from the room raises U and still runs.
+      - text: The Helmholtz free energy F = U - TS.
+        correct: false
+        feedback: >-
+          F is the right potential when the temperature and the VOLUME are fixed, as in a sealed
+          rigid vessel. An open beaker is free to expand against the atmosphere, so the volume
+          is not fixed but the pressure is.
+      - text: The enthalpy H = U + PV.
+        correct: false
+        feedback: >-
+          H is minimised at fixed entropy and pressure, and conserved across a throttle. At
+          fixed pressure it keeps the books on heat, which is why chemists tabulate it, but
+          the temperature-controlled bench is decided by G.
+
+  - id: Q-10-2
+    type: multiple-choice
+    objectives: [OBJ-10-3]
+    misconception: systems-minimize-energy
+    prompt: >-
+      A rigid box in contact with a heat bath at 300 K holds a dense gas on both sides of a
+      piston. The piston is released, drifts and stops. Afterwards the gas's internal energy is
+      found to have RISEN by 282 J. What is true?
+    choices:
+      - text: That is possible. The gas's free energy fell, and the gas's entropy rose by more than the bath's fell.
+        correct: true
+        feedback: >-
+          Right. At fixed T and V the second law, applied to gas plus bath, says F must fall:
+          Delta S_total = -Delta F / T >= 0. The bath supplied the 282 J and lost 282/300 J/K of
+          entropy, but the gas, spreading out, gained far more. Nothing requires U to fall; for
+          a gas whose atoms attract, U rises as they move apart.
+      - text: That is impossible. Systems left to themselves always move toward the lowest energy available.
+        correct: false
+        feedback: >-
+          This is the minimum-energy misconception. It holds for an isolated mechanical system
+          with friction, not for a system in contact with a heat bath. There what falls is
+          F = U - TS; the bath can pay for a rise in U so long as the total entropy of gas and
+          bath still rises.
+      - text: That is possible only if something outside did work on the gas.
+        correct: false
+        feedback: >-
+          The box is rigid and nothing outside pushed on anything. The 282 J arrived as heat from
+          the bath, drawn in because the gas's rearrangement raised the total entropy.
+      - text: That is possible, but then the total entropy of gas and bath must have fallen.
+        correct: false
+        feedback: >-
+          A spontaneous change cannot lower the total entropy. Here it rose, by -Delta F / T:
+          the gas's entropy gain outweighed the bath's loss of 282/300 J/K.
+
+  - id: Q-10-3
+    type: multiple-choice
+    objectives: [OBJ-10-7]
+    prompt: >-
+      A gas flows steadily through a porous plug in an insulated pipe, from high pressure to low.
+      Which of these is the same on both sides of the plug, for any gas?
+    choices:
+      - text: The enthalpy H = U + PV of each parcel of gas.
+        correct: true
+        feedback: >-
+          Right. The gas behind a parcel pushes it in, doing work P_in V_in on it; the parcel pushes
+          the gas ahead, doing P_out V_out; no heat crosses the insulation. So U_out - U_in =
+          P_in V_in - P_out V_out, which says H_out = H_in.
+      - text: The internal energy U, because energy is conserved.
+        correct: false
+        feedback: >-
+          Energy is conserved, but the parcel's own energy is not, because work is done on it at
+          the inlet and by it at the outlet, and the two are unequal. A van der Waals gas
+          throttled from 50 bar to 1 bar at 300 K gains about 50 J per mole of internal energy
+          while it cools.
+      - text: The temperature, because the pipe is insulated.
+        correct: false
+        feedback: >-
+          Only an ideal gas, whose enthalpy depends on T alone, leaves at the temperature it
+          entered. Real gases below their inversion temperature cool, and this is how air is
+          liquefied.
+      - text: The entropy, because no heat flows.
+        correct: false
+        feedback: >-
+          Throttling is irreversible: the gas expands through the plug without doing useful work,
+          and its entropy rises. No heat flows, but entropy is produced.
+
+  - id: Q-10-4
+    type: numeric
+    objectives: [OBJ-10-5]
+    prompt: >-
+      A gauge and a thermometer on 0.100 mol of a gas show that, at every volume between V and
+      2V, the pressure rises with temperature at fixed volume as (dP/dT)_V = nR/V, with
+      R = 8.314 J/(mol K). What is the entropy change when the gas doubles its volume at fixed
+      temperature, in J/K?
+    answer: 0.5763
+    tolerance: 0.01
+    feedback: >-
+      The Maxwell relation from F turns the measured slope into an entropy slope:
+      (dS/dV)_T = (dP/dT)_V = nR/V. Integrating from V to 2V gives Delta S = nR ln 2 =
+      0.100 x 8.314 x 0.6931 = 0.576 J/K. Nothing in the measurement read an entropy. If you got
+      0.831 you left out the ln 2; if you got zero you assumed the isothermal entropy change of
+      a gas vanishes because its energy does not change.
+
+  - id: Q-10-5
+    type: multiple-choice
+    objectives: [OBJ-10-4]
+    prompt: >-
+      Starting from dG = -S dT + V dP at fixed N, which Maxwell relation follows?
+    choices:
+      - text: (dS/dP)_T = -(dV/dT)_P
+        correct: true
+        feedback: >-
+          Right. The coefficients of dT and dP are -S and V, and the mixed partials of G agree:
+          d(-S)/dP at fixed T equals dV/dT at fixed P. Moving the minus sign across gives the
+          relation. For an ideal gas it says the entropy falls as -N k_B / P when the gas is
+          squeezed at fixed temperature.
+      - text: (dS/dP)_T = (dV/dT)_P
+        correct: false
+        feedback: >-
+          The sign is lost. The coefficient of dT is -S, not S, and differentiating it keeps the
+          minus. Check on an ideal gas: squeezing at fixed T lowers S, while heating at fixed P
+          raises V, so the two sides must have opposite signs.
+      - text: (dS/dV)_T = (dP/dT)_V
+        correct: false
+        feedback: >-
+          This is a true Maxwell relation, but it comes from F, whose natural variables are T and
+          V. G's natural variables are T and P, so its relation involves derivatives with respect
+          to P at fixed T and to T at fixed P.
+      - text: (dT/dP)_S = (dV/dS)_P
+        correct: false
+        feedback: >-
+          This is the Maxwell relation from H, whose natural variables are S and P. The
+          variables held fixed tell you which potential a relation came from.
+
+  - id: Q-10-6
+    type: multiple-choice
+    objectives: [OBJ-10-1]
+    misconception: free-energy-stored-energy
+    prompt: >-
+      Two cylinders each hold one mole of argon at 300 K, one in 1 L and the other in 10 L. Their
+      internal energies are equal. In a room at 300 K, which can deliver more work, and by how
+      much?
+    choices:
+      - text: The 1 L cylinder, by up to RT ln 10, about 5.7 kJ, although the two hold the same energy.
+        correct: true
+        feedback: >-
+          Right. At fixed temperature the most work a system can deliver is the fall in its free
+          energy, and F = U - TS differs between the two by T times their entropy difference,
+          RT ln 10. The energy it delivers is drawn from the room as heat while the gas expands;
+          the gas's own energy never changes.
+      - text: Neither. They hold the same internal energy, so they hold the same free energy to spend.
+        correct: false
+        feedback: >-
+          This treats free energy as a kind of energy stored inside the gas. It is not: F = U - TS
+          depends on the entropy too, and the compressed gas has less. Equal energies, unequal
+          free energies, unequal work.
+      - text: The 10 L cylinder, because it has more volume to push against a piston.
+        correct: false
+        feedback: >-
+          The 10 L gas is at a tenth of the pressure. The work a gas can deliver on the way to
+          equilibrium with its surroundings comes from its free energy, which is higher, not lower,
+          for the compressed one.
+      - text: It cannot be decided without knowing what the cylinders are made of.
+        correct: false
+        feedback: >-
+          The cylinders only hold the gas. The work available at 300 K depends on the gas's state
+          through F, and both states are fully specified.
+
+  - id: Q-10-7
+    type: short-answer
+    objectives: [OBJ-10-6]
+    prompt: >-
+      In two or three sentences: U(S) at fixed V and N is replaced by F(T), the intercept of its
+      tangent line as a function of the tangent's slope. Why does F(T) know everything U(S) knew?
+    discussion: >-
+      Because U(S) is strictly convex, each slope T touches the curve at exactly one point, so
+      the family of tangent lines -- one for each T, each fixed by its slope T and its intercept
+      F(T) -- is in one-to-one correspondence with the points of the curve. The curve is the
+      envelope of that family, so it can be rebuilt from F(T) alone: S = -dF/dT gives the point
+      each tangent touches, and U = F + TS its height. A careful answer names convexity as the
+      condition; if two points shared a slope, the transform could not say which one it meant.
+
+  - id: Q-10-8
+    type: numeric
+    objectives: [OBJ-10-7, OBJ-10-1]
+    misconception: enthalpy-heat-content
+    prompt: >-
+      A gas is held at a constant pressure of 1.00e5 Pa. Its internal energy rises by 1247 J and
+      its volume by 8.31e-3 m^3. Part of the energy arrived as 500 J of electrical work, from a
+      heater wire counted as part of the system. How much heat Q crossed the boundary, in joules?
+    answer: 1578
+    tolerance: 5
+    feedback: >-
+      The enthalpy change is Delta H = Delta U + P Delta V = 1247 + 831 = 2078 J. With only P dV
+      work, Q would equal Delta H; here 500 J of electrical work was also done on the system, so
+      Q = Delta H - W_elec = 2078 - 500 = 1578 J. If you answered 2078 J, you took Delta H to be
+      the heat: that holds only at constant pressure with no work other than P dV.
+
+  - id: Q-10-9
+    type: prediction
+    objectives: [OBJ-10-4, OBJ-10-5]
+    prompt: >-
+      Stretch a rubber band quickly and touch it to your lip: it feels warm. Before the
+      laboratory's rubber-band analysis, predict (a) the sign of (dS/dL)_T, (b) whether the
+      tension at fixed length rises or falls as the band warms, and (c) what a band with a weight
+      hanging from it does when warmed with a hair dryer.
+    discussion: >-
+      (a) Negative: stretching at fixed temperature lowers the band's entropy, because the long
+      molecules are pulled out of their tangled arrangements. The lip test says so directly --
+      stretched fast, with no time for heat to leave, the entropy stays fixed, so the lost
+      arrangements must be made up by faster jiggling, which is a higher temperature. (b) The
+      Maxwell relation (dS/dL)_T = -(df/dT)_L turns a negative entropy slope into a positive
+      temperature slope: the tension rises as the band warms, about 5.8 mN/K in the laboratory's
+      data. (c) It contracts, lifting the weight -- the opposite of nearly every other material.
+      If you predicted expansion, you reasoned from ordinary solids, whose tension comes from
+      bond energies; about 85 percent of a rubber band's comes from entropy.
+
+  - id: Q-10-10
+    type: multiple-choice
+    objectives: [OBJ-10-3]
+    prompt: >-
+      One mole of an ideal gas at 300 K expands against a piston from 10 L to 20 L, in contact
+      with a bath at 300 K throughout. What is the most work it can deliver?
+    choices:
+      - text: RT ln 2, about 1.73 kJ -- the fall in its free energy.
+        correct: true
+        feedback: >-
+          Right. At fixed temperature the work done ON the system is at least Delta F, so the
+          work it can deliver is at most -Delta F = RT ln 2. It is reached by a slow, reversible
+          expansion, and every joule of it comes from heat drawn from the bath.
+      - text: Zero, because the gas's internal energy does not change.
+        correct: false
+        feedback: >-
+          The gas's energy is unchanged, but the bath supplies heat as the gas expands. What
+          limits the work is the free energy, not the internal energy.
+      - text: P V at the start, about 2.49 kJ.
+        correct: false
+        feedback: >-
+          That would need the pressure to stay at its starting value for the whole expansion.
+          At fixed temperature the pressure falls as the volume grows, and the area under the
+          isotherm is RT ln 2.
+      - text: It is unlimited, because the bath can supply any amount of heat.
+        correct: false
+        feedback: >-
+          The bath can supply heat, but the second law limits how much of it turns into work
+          while only this gas changes state: the limit is -Delta F.
+
+  - id: Q-10-11
+    type: multiple-choice
+    objectives: [OBJ-10-6]
+    prompt: >-
+      Suppose a substance's F(V), at some fixed temperature, had a stretch where it curved the
+      wrong way, so that the slope dF/dV = -P was not monotone there. What happens to its
+      Legendre transform G(P)?
+    choices:
+      - text: Several volumes share one pressure, so G(P) folds back on itself and cannot say which state it means.
+        correct: true
+        feedback: >-
+          Right. A slope names a single point only where the curve is strictly convex. Across the
+          dent, three tangents share each slope, and the transform traces three branches over one
+          range of pressures. The information is not lost; the ability to pick one state is.
+          Module 14 resolves the fold, and it turns out to be two phases coexisting.
+      - text: Nothing changes; the Legendre transform works for any smooth function.
+        correct: false
+        feedback: >-
+          It can be computed for any smooth function, but it loses its inverse without
+          convexity: the slope no longer names a unique point, so F(V) cannot be rebuilt from
+          G(P).
+      - text: G(P) becomes negative.
+        correct: false
+        feedback: >-
+          The sign of G is not what goes wrong; G is usually negative for a gas anyway. What goes
+          wrong is that one pressure no longer picks out one state.
+      - text: The transform stops existing, because the derivative becomes undefined.
+        correct: false
+        feedback: >-
+          The derivative is perfectly defined across the dent; it just rises and falls instead of
+          rising steadily. The transform exists, but it is multivalued.
+
+  - id: Q-10-12
+    type: multiple-choice
+    objectives: [OBJ-10-2, OBJ-10-1]
+    prompt: >-
+      For a monatomic ideal gas U = (3/2) N k_B T. Why is U written as a function of T and V not
+      as complete a description as U written as a function of S and V?
+    choices:
+      - text: It does not depend on V at all, so it cannot give the pressure, which U(S, V) gives as -dU/dV.
+        correct: true
+        feedback: >-
+          Right. Substituting the slope T for S throws away information: every gas whose energy is
+          (3/2) N k_B T has the same U(T, V), whatever its pressure. The Legendre transform to
+          F = U - TS keeps it, because F's volume slope is -P.
+      - text: It is complete; T and V are just a more convenient pair than S and V.
+        correct: false
+        feedback: >-
+          Convenient, yes, but not complete: from U(T, V) = (3/2) N k_B T no amount of
+          differentiation recovers the pressure. The complete function of T and V is F, not U.
+      - text: It is incomplete only because it ignores the chemical potential.
+        correct: false
+        feedback: >-
+          Holding N fixed, the chemical potential plays no part. The trouble is already there at
+          fixed N: U(T, V) cannot give P.
+      - text: It is incomplete because T cannot be measured directly.
+        correct: false
+        feedback: >-
+          T is the easiest of the variables to measure. The problem is not measurement but
+          information: the function U(T, V) has lost what the function U(S, V) contained.

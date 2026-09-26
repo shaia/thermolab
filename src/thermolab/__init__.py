@@ -15,6 +15,7 @@ Modules:
     gases                the ideal gas, the van der Waals correction, and the critical point
     kinetics             free particles in a box; the microscopic origin of pressure
     paths                quasistatic paths in the P-V plane; work as a path function
+    potentials           H, F and G by Legendre transform; Maxwell relations; minimum principles
     processes            the named process families, heat capacities, and irreversible change
     multiplicity         microstate counting, entropy, and why equilibrium wins
     validation           the reusable accuracy checks (seeds, convergence, scaling)
@@ -31,6 +32,7 @@ from . import (
     kinetics,
     multiplicity,
     paths,
+    potentials,
     processes,
     sampling,
     units,
@@ -52,6 +54,7 @@ __all__ = [
     "kinetics",
     "multiplicity",
     "paths",
+    "potentials",
     "processes",
     "sampling",
     "units",

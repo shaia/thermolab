@@ -25,6 +25,7 @@ from thermolab import (
     kinetics,
     multiplicity,
     paths,
+    potentials,
     processes,
     sampling,
 )
@@ -388,3 +389,68 @@ def test_the_compressibility_from_the_entropy_hessian_is_an_inverse_pressure():
     s_uv = Quantity(0.1, "J/K") / (Quantity(1.0, "J") * Quantity(1.0, "m**3"))
     kappa = -s_uu / (Quantity(1.0, "m**3") * Quantity(300.0, "K") * (s_uu * s_vv - s_uv**2))
     assert kappa.check("1/[pressure]")
+
+
+# ---------------------------------------------------------------------------
+# Module 10: thermodynamic potentials
+# ---------------------------------------------------------------------------
+
+# Per-particle van der Waals constants for argon (a_molar / N_A^2, b_molar / N_A).
+VDW_A_Q = Quantity(0.1355 / 6.02214076e23**2, "Pa * m**6")
+VDW_B_Q = Quantity(3.201e-5 / 6.02214076e23, "m**3")
+
+
+def test_the_van_der_waals_logarithm_is_dimensionless():
+    """The attraction term a N^2 / V must be an energy, or U + a N^2/V is meaningless."""
+    volume = Quantity(1e-3, "m**3")
+    n = 1e22
+    attraction = VDW_A_Q * n**2 / volume
+    assert attraction.check("[energy]")
+    kinetic = Quantity(10.0, "J") + attraction
+    thermal = 4 * np.pi * Quantity(6.6e-26, "kg") * kinetic / (3 * n * PLANCK_Q**2)
+    argument = ((volume - n * VDW_B_Q) / n) * thermal**1.5
+    assert argument.to("dimensionless").check("[]")
+
+
+def test_every_potential_is_an_energy():
+    u, t, s = Quantity(3741.5, "J"), Quantity(300.0, "K"), Quantity(155.0, "J/K")
+    p, v = Quantity(1e5, "Pa"), Quantity(0.0249, "m**3")
+    for potential in (u + p * v, u - t * s, u - t * s + p * v):
+        assert potential.check("[energy]")
+
+
+def test_each_maxwell_relation_equates_quantities_of_one_dimension():
+    s, t = Quantity(1.0, "J/K"), Quantity(1.0, "K")
+    v, p = Quantity(1.0, "m**3"), Quantity(1.0, "Pa")
+    assert (t / v).dimensionality == (p / s).dimensionality  # from U
+    assert (t / p).dimensionality == (v / s).dimensionality  # from H
+    assert (s / v).dimensionality == (p / t).dimensionality  # from F
+    assert (s / p).dimensionality == (v / t).dimensionality  # from G
+    # The rubber band's: (dS/dL)_T = -(df/dT)_L, entropy per length against force per kelvin.
+    assert (s / Quantity(1.0, "m")).dimensionality == (Quantity(1.0, "N") / t).dimensionality
+
+
+def test_entropy_from_a_pressure_gauge_is_an_entropy():
+    """Integral of (dP/dT)_V dV: (Pa/K) m^3 = J/K, from instruments that measure no entropy."""
+    slope = Quantity(330.0, "Pa/K")
+    assert (slope * Quantity(1e-3, "m**3")).check("[energy]/[temperature]")
+
+
+def test_the_joule_thomson_coefficient_is_a_temperature_per_pressure():
+    """(2a/(k_B T) - b) / c_P per particle: m^3 / (J/K) = K/Pa."""
+    c_p = 2.5 * K_B_Q
+    coefficient = (2 * VDW_A_Q / (K_B_Q * Quantity(300.0, "K")) - VDW_B_Q) / c_p
+    assert coefficient.check("[temperature]/[pressure]")
+
+
+def test_potentials_functions_return_plain_si_floats():
+    gas = fundamental.monatomic_ideal_gas(6.6e-26)
+    n = 1e22
+    ledger = potentials.ledger_at(gas, 300.0, 4e-4, n)
+    assert isinstance(potentials.helmholtz_from(gas, 300.0, 4e-4, n), float)
+    assert isinstance(potentials.gibbs_from(gas, 300.0, 1e5, n), float)
+    assert isinstance(potentials.enthalpy_from(gas, ledger.entropy, 1e5, n), float)
+    assert isinstance(ledger.gibbs, float)
+    assert potentials.helmholtz_from(gas, np.array([300.0, 400.0]), 4e-4, n).shape == (2,)
+    # The ledger closes: U = F + TS, in joules, to rounding.
+    assert abs(ledger.energy - (ledger.helmholtz + ledger.ts)) <= 1e-12 * abs(ledger.energy)

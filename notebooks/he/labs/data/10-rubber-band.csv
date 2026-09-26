@@ -1,0 +1,39 @@
+# NOTE: byte-identical copies at notebooks/{en,he}/labs/data/10-rubber-band.csv --
+# JupyterLite only bundles the notebooks/ tree (jupyter_lite_config.json: "contents":
+# ["notebooks"]), so each language's laboratory notebook needs its own co-located copy to
+# run in the browser. Keep all three in sync -- scripts/check_parity.py enforces it.
+#
+# Rubber-band thermodynamics: tension at fixed length against temperature. A natural-rubber
+# band, 0.100 m long between the clamps when slack, is stretched to 0.200 m and clamped there,
+# hanging from a digital force gauge (0.01 N resolution) inside a cardboard box warmed by a
+# hair dryer. A thermistor taped beside the band reads the air temperature. Each reading was
+# taken once gauge and thermistor had both stopped drifting, about five minutes after each
+# change of temperature: a heating sweep first, then a cooling sweep.
+#
+# Hand-constructed for this course as one representative run, not a transcription of a
+# measurement made in this room. The numbers follow what the experiment really does: the
+# tension rises with temperature, nearly in proportion -- the band's elasticity is mostly
+# entropic -- with a small energetic part; and the cooling sweep reads a little lower than the
+# heating sweep at the same temperature, because stretched rubber slowly relaxes. Readings carry
+# about +-0.25 K and +-0.008 N of random scatter.
+#
+# If you do the experiment -- a rubber band, a luggage scale or force gauge, a kitchen
+# thermometer, a hair dryer -- replace this file with your own readings in the same three
+# columns and rerun the notebook.
+#
+# Columns: T_K,f_N,sweep -- temperature in kelvin, tension in newtons, and 1 for the heating
+# sweep or 2 for the cooling sweep. The column names stay inside this comment block because the
+# notebook reads the file with np.genfromtxt(comments="#").
+284.6,1.96,1
+294.9,2.00,1
+305.1,2.06,1
+315.1,2.14,1
+324.7,2.19,1
+334.9,2.23,1
+345.0,2.29,1
+340.1,2.27,2
+330.2,2.20,2
+320.4,2.14,2
+310.4,2.08,2
+299.4,2.02,2
+289.7,1.96,2

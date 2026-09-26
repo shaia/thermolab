@@ -34,6 +34,8 @@ project:
         - file: thermodynamics/07-second-law-problems.md
         - file: thermodynamics/09-fundamental-relation.md
         - file: thermodynamics/09-fundamental-relation-problems.md
+        - file: thermodynamics/10-potentials.md
+        - file: thermodynamics/10-potentials-problems.md
     - title: מכניקה סטטיסטית
       children:
         - file: statistical-mechanics/03-random-walks.md

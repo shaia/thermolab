@@ -21,6 +21,7 @@ from thermolab import (
     gases,
     kinetics,
     paths,
+    potentials,
     processes,
     sampling,
 )
@@ -455,3 +456,76 @@ def test_the_scanned_peak_converges_on_the_maximiser_as_the_grid_refines():
     errors = [abs(scanned_share(k) - exact_share) for k in (101, 1001, 10001)]
     assert errors[-1] < 1e-4
     assert errors[-1] < errors[0]
+
+
+# ---------------------------------------------------------------------------
+# Module 10: Maxwell gaps and Legendre transforms under refinement
+# ---------------------------------------------------------------------------
+
+
+def test_the_maxwell_gap_of_a_genuine_relation_falls_at_second_order_in_the_step():
+    """What is left of the gap is the central differences' truncation error: halve, quarter."""
+    gas = fundamental.monatomic_ideal_gas(ARGON_MASS)
+    m, n = potentials.helmholtz_form(gas, 1e22)
+    t, v = np.meshgrid([250.0, 400.0], [4e-4, 1e-3])
+
+    study = convergence_study(
+        lambda k: float(np.max(np.abs(potentials.maxwell_check(m, n, t, v, rel_step=1.0 / k)))),
+        refinements=[100, 200, 400, 800],
+        exact=0.0,
+    )
+
+    assert 1.9 < study.observed_order < 2.1
+
+
+def _ideal_legendre_errors(n_points: int) -> tuple[float, float]:
+    """(curve error, point error) of a numeric U(S) -> F(T) on a grid of n_points."""
+    gas = fundamental.monatomic_ideal_gas(ARGON_MASS)
+    n, v = 1e22, 4e-4
+    s_mid = float(gas(1.5 * n * K_B * 300.0, v, n))
+    s = np.linspace(0.9 * s_mid, 1.1 * s_mid, n_points)
+    u = np.asarray(potentials.energy_at_entropy(gas, s, v, n))
+    slope, intercept = potentials.legendre_transform(u, s)
+
+    def closed(t):
+        wavelength = fundamental.PLANCK_H / np.sqrt(2.0 * np.pi * ARGON_MASS * K_B * t)
+        return -n * K_B * t * (np.log(v / (n * wavelength**3)) + 1.0)
+
+    exact_t = 2.0 * u / (3.0 * n * K_B)
+    curve = np.max(np.abs(intercept - closed(slope)) / np.abs(closed(slope)))
+    point = np.max(np.abs(intercept - closed(exact_t)) / np.abs(closed(exact_t)))
+    return float(curve), float(point)
+
+
+def test_the_numeric_legendre_transform_lands_on_the_true_curve_at_fourth_order():
+    """Each tangent point is misplaced at second order; the curve they trace is right at fourth.
+
+    The intercept f - p x is stationary in x at the true tangent point, so an error in the
+    slope moves the point *along* the curve F(p) and only its square moves it *off*.
+    """
+    grids = [25, 50, 100, 200]
+    curve = convergence_study(lambda k: _ideal_legendre_errors(k)[0], grids, exact=0.0)
+    point = convergence_study(lambda k: _ideal_legendre_errors(k)[1], grids, exact=0.0)
+
+    assert 3.7 < curve.observed_order < 4.5
+    assert 1.8 < point.observed_order < 2.2
+
+
+def test_gauge_entropy_of_a_van_der_waals_gas_converges_at_second_order_in_the_volume_grid():
+    """The trapezoid rule in ln V is exact for an ideal gas and second-order otherwise."""
+    vdw = potentials.van_der_waals_gas(ARGON_MASS, 0.1355 / 6.02214076e23**2,
+                                       3.201e-5 / 6.02214076e23)
+    n = 6.02214076e23
+    nb = n * 3.201e-5 / 6.02214076e23
+    temperatures = np.linspace(280.0, 320.0, 3)
+    exact = n * K_B * np.log((4e-4 - nb) / (1e-4 - nb))
+
+    def reconstructed(n_volumes: int) -> float:
+        volumes = np.geomspace(1e-4, 4e-4, n_volumes)
+        readings = np.asarray(potentials.pressure_at(vdw, temperatures[None, :],
+                                                     volumes[:, None], n))
+        return float(potentials.entropy_from_gauge(temperatures, volumes, readings)
+                     .entropy_change[-1])
+
+    study = convergence_study(reconstructed, [5, 9, 17, 33], exact)
+    assert 1.8 < study.observed_order < 2.3

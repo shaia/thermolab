@@ -20,6 +20,7 @@ from thermolab import (
     gases,
     kinetics,
     multiplicity,
+    potentials,
     processes,
     sampling,
 )
@@ -515,3 +516,50 @@ def test_the_isolated_pair_conserves_energy_along_the_whole_ledger():
 
     assert np.all(result.q_a + result.q_b == state.total_quanta)
     assert equilibrium.entropy_produced(result).shape == result.q_a.shape
+
+
+# ---------------------------------------------------------------------------
+# Module 10: what the potentials keep
+# ---------------------------------------------------------------------------
+
+ARGON_10 = fundamental.monatomic_ideal_gas(39.948 * 1.66053906660e-27)
+
+
+def test_the_heat_of_isobaric_heating_is_the_enthalpy_change_of_the_relation():
+    """Q_P = Delta H: energy bookkeeping at constant pressure, from two sources that share nothing.
+
+    Module 06's heat is C_P times the temperature rise. The enthalpy is U + PV of two states
+    located on the Sackur-Tetrode surface. They agree because the first law, with -P Delta V as
+    the only work, leaves no room for them not to.
+    """
+    n = 10**22
+    start = processes.EquilibriumState.from_temperature(n, 300.0, 4e-4)
+    heating = processes.isobaric(start, 6e-4)
+    h_start, h_end = (potentials.ledger_at(ARGON_10, s.temperature, s.volume, n).enthalpy
+                      for s in (heating.start, heating.end))
+
+    assert relative_error(h_end - h_start, heating.heat) < 1e-8
+
+
+def test_the_legendre_transform_loses_nothing_transformed_twice():
+    """U(S) -> F(T) = U - TS -> back: slope -S and intercept F + TS = U return the original."""
+    n, v = 1e22, 4e-4
+    s_mid = float(ARGON_10(1.5 * n * 1.380649e-23 * 300.0, v, n))
+    s_grid = np.linspace(0.9 * s_mid, 1.1 * s_mid, 4001)
+    u_grid = np.asarray(potentials.energy_at_entropy(ARGON_10, s_grid, v, n))
+
+    temperature, helmholtz = potentials.legendre_transform(u_grid, s_grid)
+    minus_entropy, energy_back = potentials.legendre_transform(helmholtz, temperature)
+
+    assert np.max(np.abs(-minus_entropy - s_grid) / s_grid) < 1e-6
+    assert np.max(np.abs(energy_back - u_grid) / u_grid) < 1e-6
+
+
+def test_throttling_conserves_enthalpy_but_not_energy_for_a_real_gas():
+    """H in = H out across the plug; U does not survive the trip, because P V changes."""
+    vdw = potentials.van_der_waals_gas(39.948 * 1.66053906660e-27, 0.1355 / 6.02214076e23**2,
+                                       3.201e-5 / 6.02214076e23)
+    result = potentials.throttle(vdw, 6.02214076e23, 300.0, 50e5, 1e5)
+
+    assert relative_error(result.enthalpy_out, result.enthalpy_in) < 1e-12
+    assert relative_error(result.energy_out, result.energy_in) > 1e-2
