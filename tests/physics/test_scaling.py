@@ -17,6 +17,7 @@ from thermolab import (
     gases,
     kinetics,
     multiplicity,
+    potentials,
     processes,
     sampling,
 )
@@ -455,3 +456,41 @@ def test_the_ledgers_final_value_is_relatively_sharper_for_bigger_bodies():
 
     exponent = scaling_exponent(sizes, relative_spreads)
     assert exponent < -0.6  # at least as fast as N^(-1/2); the argument above says ~ -1
+
+
+# ---------------------------------------------------------------------------
+# Module 10: the potentials are extensive
+# ---------------------------------------------------------------------------
+
+ARGON_10 = fundamental.monatomic_ideal_gas(ARGON_MASS)
+VDW_10 = potentials.van_der_waals_gas(ARGON_MASS, 0.1355 / 6.02214076e23**2,
+                                      3.201e-5 / 6.02214076e23)
+
+
+@pytest.mark.parametrize("relation", [ARGON_10, VDW_10])
+def test_helmholtz_doubles_when_the_system_doubles(relation):
+    """F(T, 2V, 2N) = 2 F(T, V, N) across three decades of N."""
+    for n in (1e19, 1e21, 1e23):
+        v = n * K_B * 300.0 / 1e5
+        single = potentials.helmholtz_from(relation, 300.0, v, n)
+        double = potentials.helmholtz_from(relation, 300.0, 2 * v, 2 * n)
+        assert relative_error(double, 2 * single) < 1e-9
+
+
+def test_gibbs_and_enthalpy_double_when_the_system_doubles():
+    for n in (1e19, 1e22):
+        g1 = potentials.gibbs_from(VDW_10, 300.0, 1e6, n)
+        g2 = potentials.gibbs_from(VDW_10, 300.0, 1e6, 2 * n)
+        assert relative_error(g2, 2 * g1) < 1e-7
+        s = float(ARGON_10(1.5 * n * K_B * 300.0, n * K_B * 300.0 / 1e5, n))
+        h1 = potentials.enthalpy_from(ARGON_10, s, 1e5, n)
+        h2 = potentials.enthalpy_from(ARGON_10, 2 * s, 1e5, 2 * n)
+        assert relative_error(h2, 2 * h1) < 1e-7
+
+
+def test_the_joule_thomson_cooling_does_not_depend_on_how_much_gas_is_throttled():
+    """An intensive answer: the temperature drop across the plug is the same for any N."""
+    drops = [potentials.throttle(VDW_10, n, 300.0, 20e5, 1e5).temperature_change
+             for n in (1e20, 1e22, 1e24)]
+    assert relative_error(drops[0], drops[-1]) < 1e-6
+    assert drops[0] < 0

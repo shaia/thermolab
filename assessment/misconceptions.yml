@@ -115,3 +115,15 @@ misconceptions:
     statement: "S is only defined at equilibrium, so Delta S of an irreversible process cannot be computed."
     assigned_module: 09-fundamental-relation
     status: addressed
+  - id: free-energy-stored-energy
+    statement: "Free energy is a kind of energy stored inside the system."
+    assigned_module: 10-potentials
+    status: addressed
+  - id: systems-minimize-energy
+    statement: "Systems spontaneously evolve toward minimum energy."
+    assigned_module: 10-potentials
+    status: addressed
+  - id: enthalpy-heat-content
+    statement: "Enthalpy is the heat contained in a body, so Delta H = Q for any process."
+    assigned_module: 10-potentials
+    status: addressed

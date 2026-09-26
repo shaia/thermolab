@@ -10,7 +10,16 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from thermolab import engines, equilibrium, kinetics, multiplicity, processes, sampling
+from thermolab import (
+    engines,
+    equilibrium,
+    fundamental,
+    kinetics,
+    multiplicity,
+    potentials,
+    processes,
+    sampling,
+)
 from thermolab.constants import K_B
 from thermolab.validation import scaling_exponent, seed_study
 
@@ -356,3 +365,40 @@ def test_the_ledger_is_monotone_within_noise_for_every_seed():
         drawdown = np.max(np.maximum.accumulate(ledger) - ledger)
         assert np.any(np.diff(ledger) < 0)  # it does tick down
         assert drawdown < 0.02 * ledger[-1]  # but never by more than 2% of the rise
+
+
+# ---------------------------------------------------------------------------
+# Module 10: entropy from a noisy pressure gauge
+# ---------------------------------------------------------------------------
+
+GAUGE_GAS = fundamental.monatomic_ideal_gas(ARGON_MASS)
+GAUGE_N = 1e21
+GAUGE_T = np.linspace(280.0, 320.0, 9)
+GAUGE_V = 1e-3 * np.geomspace(1.0, 2.0, 9)
+
+
+def gauge_entropy(rng: np.random.Generator) -> potentials.GaugeEntropy:
+    readings = potentials.gauge_readings(GAUGE_GAS, GAUGE_N, GAUGE_T, GAUGE_V, 0.002, rng)
+    return potentials.entropy_from_gauge(GAUGE_T, GAUGE_V, readings)
+
+
+def test_the_same_seed_reproduces_the_same_gauge_readings():
+    a = potentials.gauge_readings(GAUGE_GAS, GAUGE_N, GAUGE_T, GAUGE_V, 0.002,
+                                  np.random.default_rng(3))
+    b = potentials.gauge_readings(GAUGE_GAS, GAUGE_N, GAUGE_T, GAUGE_V, 0.002,
+                                  np.random.default_rng(3))
+    assert np.array_equal(a, b)
+
+
+def test_gauge_entropy_agrees_with_n_k_ln_2_across_seeds():
+    """The doubling's Delta S from noisy P(T) data: unbiased, whatever the noise drew."""
+    study = seed_study(lambda rng: gauge_entropy(rng).entropy_change[-1], n_seeds=12)
+    assert study.agrees_with(GAUGE_N * K_B * np.log(2.0), n_sigma=3.5)
+
+
+def test_the_gauges_error_bar_matches_its_scatter_across_seeds():
+    """An error bar is a claim about the next run; check the claim against twenty of them."""
+    study = seed_study(lambda rng: gauge_entropy(rng).entropy_change[-1], n_seeds=20)
+    claimed = gauge_entropy(np.random.default_rng(0)).entropy_error[-1]
+    scatter = float(np.std(study.values, ddof=1))
+    assert 0.6 < scatter / claimed < 1.6
