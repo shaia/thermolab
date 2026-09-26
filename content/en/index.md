@@ -40,6 +40,7 @@ Currently available:
 - **[The second law and heat engines](thermodynamics/07-second-law.md)** — why no engine, however well built, can turn all its heat into work.
 - **[Entropy and multiplicity](statistical-mechanics/08-multiplicity.md)** — why an isolated gas almost never gathers in one corner.
 - **[The fundamental relation](thermodynamics/09-fundamental-relation.md)** — why two bodies in contact end at equal temperatures and not equal energies, and how one function predicts everything else.
+- **[Thermodynamic potentials](thermodynamics/10-potentials.md)** — why chemists, engineers and physicists each tabulate a different "energy", and how a pressure gauge and a thermometer measure an entropy change.
 
 Two reference pages sit outside the sequence and are meant to be returned to:
 [conventions](conventions.md) and the [mathematics refresher](foundations/math-refresher.md).

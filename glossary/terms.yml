@@ -714,3 +714,84 @@ terms:
   - key: water-equivalent
     en: water equivalent
     he: שווה-ערך המים
+  - key: thermodynamic-potential
+    en: thermodynamic potential
+    he: פוטנציאל תרמודינמי
+  - key: helmholtz-free-energy
+    en: Helmholtz free energy
+    he: אנרגיה חופשית של הלמהולץ
+    he_reject: [אנרגית הלמהולץ]
+  - key: gibbs-free-energy
+    en: Gibbs free energy
+    he: אנרגיה חופשית של גיבס
+    he_reject: [אנרגיית גיבס]
+  - key: legendre-transform
+    en: Legendre transform
+    he: התמרת לז'נדר
+    he_reject: [התמרת לג'נדר, טרנספורם לז'נדר]
+  - key: maxwell-relation
+    en: Maxwell relation
+    he: יחס מקסוול
+    he_reject: [קשר מקסוול]
+  - key: natural-variables
+    en: natural variables
+    he: משתנים טבעיים
+  - key: tangent-line
+    en: tangent line
+    he: ישר משיק
+  - key: envelope
+    en: envelope
+    he: מעטפת
+  - key: heat-bath
+    en: heat bath
+    he: אמבט חום
+  - key: porous-plug
+    en: porous plug
+    he: פקק נקבובי
+  - key: maximum-work
+    en: maximum work
+    he: עבודה מרבית
+  - key: rubber-band
+    en: rubber band
+    he: גומייה
+    he_reject: [גומיה]
+  - key: tension
+    en: tension
+    he: מתיחות
+  - key: force-gauge
+    en: force gauge
+    he: מד כוח
+  - key: pressure-gauge
+    en: pressure gauge
+    he: מד לחץ
+  - key: thermistor
+    en: thermistor
+    he: תרמיסטור
+  - key: electrolysis
+    en: electrolysis
+    he: אלקטרוליזה
+  - key: faraday-constant
+    en: Faraday constant
+    he: קבוע פאראדיי
+  - key: hess-law
+    en: Hess's law
+    he: חוק הס
+  - key: steam-tables
+    en: steam tables
+    he: טבלאות קיטור
+  - key: massieu-function
+    en: Massieu function
+    he: פונקציית מסייה
+    he_reject: [פונקצית מסייה]
+  - key: thermodynamic-square
+    en: thermodynamic square
+    he: הריבוע התרמודינמי
+  - key: inversion-temperature
+    en: inversion temperature
+    he: טמפרטורת היפוך
+  - key: ideal-chain
+    en: ideal chain
+    he: שרשרת אידיאלית
+  - key: steady-state
+    en: steady state
+    he: מצב עמיד
