@@ -12,6 +12,7 @@ Modules:
     equilibrium          two bodies exchanging energy quanta until they share one temperature
     fundamental          the fundamental relation S(U, V, N): slopes, extensivity, stability
     engines              closed cycles between reservoirs; efficiency and the second-law bound
+    ensembles            a small system on a finite heat bath; where the Boltzmann factor comes from
     gases                the ideal gas, the van der Waals correction, and the critical point
     kinetics             free particles in a box; the microscopic origin of pressure
     paths                quasistatic paths in the P-V plane; work as a path function
@@ -25,6 +26,7 @@ from __future__ import annotations
 
 from . import (
     engines,
+    ensembles,
     equilibrium,
     forms,
     fundamental,
@@ -47,6 +49,7 @@ __all__ = [
     "R_GAS",
     "SIGN_CONVENTION",
     "engines",
+    "ensembles",
     "equilibrium",
     "forms",
     "fundamental",

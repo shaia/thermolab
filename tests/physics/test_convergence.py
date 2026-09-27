@@ -15,6 +15,7 @@ from scipy.special import ndtr
 
 from thermolab import (
     engines,
+    ensembles,
     equilibrium,
     forms,
     fundamental,
@@ -529,3 +530,43 @@ def test_gauge_entropy_of_a_van_der_waals_gas_converges_at_second_order_in_the_v
 
     study = convergence_study(reconstructed, [5, 9, 17, 33], exact)
     assert 1.8 < study.observed_order < 2.3
+
+
+# ---------------------------------------------------------------------------
+# Module 11: reading beta off a bath
+# ---------------------------------------------------------------------------
+
+
+def test_the_counted_beta_converges_on_the_exact_slope_at_second_order_in_the_bath_size():
+    """A central difference one quantum wide; the step is fixed, so the bath is refined.
+
+    At fixed energy per oscillator the difference's error relative to the exact slope
+    ~ (1/6) f''' / f' ~ 1/q^2, so it falls as N_bath^-2.
+    """
+    quantum = 1.0e-21
+    sizes = [10, 20, 40, 80, 160, 320]
+    gaps = [relative_error(ensembles.beta_of_bath(n, n, quantum),
+                           ensembles.bath_beta_exact(n, n, quantum)) for n in sizes]
+    order = -np.polyfit(np.log(sizes), np.log(gaps), 1)[0]
+
+    assert 1.95 < order < 2.05
+    assert gaps[-1] < 1e-5
+
+
+def test_what_the_boltzmann_expansion_leaves_out_falls_at_second_order():
+    """Measured minus predicted correction is the cubic term: O(E^3 / N^2) at fixed T.
+
+    The expansion of ln Omega_bath is a convergent sequence of approximations: dropping the
+    linear term is O(1), the quadratic O(1/N), and what is left after both O(1/N^2).
+    """
+    quantum = 1.0e-21
+    levels = ensembles.einstein_levels(2, 4, quantum)
+
+    def leftover(n: int) -> float:
+        joint = ensembles.enumerate_joint(levels, n, 2 * n)
+        rest = (ensembles.measured_log_correction(joint)
+                - ensembles.predicted_log_correction(joint))[1:]
+        return float(np.max(np.abs(rest)))
+
+    study = convergence_study(leftover, [50, 100, 200, 400, 800], 0.0)
+    assert 1.9 < study.observed_order < 2.1

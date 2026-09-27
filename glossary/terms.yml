@@ -795,3 +795,75 @@ terms:
   - key: steady-state
     en: steady state
     he: מצב עמיד
+  # --- module 11: statistical ensembles ---
+  - key: boltzmann-factor
+    en: Boltzmann factor
+    he: גורם בולצמן
+    he_reject: [פקטור בולצמן, גורם בולטזמן]
+  - key: two-level-system
+    en: two-level system
+    he: מערכת דו-רמתית
+    he_reject: [מערכת שתי רמות, מערכת דו רמתית]
+  - key: marginal-distribution
+    en: marginal distribution
+    he: התפלגות שולית
+    he_reject: [התפלגות מרג'ינלית]
+  - key: joint-distribution
+    en: joint distribution
+    he: התפלגות משותפת
+  - key: joint-microstate
+    en: joint microstate
+    he: מיקרו-מצב משותף
+  - key: energy-level
+    en: energy level
+    he: רמת אנרגיה
+  - key: degeneracy
+    en: degeneracy
+    he: ניוון
+    he_reject: [דגנרציה]
+  - key: ground-state
+    en: ground state
+    he: מצב יסוד
+  - key: excited-state
+    en: excited state
+    he: מצב מעורר
+    he_reject: [מצב מעורער]
+  - key: inverse-temperature
+    en: inverse temperature
+    he: טמפרטורה הפוכה
+  - key: population-inversion
+    en: population inversion
+    he: היפוך אוכלוסיות
+  - key: scale-height
+    en: scale height
+    he: גובה סקאלה
+  - key: barometric-formula
+    en: barometric formula
+    he: הנוסחה הברומטרית
+  - key: standard-atmosphere
+    en: standard atmosphere
+    he: האטמוספרה התקנית
+  - key: hydrostatic-equilibrium
+    en: hydrostatic equilibrium
+    he: שיווי משקל הידרוסטטי
+  - key: arrhenius-factor
+    en: Arrhenius factor
+    he: גורם ארניוס
+  - key: vacancy
+    en: vacancy
+    he: אתר ריק
+  - key: magnetic-moment
+    en: magnetic moment
+    he: מומנט מגנטי
+  - key: curie-law
+    en: Curie's law
+    he: חוק קירי
+  - key: equivalence-of-ensembles
+    en: equivalence of ensembles
+    he: שקילות הצברים
+  - key: monte-carlo-simulation
+    en: Monte Carlo simulation
+    he: סימולציית מונטה קרלו
+  - key: spectroscopy
+    en: spectroscopy
+    he: ספקטרוסקופיה

@@ -13,6 +13,7 @@ import pytest
 
 from thermolab import (
     engines,
+    ensembles,
     equilibrium,
     forms,
     fundamental,
@@ -1493,3 +1494,185 @@ def test_helmholtz_of_a_dense_van_der_waals_gas_is_right_where_its_energy_is_neg
 
     assert np.any(energy < 0)
     assert np.max(np.abs(measured - expected) / np.abs(expected)) < 1e-9
+
+
+# ---------------------------------------------------------------------------
+# Module 11: the Boltzmann factor from counting
+# ---------------------------------------------------------------------------
+
+QUANTUM_11 = 1.0e-21
+
+
+def test_the_hand_enumeration_gives_six_sixteenths():
+    """Quiz Q-11-10: gap of one quantum, three bath oscillators, three quanta in all.
+
+    Ground: the bath holds 3 quanta in C(5, 3) = 10 ways. Excited: 2 quanta in C(4, 2) = 6.
+    """
+    two = ensembles.two_level(1, QUANTUM_11)
+    joint = ensembles.enumerate_joint(two, 3, 3)
+
+    assert np.allclose(np.exp(joint.log_joint_count), [10.0, 6.0], rtol=1e-12)
+    assert abs(ensembles.marginal_occupation(joint)[1] - 6 / 16) < 1e-14
+    assert len(ensembles.explicit_joint_microstates(two, 3, 3)) == 16
+
+
+@pytest.mark.parametrize(("n_bath", "total"), [(3, 3), (10, 7), (40, 40), (500, 1000)])
+def test_the_one_quantum_two_level_system_matches_the_exact_ratio(n_bath, total):
+    """For a gap of one quantum, P_1 / P_0 = Omega(q - 1) / Omega(q) = q / (q + N - 1)."""
+    p = ensembles.marginal_occupation(
+        ensembles.enumerate_joint(ensembles.two_level(1, QUANTUM_11), n_bath, total))
+    assert relative_error(p[1] / p[0], total / (total + n_bath - 1)) < 1e-12
+
+
+def test_joint_microstates_are_equally_likely_while_the_marginal_is_not():
+    """The falsifying experiment for `canonical-equal-probability`.
+
+    Every joint microstate of system plus bath carries the same probability -- listed one by
+    one, there is only one number. The system's own two states do not: the excited one pairs
+    with fewer bath microstates, and is correspondingly rarer.
+    """
+    two = ensembles.two_level(1, QUANTUM_11)
+    states = ensembles.explicit_joint_microstates(two, 6, 6)
+    joint = ensembles.enumerate_joint(two, 6, 6)
+    per_joint = np.full(len(states), joint.joint_microstate_probability)
+    marginal = ensembles.marginal_occupation(joint)
+
+    assert abs(per_joint.sum() - 1.0) < 1e-12
+    assert np.ptp(per_joint) == 0.0
+    assert marginal[1] < marginal[0]
+    assert marginal[1] / marginal[0] < 0.7
+
+
+def test_the_boltzmann_factor_needs_no_dynamics_only_a_large_bath():
+    """The falsifying experiment for `boltzmann-factor-dynamical`.
+
+    `enumerate_joint` has no time, no collisions and no random numbers -- it only counts. Its
+    marginal still lands on exp(-E / k_B T) to one part in a thousand once the bath is big.
+    """
+    levels = ensembles.einstein_levels(3, 40, QUANTUM_11)
+    marginal = ensembles.marginal_occupation(ensembles.enumerate_joint(levels, 4000, 4000))
+    boltzmann = ensembles.boltzmann_distribution(levels,
+                                                 ensembles.bath_temperature(1.0, QUANTUM_11))
+    assert ensembles.sup_norm(marginal, boltzmann) < 1e-3
+
+
+def test_equal_energy_baths_of_different_sizes_give_different_occupations():
+    """The falsifying experiment for `temperature-of-system-alone`.
+
+    One two-level system, three baths holding the same 100 quanta. Its occupations follow
+    the bath's slope, not the bath's energy and not anything of its own -- and each matches
+    the Boltzmann factor at *that* bath's temperature.
+    """
+    two = ensembles.two_level(1, QUANTUM_11)
+    excited = []
+    for n_bath in (25, 100, 400):
+        p = ensembles.marginal_occupation(ensembles.enumerate_joint(two, n_bath, 100))
+        beta = ensembles.bath_beta_exact(n_bath, 100, QUANTUM_11)
+        assert relative_error(p[1] / p[0], np.exp(-beta * QUANTUM_11)) < 0.02
+        excited.append(p[1])
+
+    assert excited[0] > 0.4 > excited[1] > 0.3 > 0.2 > excited[2]
+
+
+def test_two_different_systems_on_one_bath_acquire_one_beta():
+    """Problem 6: a two-level system and a three-oscillator solid share a bath.
+
+    Treat the pair as one system whose levels are the sums of theirs. Each one's marginal then
+    decays with the same exponent, the bath's -- temperature is the bath's, not theirs.
+    """
+    two = ensembles.two_level(2, QUANTUM_11)
+    solid = ensembles.einstein_levels(3, 30, QUANTUM_11)
+    quanta = (two.quanta[:, None] + solid.quanta[None, :]).ravel()
+    log_g = (two.log_degeneracy[:, None] + solid.log_degeneracy[None, :]).ravel()
+    pair = ensembles.Levels(quanta=quanta, log_degeneracy=log_g, quantum=QUANTUM_11)
+    joint = ensembles.marginal_occupation(ensembles.enumerate_joint(pair, 5000, 5000))
+    joint = joint.reshape(len(two), len(solid))
+    beta_quantum = ensembles.bath_beta_exact(5000, 5000, QUANTUM_11) * QUANTUM_11
+
+    p_two = joint.sum(axis=1)
+    p_solid = joint.sum(axis=0) / solid.degeneracy
+    from_two = -np.log(p_two[1] / p_two[0]) / 2
+    from_solid = -np.log(p_solid[1:6] / p_solid[:5])
+
+    assert relative_error(from_two, beta_quantum) < 2e-3
+    assert np.max(np.abs(from_solid - beta_quantum)) / beta_quantum < 2e-3
+
+
+def test_a_one_oscillator_bath_has_no_temperature_to_give():
+    """Failure mode: Omega = 1 for every energy, so ln Omega is flat and beta = 0."""
+    two = ensembles.two_level(1, QUANTUM_11)
+    p = ensembles.marginal_occupation(ensembles.enumerate_joint(two, 1, 5))
+
+    assert ensembles.bath_beta_exact(1, 5, QUANTUM_11) == 0.0
+    assert ensembles.beta_of_bath(1, 5, QUANTUM_11) == 0.0
+    assert np.allclose(p, [0.5, 0.5], rtol=1e-14)
+
+
+@pytest.mark.parametrize("temperature", [20.0, 72.4, 300.0, 5000.0])
+def test_the_two_level_closed_form_is_the_boltzmann_distribution(temperature):
+    system = ensembles.TwoLevelSystem(gap=QUANTUM_11)
+    p = ensembles.boltzmann_distribution(system.levels(QUANTUM_11), temperature)
+    x = QUANTUM_11 / (K_B * temperature)
+
+    assert relative_error(float(system.excited_occupation(temperature)), p[1]) < 1e-12
+    assert relative_error(float(system.ground_occupation(temperature)), p[0]) < 1e-12
+    assert relative_error(float(system.mean_energy(temperature)),
+                          QUANTUM_11 / (np.exp(x) + 1)) < 1e-12
+
+
+def test_the_two_level_system_empties_its_upper_level_as_t_goes_to_zero():
+    system = ensembles.TwoLevelSystem(gap=QUANTUM_11)
+    cold = QUANTUM_11 / (K_B * 800.0)  # gap = 800 k_B T: exp(-800) underflows
+
+    assert float(system.excited_occupation(cold)) == 0.0
+    assert float(system.ground_occupation(cold)) == 1.0
+
+
+def test_the_two_level_system_approaches_half_and_half_but_never_inverts():
+    """T -> infinity: occupations -> 1/2 and <E> -> gap/2, always from below."""
+    system = ensembles.TwoLevelSystem(gap=QUANTUM_11)
+    temperatures = np.geomspace(1.0, 1e9, 200)
+    excited = np.asarray(system.excited_occupation(temperatures))
+    energy = np.asarray(system.mean_energy(temperatures))
+
+    assert np.all(excited < 0.5)
+    assert np.all(np.diff(excited) > 0)
+    assert abs(excited[-1] - 0.5) < 1e-6
+    assert np.all(energy < QUANTUM_11 / 2)
+    assert relative_error(float(energy[-1]), QUANTUM_11 / 2) < 1e-6
+
+
+def test_occupation_at_a_gap_of_two_k_b_t_is_e_to_the_minus_two():
+    """Quiz Q-11-3."""
+    system = ensembles.TwoLevelSystem(gap=2 * K_B * 300.0)
+    ratio = system.excited_occupation(300.0) / system.ground_occupation(300.0)
+    assert relative_error(float(ratio), np.exp(-2.0)) < 1e-12
+
+
+def test_the_bath_temperature_is_module_09s_einstein_temperature():
+    """And for a warm bath it approaches equipartition plus half a quantum."""
+    for x in (0.2, 1.0, 7.0):
+        assert relative_error(ensembles.bath_temperature(x, QUANTUM_11),
+                              float(fundamental.einstein_solid_temperature(
+                                  x * 50 * QUANTUM_11, 50, QUANTUM_11))) < 1e-12
+    warm = 500.0
+    equipartition = (warm + 0.5) * QUANTUM_11 / K_B
+    assert relative_error(ensembles.bath_temperature(warm, QUANTUM_11), equipartition) < 1e-6
+
+
+def test_the_exact_bath_slope_approaches_the_stirling_slope():
+    """sum_{j=1}^{N-1} 1/(q + j) -> ln((q + N)/q) as the bath grows at fixed q/N."""
+    for n in (100, 1000, 10_000):
+        exact = ensembles.bath_beta_exact(n, 2 * n, QUANTUM_11) * QUANTUM_11
+        assert relative_error(exact, np.log(1.5)) < 2.0 / n
+
+
+def test_canonical_energy_spread_of_an_einstein_solid_matches_the_closed_form():
+    """Per oscillator Var(E) = quantum^2 e^b / (e^b - 1)^2, b = quantum / k_B T."""
+    temperature = ensembles.bath_temperature(1.0, QUANTUM_11)
+    b = QUANTUM_11 / (K_B * temperature)
+    for n in (1, 5, 30):
+        levels = ensembles.einstein_levels(n, 40 * n + 60, QUANTUM_11)
+        mean, spread = ensembles.energy_moments(levels, temperature)
+        assert relative_error(mean, n * QUANTUM_11 / np.expm1(b)) < 1e-10
+        assert relative_error(spread, np.sqrt(n * np.exp(b)) * QUANTUM_11 / np.expm1(b)) < 1e-8
