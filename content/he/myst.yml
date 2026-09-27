@@ -42,6 +42,8 @@ project:
         - file: statistical-mechanics/03-random-walks-problems.md
         - file: statistical-mechanics/08-multiplicity.md
         - file: statistical-mechanics/08-multiplicity-problems.md
+        - file: statistical-mechanics/11-ensembles.md
+        - file: statistical-mechanics/11-ensembles-problems.md
 site:
   template: book-theme
   options:

@@ -41,8 +41,8 @@ misconceptions:
     status: addressed
   - id: canonical-equal-probability
     statement: "The canonical ensemble means every microstate is equally probable."
-    assigned_module: unassigned   # ensembles module (11), beyond Milestone 1
-    status: pending
+    assigned_module: 11-ensembles
+    status: addressed
   - id: dq-dw-exact
     statement: "dQ and dW are ordinary exact differentials."
     assigned_module: 05-work-paths
@@ -126,4 +126,12 @@ misconceptions:
   - id: enthalpy-heat-content
     statement: "Enthalpy is the heat contained in a body, so Delta H = Q for any process."
     assigned_module: 10-potentials
+    status: addressed
+  - id: temperature-of-system-alone
+    statement: "Temperature is a property of the system alone, even when it is in contact with a bath."
+    assigned_module: 11-ensembles
+    status: addressed
+  - id: boltzmann-factor-dynamical
+    statement: "The Boltzmann factor is a dynamical effect of collisions."
+    assigned_module: 11-ensembles
     status: addressed

@@ -18,6 +18,7 @@ import pytest
 
 from thermolab import (
     engines,
+    ensembles,
     equilibrium,
     forms,
     fundamental,
@@ -30,6 +31,7 @@ from thermolab import (
     sampling,
 )
 from thermolab.units import K_B_Q, Quantity
+from thermolab.validation import relative_error
 
 pytestmark = pytest.mark.dimensional
 
@@ -454,3 +456,60 @@ def test_potentials_functions_return_plain_si_floats():
     assert potentials.helmholtz_from(gas, np.array([300.0, 400.0]), 4e-4, n).shape == (2,)
     # The ledger closes: U = F + TS, in joules, to rounding.
     assert abs(ledger.energy - (ledger.helmholtz + ledger.ts)) <= 1e-12 * abs(ledger.energy)
+
+
+# ---------------------------------------------------------------------------
+# Module 11: the Boltzmann factor
+# ---------------------------------------------------------------------------
+
+QUANTUM_11 = 1.0e-21
+
+
+def test_the_boltzmann_exponent_is_dimensionless():
+    """E / (k_B T) must be a pure number, or exp(-E / k_B T) means nothing."""
+    exponent = Quantity(3 * QUANTUM_11, "J") / (K_B_Q * Quantity(104.5, "K"))
+    assert exponent.to("dimensionless").check("[]")
+
+
+def test_beta_is_an_inverse_energy_that_scales_inversely_with_the_quantum():
+    """Homogeneity: the same count on quanta twice as large is half as steep per joule."""
+    beta = ensembles.beta_of_bath(200, 200, QUANTUM_11)
+    assert relative_error(ensembles.beta_of_bath(200, 200, 2 * QUANTUM_11), beta / 2) < 1e-14
+    assert relative_error(ensembles.bath_beta_exact(200, 200, 2 * QUANTUM_11),
+                          ensembles.bath_beta_exact(200, 200, QUANTUM_11) / 2) < 1e-14
+    # 1 / (k_B beta) must come out a temperature.
+    temperature = 1 / (K_B_Q * Quantity(beta, "1/J"))
+    assert temperature.check("[temperature]")
+    assert relative_error(ensembles.bath_temperature(1.0, 2 * QUANTUM_11),
+                          2 * ensembles.bath_temperature(1.0, QUANTUM_11)) < 1e-14
+
+
+def test_the_bath_curvature_is_an_inverse_energy_squared():
+    """d^2 ln Omega / dU^2 = -1 / (k_B T^2 C): each side is 1/J^2."""
+    heat_capacity = Quantity(200.0, "") * K_B_Q
+    side = 1 / (K_B_Q * Quantity(100.0, "K") ** 2 * heat_capacity)
+    assert side.check("1/[energy]**2")
+    assert relative_error(ensembles.bath_curvature_exact(200, 200, 2 * QUANTUM_11),
+                          ensembles.bath_curvature_exact(200, 200, QUANTUM_11) / 4) < 1e-14
+
+
+def test_the_boltzmann_distribution_is_a_set_of_pure_probabilities():
+    levels = ensembles.einstein_levels(3, 60, QUANTUM_11)
+    p = ensembles.boltzmann_distribution(levels, 150.0)
+    assert p.dtype == float
+    assert abs(p.sum() - 1.0) < 1e-12
+    assert np.all(p >= 0)
+    # Rescaling every energy and the temperature together changes nothing.
+    rescaled = ensembles.einstein_levels(3, 60, 3 * QUANTUM_11)
+    assert np.max(np.abs(ensembles.boltzmann_distribution(rescaled, 450.0) - p)) < 1e-14
+
+
+def test_ensembles_functions_return_plain_si_floats():
+    two = ensembles.two_level(1, QUANTUM_11)
+    joint = ensembles.enumerate_joint(two, 50, 50)
+    assert isinstance(ensembles.beta_of_bath(50, 50, QUANTUM_11), float)
+    assert isinstance(ensembles.bath_temperature(1.0, QUANTUM_11), float)
+    assert isinstance(joint.log_total_multiplicity, float)
+    mean, spread = ensembles.energy_moments(two, 100.0)
+    assert isinstance(mean, float) and isinstance(spread, float)
+    assert two.energies.dtype == float

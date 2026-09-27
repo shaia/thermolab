@@ -14,6 +14,7 @@ from hypothesis import strategies as st
 
 from thermolab import (
     engines,
+    ensembles,
     equilibrium,
     forms,
     fundamental,
@@ -563,3 +564,55 @@ def test_throttling_conserves_enthalpy_but_not_energy_for_a_real_gas():
 
     assert relative_error(result.enthalpy_out, result.enthalpy_in) < 1e-12
     assert relative_error(result.energy_out, result.energy_in) > 1e-2
+
+
+# ---------------------------------------------------------------------------
+# Module 11: the composite keeps every quantum
+# ---------------------------------------------------------------------------
+
+QUANTUM_11 = 1.0e-21
+
+
+@given(
+    n_system=st.integers(1, 6),
+    n_bath=st.integers(1, 400),
+    total=st.integers(0, 600),
+)
+@settings(max_examples=60, deadline=None)
+def test_every_joint_row_leaves_the_bath_exactly_the_quanta_the_system_does_not_hold(
+    n_system, n_bath, total
+):
+    levels = ensembles.einstein_levels(n_system, total + 3, QUANTUM_11)
+    joint = ensembles.enumerate_joint(levels, n_bath, total)
+
+    assert np.all(levels.quanta + joint.bath_quanta == total)
+    # Levels above the total are counted as unreachable, not as negative energy for the bath.
+    assert np.all(np.isneginf(joint.log_joint_count[levels.quanta > total]))
+    assert abs(ensembles.marginal_occupation(joint).sum() - 1.0) < 1e-12
+
+
+@pytest.mark.parametrize(("n_system", "n_bath", "total"), [(1, 3, 3), (3, 50, 40), (5, 800, 900)])
+def test_the_joint_counts_add_up_to_the_count_of_the_whole_composite(n_system, n_bath, total):
+    """System and bath together are one Einstein solid of n + N oscillators.
+
+    Summing g(k) Omega_bath(q - k) over every split must give C(q + n + N - 1, q): no joint
+    microstate is lost or counted twice by splitting the composite in two (Vandermonde).
+    """
+    levels = ensembles.einstein_levels(n_system, total, QUANTUM_11)
+    joint = ensembles.enumerate_joint(levels, n_bath, total)
+    whole = float(equilibrium.einstein_log_multiplicity(total, n_system + n_bath))
+
+    assert relative_error(joint.log_total_multiplicity, whole) < 1e-12
+
+
+def test_the_hand_list_of_joint_microstates_matches_the_count_and_conserves_quanta():
+    levels = ensembles.einstein_levels(2, 4, QUANTUM_11)
+    joint = ensembles.enumerate_joint(levels, 3, 4)
+    states = ensembles.explicit_joint_microstates(levels, 3, 4)
+
+    assert len(states) == round(np.exp(joint.log_total_multiplicity))
+    assert len(set(states)) == len(states)
+    for level, _, bath in states:
+        assert levels.quanta[level] + sum(bath) == 4
+    per_level = np.bincount([s[0] for s in states], minlength=len(levels))
+    assert np.array_equal(per_level, np.rint(np.exp(joint.log_joint_count)).astype(int))

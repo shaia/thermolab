@@ -3,6 +3,11 @@
 A physical conclusion may not depend on which random numbers happened to come up. Every
 stochastic function in the library takes an explicit `rng`, and these tests confirm both that
 the seed controls reproducibility and that the physics does not change with it.
+
+One module has nothing to check here. Module 11's `ensembles` is exact enumeration: it counts
+every joint microstate of system plus bath and never samples one, so there is no random number
+anywhere for a seed to vary. That is the point of its centrepiece -- the Boltzmann factor
+appears from counting alone -- and the absence of a test here is the same statement.
 """
 
 from __future__ import annotations

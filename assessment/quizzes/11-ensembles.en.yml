@@ -1,0 +1,257 @@
+module: 11-ensembles
+questions:
+  - id: Q-11-1
+    type: multiple-choice
+    objectives: [OBJ-11-4]
+    misconception: canonical-equal-probability
+    prompt: >-
+      A small system has reached equilibrium with a large heat bath, and system plus bath
+      together are isolated. Which microstates are equally probable?
+    choices:
+      - text: Every joint microstate of system plus bath -- the system's state together with the state of every bath oscillator.
+        correct: true
+        feedback: >-
+          Right. The equal-probability postulate applies to an isolated system, and the isolated
+          system here is the composite. The system's own states are not equally probable: each
+          is weighted by the number of bath microstates it leaves room for, which falls off
+          exponentially with the energy the system takes.
+      - text: Every microstate of the small system, because it is in equilibrium.
+        correct: false
+        feedback: >-
+          This is the canonical-equal-probability misconception. Equal probability is a
+          statement about an isolated system, and the small system is not isolated: it trades
+          energy with the bath. Its microstates are weighted by exp(-E_s/(k_B T)). In the
+          laboratory's hand count, 16 joint microstates are each 1/16 likely, but the system is
+          in its ground state in 10 of them and excited in only 6.
+      - text: Every microstate of the bath, whatever the system is doing.
+        correct: false
+        feedback: >-
+          The bath is not isolated either: it trades energy with the system. What is fixed is the
+          total, so it is the joint microstates -- system and bath together -- that are equally
+          likely.
+      - text: None of them; equilibrium does not involve equal probabilities.
+        correct: false
+        feedback: >-
+          The whole derivation rests on equal probabilities, applied to the right thing: the
+          joint microstates of the isolated composite. The Boltzmann factor is a consequence of
+          that postulate, not a replacement for it.
+
+  - id: Q-11-2
+    type: multiple-choice
+    objectives: [OBJ-11-1]
+    misconception: canonical-equal-probability
+    prompt: >-
+      Which pairing of ensemble, situation and probability rule is correct?
+    choices:
+      - text: "Canonical: a system exchanging energy with a bath at temperature T; P_s = exp(-E_s/(k_B T)) / Z."
+        correct: true
+        feedback: >-
+          Right. The canonical ensemble is the small system's view: its energy is not fixed, and
+          its microstates are Boltzmann-weighted. The microcanonical ensemble is the isolated
+          view: fixed energy, equal weights.
+      - text: "Canonical: a system exchanging energy with a bath; every microstate equally probable."
+        correct: false
+        feedback: >-
+          That pairs the canonical situation with the microcanonical rule. Equal weights belong to
+          an isolated system at fixed energy. A system that trades energy with a bath has
+          Boltzmann-weighted microstates.
+      - text: "Microcanonical: a system exchanging energy with a bath; P_s = exp(-E_s/(k_B T)) / Z."
+        correct: false
+        feedback: >-
+          The microcanonical ensemble describes an isolated system, whose energy is fixed; it
+          exchanges nothing. The Boltzmann rule belongs to the canonical ensemble.
+      - text: "Microcanonical: an isolated system at fixed energy; P_s = exp(-E_s/(k_B T)) / Z."
+        correct: false
+        feedback: >-
+          The situation is right but the rule is not. At fixed energy every accessible microstate
+          has the same energy, and the postulate gives each the same probability, 1/Omega.
+
+  - id: Q-11-3
+    type: numeric
+    objectives: [OBJ-11-7]
+    prompt: >-
+      A two-level system in contact with a bath has a gap of Delta = 2 k_B T between its two
+      non-degenerate states. What is the ratio of the excited population to the ground
+      population, p_1 / p_0?
+    answer: 0.1353
+    tolerance: 0.002
+    feedback: >-
+      The Boltzmann factor gives p_1 / p_0 = exp(-Delta/(k_B T)) = exp(-2) = 0.135. If you
+      answered 0.119, you computed the excited occupation p_1 = 1/(exp(2) + 1) rather than the
+      ratio. If you answered 0.5, you gave both states equal weight, which holds only for an
+      isolated system -- or at infinite temperature.
+
+  - id: Q-11-4
+    type: multiple-choice
+    objectives: [OBJ-11-3]
+    misconception: boltzmann-factor-dynamical
+    prompt: >-
+      The Boltzmann distribution P_s = exp(-beta E_s) / Z was derived from P_s proportional to
+      Omega_bath(U_tot - E_s). Which hypotheses does that step need?
+    choices:
+      - text: The bath is much larger than the system's energies, and the curvature of ln Omega_bath is negligible over them.
+        correct: true
+        feedback: >-
+          Right. Expanding ln Omega_bath about U_tot and stopping at the linear term needs both:
+          E_s small compared with the bath's energy, and E_s^2 times the second derivative of
+          ln Omega_bath much less than one. The second derivative is -1/(k_B T^2 C_bath), so a
+          big bath makes it vanish.
+      - text: Frequent collisions must shuffle the energy between system and bath.
+        correct: false
+        feedback: >-
+          This is the misconception that the Boltzmann factor is a dynamical effect. The
+          derivation counts joint microstates and uses no dynamics at all -- the laboratory's
+          enumeration contains no time and no collisions, and the exponential appears anyway.
+          Collisions are one way a real system explores its microstates, not the origin of the
+          exponential.
+      - text: The system must be large, so that Stirling's approximation applies to it.
+        correct: false
+        feedback: >-
+          It is the bath that must be large, not the system. The Boltzmann distribution is
+          exact enough for a single two-level system, provided its bath is big.
+      - text: The system's energy levels must be equally spaced.
+        correct: false
+        feedback: >-
+          Nothing about the system's levels enters the expansion, which is of the bath's ln Omega.
+          Any set of levels is Boltzmann-weighted; the laboratory uses both a two-level system
+          and a solid with degenerate levels.
+
+  - id: Q-11-5
+    type: numeric
+    objectives: [OBJ-11-6]
+    prompt: >-
+      A two-level system sits on an Einstein bath at a fixed temperature. The largest gap between
+      its exact occupations and the Boltzmann values is 1.4e-3 when the bath has 80 oscillators.
+      The bath is doubled to 160 oscillators at the same temperature. By what factor is the gap
+      divided?
+    answer: 2.0
+    tolerance: 0.1
+    feedback: >-
+      The term the Boltzmann derivation drops is E_s^2 / (2 k_B T^2 C_bath), and C_bath grows in
+      proportion to the bath, so the gap falls as 1/N_bath: doubling the bath halves it, to about
+      7.0e-4. The laboratory measures an exponent of -1.004. If you answered sqrt(2), you
+      carried over the N^(-1/2) of module 08's fluctuations; that law is about a system's spread,
+      not about the error of treating a finite bath as infinite.
+
+  - id: Q-11-6
+    type: multiple-choice
+    objectives: [OBJ-11-5]
+    misconception: temperature-of-system-alone
+    prompt: >-
+      In P_s = exp(-beta E_s) / Z, what is beta?
+    choices:
+      - text: The slope d(ln Omega)/dU of the bath's multiplicity -- the bath's 1/(k_B T), which the system inherits.
+        correct: true
+        feedback: >-
+          Right. beta came from expanding ln Omega_bath, so it is a property of the bath. The
+          laboratory puts one two-level system on three baths holding the same energy but with
+          25, 100 and 400 oscillators: the excited occupation is 0.446, 0.334 and 0.167 -- each
+          the Boltzmann value at that bath's own temperature.
+      - text: 1/(k_B T) with T the temperature the small system has on its own.
+        correct: false
+        feedback: >-
+          This is the misconception that temperature is a property of the system alone. Nothing
+          of the small system entered beta: it is the slope of the bath's ln Omega. Put the same
+          system on baths of equal energy but different size and its occupations change, because
+          the baths' slopes differ.
+      - text: The system's energy divided by k_B.
+        correct: false
+        feedback: >-
+          beta is an inverse energy, 1/(k_B T), not an energy. And it does not belong to the
+          system: it is the slope of the bath's ln Omega.
+      - text: A fitting constant chosen so that the probabilities add up to one.
+        correct: false
+        feedback: >-
+          That is the job of Z. beta has a meaning of its own: module 09's 1/T = dS/dU, divided by
+          k_B, evaluated on the bath.
+
+  - id: Q-11-7
+    type: short-answer
+    objectives: [OBJ-11-2, OBJ-11-4]
+    prompt: >-
+      In two or three sentences: every joint microstate of system plus bath is equally likely,
+      yet the system's own states are exponentially weighted. Explain how both can be true.
+    discussion: >-
+      Equal probability applies to the joint microstates of the isolated composite, and the
+      system's probability of being in state s is the number of those joint microstates that have
+      it there -- Omega_bath(U_tot - E_s) -- divided by the total. A system state with more energy
+      leaves less for the bath, and the bath's multiplicity falls steeply as its energy falls, so
+      that state pairs with fewer joint microstates. A strong answer names the marginal (summing
+      the flat joint distribution over the bath) and says why the fall is exponential: ln Omega
+      of the bath drops by beta for each unit of energy removed.
+
+  - id: Q-11-8
+    type: multiple-choice
+    objectives: [OBJ-11-8]
+    prompt: >-
+      The density of an isothermal atmosphere falls with height h as exp(-E/(k_B T)). Which
+      energy E appears in the exponent?
+    choices:
+      - text: The gravitational potential energy of one molecule, m g h.
+        correct: true
+        feedback: >-
+          Right. The Boltzmann factor weights a molecule's state by that state's energy, and
+          what changes with height is m g h. The scale height is k_B T/(m g), about 8.7 km for
+          nitrogen at 288 K.
+      - text: The kinetic energy of one molecule, (3/2) k_B T.
+        correct: false
+        feedback: >-
+          The kinetic energy is distributed the same way at every height in an isothermal
+          atmosphere; it does not depend on h, so it cannot make the density fall with height.
+      - text: The potential energy of the whole column of air above height h.
+        correct: false
+        feedback: >-
+          The Boltzmann factor is about the state of one molecule in contact with a bath -- here
+          the rest of the atmosphere. The column's weight is what the macroscopic, hydrostatic
+          derivation uses, and it gives the same answer.
+      - text: The energy needed to ionize a molecule.
+        correct: false
+        feedback: >-
+          Ionization energies are several electronvolts, far beyond k_B T in the lower
+          atmosphere, and they do not change with height. The energy that changes with height is
+          m g h.
+
+  - id: Q-11-9
+    type: multiple-choice
+    objectives: [OBJ-11-7]
+    prompt: >-
+      A large number of two-level systems are in contact with a bath whose temperature is raised
+      without limit. What does the fraction in the upper state approach?
+    choices:
+      - text: One half, from below.
+        correct: true
+        feedback: >-
+          Right. p_1 = 1/(exp(Delta/(k_B T)) + 1), and as T grows exp(Delta/(k_B T)) approaches 1,
+          so p_1 approaches 1/2. For any positive T the ratio p_1/p_0 = exp(-Delta/(k_B T)) is below
+          one: heating equalizes the populations but never inverts them.
+      - text: One -- at high enough temperature every system is excited.
+        correct: false
+        feedback: >-
+          A hotter bath makes the upper state more likely, but never more likely than the lower
+          one: the Boltzmann ratio exp(-Delta/(k_B T)) is below one at every positive temperature.
+          An inverted population is not a very hot equilibrium state; module 12 says what it is.
+      - text: Zero -- the excited state is always exponentially rare.
+        correct: false
+        feedback: >-
+          The upper state is exponentially rare only when Delta is large compared with k_B T. At
+          high temperature the exponent is small and the two states become nearly equally likely.
+      - text: It depends on the size of the gap Delta, even at infinite temperature.
+        correct: false
+        feedback: >-
+          The gap sets how hot the bath must be before the populations approach each other, but
+          not where they end up: as T grows without limit, p_1 approaches 1/2 for any gap.
+
+  - id: Q-11-10
+    type: numeric
+    objectives: [OBJ-11-2]
+    prompt: >-
+      A two-level system with a gap of one quantum shares 3 quanta with a bath of 3 Einstein
+      oscillators; an Einstein solid of N oscillators holds q quanta in C(q + N - 1, q) ways.
+      Counting joint microstates, what is the probability that the system is excited?
+    answer: 0.375
+    tolerance: 0.002
+    feedback: >-
+      Ground: the bath holds 3 quanta in C(5, 3) = 10 ways. Excited: it holds 2 in C(4, 2) = 6
+      ways. That is 16 joint microstates, each equally likely, so P(excited) = 6/16 = 0.375. If you
+      answered 0.5, you weighted the system's two states equally instead of counting what each
+      leaves the bath.

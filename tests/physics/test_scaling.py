@@ -12,6 +12,7 @@ import pytest
 
 from thermolab import (
     engines,
+    ensembles,
     equilibrium,
     fundamental,
     gases,
@@ -494,3 +495,66 @@ def test_the_joule_thomson_cooling_does_not_depend_on_how_much_gas_is_throttled(
              for n in (1e20, 1e22, 1e24)]
     assert relative_error(drops[0], drops[-1]) < 1e-6
     assert drops[0] < 0
+
+
+# ---------------------------------------------------------------------------
+# Module 11: an infinite bath is an approximation with an error bar
+# ---------------------------------------------------------------------------
+
+QUANTUM_11 = 1.0e-21
+BATH_SIZES_11 = [20, 40, 80, 160, 320, 640]
+
+
+@pytest.mark.parametrize("quanta_per_oscillator", [0.5, 1.0, 2.0])
+def test_the_finite_bath_error_falls_as_one_over_the_bath_size(quanta_per_oscillator):
+    """Doubling the bath at fixed temperature halves the gap to the Boltzmann curve."""
+    sweep = ensembles.bath_size_sweep(ensembles.two_level(1, QUANTUM_11), BATH_SIZES_11,
+                                      quanta_per_oscillator)
+    alpha = scaling_exponent(sweep.n_bath, sweep.distances)
+
+    assert abs(alpha + 1.0) < 0.02, f"sup-norm exponent {alpha:.4f}"
+    halving = sweep.distances[:-1] / sweep.distances[1:]
+    assert np.all(np.abs(halving - 2.0) < 0.03)
+
+
+def test_the_finite_bath_error_of_a_small_solid_also_falls_as_one_over_the_bath_size():
+    sweep = ensembles.bath_size_sweep(ensembles.einstein_levels(3, 40, QUANTUM_11),
+                                      BATH_SIZES_11, 1.0)
+    assert abs(scaling_exponent(sweep.n_bath, sweep.distances) + 1.0) < 0.02
+
+
+def test_the_measured_correction_tracks_the_predicted_curvature_term():
+    """ln P beyond -beta E is -E^2 / (2 k_B T^2 C_bath), up to a relative 1/N_bath."""
+    levels = ensembles.einstein_levels(3, 6, QUANTUM_11)
+    misfit = []
+    for n in (50, 100, 200, 400, 800):
+        joint = ensembles.enumerate_joint(levels, n, n)
+        measured = ensembles.measured_log_correction(joint)[1:]
+        predicted = ensembles.predicted_log_correction(joint)[1:]
+        assert np.all(measured < 0) and np.all(predicted < 0)
+        misfit.append(float(np.max(np.abs(measured / predicted - 1.0))))
+        # The correction itself shrinks as 1/N: n times it is fixed.
+        assert relative_error(n * float(predicted[0]), -1.0 / 4.0) < 2.0 / n
+
+    assert misfit[-1] < 5e-3  # the remainder is relatively ~ E_s / U_bath: largest at k = 6
+    assert abs(scaling_exponent([50, 100, 200, 400, 800], misfit) + 1.0) < 0.05
+
+
+def test_a_canonical_solids_relative_energy_spread_falls_as_n_to_the_minus_one_half():
+    """Advanced: why canonical and microcanonical agree for a big enough system."""
+    temperature = ensembles.bath_temperature(1.0, QUANTUM_11)
+    sizes = [4, 16, 64, 256]
+    spreads = []
+    for n in sizes:
+        levels = ensembles.einstein_levels(n, int(n + 40 * np.sqrt(n) + 60), QUANTUM_11)
+        mean, spread = ensembles.energy_moments(levels, temperature)
+        spreads.append(spread / mean)
+
+    assert abs(scaling_exponent(sizes, spreads) + 0.5) < 1e-6
+
+
+def test_the_exact_bath_temperature_reaches_the_infinite_bath_value_as_one_over_n():
+    target = np.log(2.0)
+    gaps = [abs(ensembles.bath_beta_exact(n, n, QUANTUM_11) * QUANTUM_11 - target)
+            for n in BATH_SIZES_11]
+    assert abs(scaling_exponent(BATH_SIZES_11, gaps) + 1.0) < 0.02
