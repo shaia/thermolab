@@ -49,8 +49,8 @@ misconceptions:
     status: addressed
   - id: negative-t-colder
     statement: "Negative temperature means colder than absolute zero."
-    assigned_module: unassigned   # ensembles/paramagnet module, beyond Milestone 1
-    status: pending
+    assigned_module: 12-partition-functions
+    status: addressed
   - id: instant-equilibrium
     statement: "Two bodies placed in contact reach the same temperature instantly."
     assigned_module: 01-equilibrium
@@ -134,4 +134,12 @@ misconceptions:
   - id: boltzmann-factor-dynamical
     statement: "The Boltzmann factor is a dynamical effect of collisions."
     assigned_module: 11-ensembles
+    status: addressed
+  - id: dulong-petit-always
+    statement: "The heat capacity of any solid is 3 N k_B, at every temperature."
+    assigned_module: 12-partition-functions
+    status: addressed
+  - id: free-energy-formula-definition
+    statement: "F = -k_B T ln Z is the definition of the free energy."
+    assigned_module: 12-partition-functions
     status: addressed

@@ -18,6 +18,7 @@ from thermolab import (
     gases,
     kinetics,
     multiplicity,
+    partition,
     potentials,
     processes,
     sampling,
@@ -558,3 +559,42 @@ def test_the_exact_bath_temperature_reaches_the_infinite_bath_value_as_one_over_
     gaps = [abs(ensembles.bath_beta_exact(n, n, QUANTUM_11) * QUANTUM_11 - target)
             for n in BATH_SIZES_11]
     assert abs(scaling_exponent(BATH_SIZES_11, gaps) + 1.0) < 0.02
+
+
+# ---------------------------------------------------------------------------
+# Module 12: partition functions
+# ---------------------------------------------------------------------------
+
+MU_12 = 9.274e-24
+
+
+def test_the_paramagnets_relative_energy_fluctuation_falls_as_n_to_the_minus_half():
+    """sqrt(Var E) / |U| from the second derivative of ln Z, across four decades of N."""
+    sizes = [10, 100, 1000, 10_000, 100_000]
+    temperature = np.array([1.0])
+    ratios = []
+    for n in sizes:
+        rebuilt = partition.thermo_from_z(
+            lambda t, n=n: partition.log_z_paramagnet(n, MU_12, 1.0, t), temperature)
+        ratios.append(float(np.sqrt(rebuilt.energy_variance[0]) / abs(rebuilt.energy[0])))
+    assert abs(scaling_exponent(sizes, ratios) + 0.5) < 1e-4
+
+
+def test_ln_z_of_independent_spins_is_additive():
+    for temperature in (0.3, 3.0, 30.0):
+        one = partition.log_z_paramagnet(1, MU_12, 1.0, temperature)
+        many = partition.log_z_paramagnet(4096, MU_12, 1.0, temperature)
+        assert relative_error(many, 4096 * one) < 1e-13
+
+
+def test_the_spin_entropy_peak_approaches_n_k_ln_2_per_spin():
+    """ln C(N, N/2) = N ln 2 - (1/2) ln(pi N / 2) + ...: the shortfall per spin ~ ln N / N."""
+    shortfall = []
+    sizes = [100, 1000, 10_000, 100_000]
+    for n in sizes:
+        spins = partition.spin_entropy_of_energy(n, MU_12, 1.0)
+        per_spin = spins.entropy.max() / (n * K_B)
+        shortfall.append(np.log(2.0) - per_spin)
+        assert relative_error(n * np.log(2.0) - spins.entropy.max() / K_B,
+                              0.5 * np.log(np.pi * n / 2)) < 0.01
+    assert shortfall == sorted(shortfall, reverse=True)

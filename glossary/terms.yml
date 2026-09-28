@@ -867,3 +867,82 @@ terms:
   - key: spectroscopy
     en: spectroscopy
     he: ספקטרוסקופיה
+  # --- module 12: partition functions ---
+  - key: paramagnet
+    en: paramagnet
+    he: פרמגנט
+    he_reject: [פאראמגנט]
+  - key: magnetization
+    en: magnetization
+    he: מגנוט
+    he_reject: [מגנטיזציה]
+  - key: negative-temperature
+    en: negative temperature
+    he: טמפרטורה שלילית
+  - key: harmonic-oscillator
+    en: harmonic oscillator
+    he: מתנד הרמוני
+    he_reject: [אוסצילטור הרמוני]
+  - key: generating-function
+    en: generating function
+    he: פונקציה יוצרת
+  - key: zero-point-energy
+    en: zero-point energy
+    he: אנרגיית נקודת האפס
+  - key: freeze-out
+    en: freeze-out
+    he: קפיאה
+  - key: saturation
+    en: saturation
+    he: רוויה
+  - key: schottky-anomaly
+    en: Schottky anomaly
+    he: אנומליית שוטקי
+  - key: dulong-petit-law
+    en: Dulong–Petit law
+    he: חוק דולונג–פטי
+  - key: gibbs-entropy
+    en: Gibbs entropy
+    he: אנטרופיית גיבס
+  - key: truncation-error
+    en: truncation error
+    he: שגיאת קטיעה
+  - key: roundoff-error
+    en: roundoff error
+    he: שגיאת עיגול
+  - key: magnetic-susceptibility
+    en: magnetic susceptibility
+    he: סוספטיביליות מגנטית
+  - key: nuclear-magnetic-resonance
+    en: nuclear magnetic resonance
+    he: תהודה מגנטית גרעינית
+  - key: bohr-magneton
+    en: Bohr magneton
+    he: מגנטון בוהר
+  - key: isomer
+    en: isomer
+    he: איזומר
+  - key: laser
+    en: laser
+    he: לייזר
+  - key: magnetic-refrigeration
+    en: magnetic refrigeration
+    he: קירור מגנטי
+  - key: chemical-equilibrium
+    en: chemical equilibrium
+    he: שיווי משקל כימי
+  - key: quadratic-term
+    en: quadratic term
+    he: איבר ריבועי
+  - key: finite-difference-stencil
+    en: stencil
+    he: תבנית הפרשים
+  - key: geometric-series
+    en: geometric series
+    he: טור הנדסי
+  - key: cumulant
+    en: cumulant
+    he: קומולנט
+  - key: vibrational-mode
+    en: vibrational mode
+    he: אופן תנודה

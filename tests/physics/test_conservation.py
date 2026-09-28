@@ -21,6 +21,7 @@ from thermolab import (
     gases,
     kinetics,
     multiplicity,
+    partition,
     potentials,
     processes,
     sampling,
@@ -616,3 +617,28 @@ def test_the_hand_list_of_joint_microstates_matches_the_count_and_conserves_quan
         assert levels.quanta[level] + sum(bath) == 4
     per_level = np.bincount([s[0] for s in states], minlength=len(levels))
     assert np.array_equal(per_level, np.rint(np.exp(joint.log_joint_count)).astype(int))
+
+
+# ---------------------------------------------------------------------------
+# Module 12: partition functions
+# ---------------------------------------------------------------------------
+
+# Nothing flows in a deterministic equilibrium calculation, so most of module 12 has no
+# conservation law to check; the identity F = U - TS, the nearest thing, is filed under the
+# analytic limits. What does conserve something is the spin-solid contact, which counts every
+# split of a fixed total energy.
+
+
+def test_every_split_of_the_spin_solid_contact_conserves_the_total_energy():
+    contact = partition.spin_solid_contact(60, 45, 40, 300)
+    solid_quanta = contact.total_quanta - contact.n_flipped
+    assert np.all(solid_quanta >= 0)
+    assert np.all(contact.n_flipped + solid_quanta == 45 + 300)
+    assert contact.n_flipped[0] == 0 and contact.n_flipped[-1] == 60
+
+
+def test_canonical_probabilities_sum_to_one_at_every_temperature():
+    levels = 1.0e-21 * (np.arange(400) + 0.5)
+    for temperature in (1.0, 30.0, 300.0, 3000.0):
+        sums = partition.level_sums(levels, temperature)
+        assert abs(sums.probabilities.sum() - 1.0) < 1e-12

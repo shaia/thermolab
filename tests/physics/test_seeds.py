@@ -21,6 +21,7 @@ from thermolab import (
     fundamental,
     kinetics,
     multiplicity,
+    partition,
     potentials,
     processes,
     sampling,
@@ -407,3 +408,41 @@ def test_the_gauges_error_bar_matches_its_scatter_across_seeds():
     claimed = gauge_entropy(np.random.default_rng(0)).entropy_error[-1]
     scatter = float(np.std(study.values, ddof=1))
     assert 0.6 < scatter / claimed < 1.6
+
+
+# ---------------------------------------------------------------------------
+# Module 12: partition functions
+# ---------------------------------------------------------------------------
+
+# partition.py itself is deterministic, like module 11's ensembles: it evaluates sums and
+# closed forms and draws no random number. The one stochastic ingredient in module 12 is the
+# overlay on module 01's simulation, whose endpoints do depend on the seed -- so it is here.
+
+QUANTUM_12 = 1.0e-21
+
+
+def _oscillator_temperature_of_body_a(rng: np.random.Generator, per_oscillator: float) -> float:
+    """Run module 01's exchange to equilibrium; read body A's temperature through Z."""
+    n = 40
+    equipartition_t = per_oscillator * QUANTUM_12 / K_B
+    state = equilibrium.from_temperatures(n, n, 1.6 * equipartition_t, 0.4 * equipartition_t,
+                                          QUANTUM_12)
+    run = equilibrium.simulate_energy_exchange(state, 20 * state.total_quanta, rng)
+    tail = run.q_a[len(run.q_a) // 2:]
+    return float(partition.harmonic_temperature(tail.mean() / n * QUANTUM_12, QUANTUM_12))
+
+
+@pytest.mark.parametrize("per_oscillator", [0.25, 4.0])
+def test_simulated_endpoints_sit_at_the_temperature_the_oscillator_z_predicts(per_oscillator):
+    """Z's temperature for the pair's shared energy, within three standard errors."""
+    study = seed_study(lambda rng: _oscillator_temperature_of_body_a(rng, per_oscillator),
+                       n_seeds=8)
+    state = equilibrium.from_temperatures(40, 40, 1.6 * per_oscillator * QUANTUM_12 / K_B,
+                                          0.4 * per_oscillator * QUANTUM_12 / K_B, QUANTUM_12)
+    shared = state.total_quanta / state.total_oscillators * QUANTUM_12
+    assert study.agrees_with(partition.harmonic_temperature(shared, QUANTUM_12))
+    # Module 01's own reading, T = U / k_B, of the same state is lower: by nearly half a quantum
+    # when hot (the offset tends to hbar omega / (2 k_B)), by more than half of itself when cold.
+    equipartition = shared / K_B
+    through_z = partition.harmonic_temperature(shared, QUANTUM_12)
+    assert 0.3 * QUANTUM_12 / K_B < through_z - equipartition < 0.5 * QUANTUM_12 / K_B
