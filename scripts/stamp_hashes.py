@@ -49,7 +49,7 @@ def stamp(he_path: Path, include_pending: bool) -> str | None:
         return f"{he_path.relative_to(ROOT)}: still PENDING (pass --pending to stamp it)"
 
     he_path.write_text(pattern.sub(match.group(0).split(":")[0] + f": {expected}", text, count=1),
-                       encoding="utf-8")
+                       encoding="utf-8", newline="\n")  # LF on Windows too; see .gitattributes
     return f"{he_path.relative_to(ROOT)}: stamped {expected[:12]}…"
 
 
