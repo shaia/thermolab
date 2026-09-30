@@ -599,8 +599,14 @@ def test_reconstruction_from_ln_z_converges_at_second_order_in_the_step():
 
 
 def test_the_default_step_beats_a_far_smaller_one_because_of_roundoff():
-    """The other half of the trade-off: a tiny step is ruined by cancellation, not saved by it."""
-    t = np.array([300.0])
+    """The other half of the trade-off: a tiny step is ruined by cancellation, not saved by it.
+
+    Measured at 1 K, where mu B / (k_B T) = 0.67 sits near the Schottky peak. At 300 K the
+    ratio is 0.002, deep in the tail where C is ~x^2 and ln Z barely curves, so even the
+    default step is roundoff-limited there -- its error, ~1e-3, then depends on the platform's
+    libm and failed this bound on Linux while passing on Windows.
+    """
+    t = np.array([1.0])
     exact = partition.paramagnet_heat_capacity(1000, 9.274e-24, 1.0, t[0])
     log_z = lambda x: partition.log_z_paramagnet(1000, 9.274e-24, 1.0, x)  # noqa: E731
     default = partition.thermo_from_z(log_z, t).heat_capacity[0]
