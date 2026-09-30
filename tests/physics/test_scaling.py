@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 
 from thermolab import (
+    chemical,
     engines,
     ensembles,
     equilibrium,
@@ -598,3 +599,30 @@ def test_the_spin_entropy_peak_approaches_n_k_ln_2_per_spin():
         assert relative_error(n * np.log(2.0) - spins.entropy.max() / K_B,
                               0.5 * np.log(np.pi * n / 2)) < 0.01
     assert shortfall == sorted(shortfall, reverse=True)
+
+
+# ---------------------------------------------------------------------------
+# Module 13: chemical potential
+# ---------------------------------------------------------------------------
+
+
+def test_mu_difference_fluctuations_shrink_as_n_to_the_minus_half():
+    """At equilibrium mu_a - mu_b jitters by ~k_B T / sqrt(N): exactly, from the distribution."""
+    kt = K_B * 300.0
+    sizes = [100, 1000, 10_000, 100_000]
+    spreads = []
+    for n in sizes:
+        boxes = chemical.two_boxes(100 * n, 100 * n, 0.0, 2.0 * kt)
+        spreads.append(chemical.exact_count_distribution(boxes, n, 300.0).mu_difference_std())
+    assert abs(scaling_exponent(sizes, spreads) + 0.5) < 0.01
+
+
+def test_the_relative_split_fluctuation_falls_as_n_to_the_minus_half():
+    kt = K_B * 300.0
+    sizes = [100, 1000, 10_000, 100_000]
+    relative = []
+    for n in sizes:
+        boxes = chemical.two_boxes(100 * n, 100 * n, 0.0, kt)
+        dist = chemical.exact_count_distribution(boxes, n, 300.0)
+        relative.append(dist.std / dist.mean)
+    assert abs(scaling_exponent(sizes, relative) + 0.5) < 0.01

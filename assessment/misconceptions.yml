@@ -143,3 +143,15 @@ misconceptions:
     statement: "F = -k_B T ln Z is the definition of the free energy."
     assigned_module: 12-partition-functions
     status: addressed
+  - id: particles-flow-concentration
+    statement: "Particles always flow from high concentration to low concentration."
+    assigned_module: 13-chemical-potential
+    status: addressed
+  - id: mu-energy-per-particle
+    statement: "The chemical potential is just the energy per particle."
+    assigned_module: 13-chemical-potential
+    status: addressed
+  - id: osmosis-solute-flow
+    statement: "Osmosis is the solute being pushed through the membrane."
+    assigned_module: 13-chemical-potential
+    status: addressed

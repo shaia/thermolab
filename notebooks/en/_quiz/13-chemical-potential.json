@@ -1,0 +1,188 @@
+[
+  {
+    "question": "Two boxes at the same temperature exchange particles through a small hole. When the exchange has stopped on average, which quantity is certainly the same in both boxes?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "The chemical potential mu.",
+        "correct": true,
+        "feedback": "Right. Maximizing the total entropy over the split of the particles gives dS_1/dN_1 = dS_2/dN_2, which at a common temperature is mu_1 = mu_2. In the laboratory two boxes whose floors differ by 2 k_B T settle at densities seven to one, with equal mu."
+      },
+      {
+        "answer": "The concentration (particles per unit volume).",
+        "correct": false,
+        "feedback": "This is the misconception that particles always flow from high to low concentration. Density enters only through the entropic part of mu, k_B T ln(n/n_Q); if a particle has a different energy in each box, the densities end up unequal -- by exp(-Delta u/(k_B T)) -- and stay that way."
+      },
+      {
+        "answer": "The number of particles.",
+        "correct": false,
+        "feedback": "Nothing favours equal numbers: two boxes of different sizes with no energy offset end with equal densities, so the larger box holds more particles."
+      },
+      {
+        "answer": "The energy per particle.",
+        "correct": false,
+        "feedback": "Two boxes with no floors and no forces have the same energy per particle from the start, yet particles flow from the more crowded one. The chemical potential includes an entropic term that the energy per particle does not."
+      }
+    ]
+  },
+  {
+    "question": "A system at fixed U and V has S/k_B = 1000.00 at N = 500 and S/k_B = 1004.00 at N = 502, at temperature T. Estimate its chemical potential, in units of k_B T.",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          -2.05,
+          -1.95
+        ],
+        "correct": true,
+        "feedback": "mu = -T (dS/dN) at fixed U, V. The slope is (1004.00 - 1000.00) k_B / 2 = 2 k_B per particle, so mu = -2 k_B T. If you answered +2, you dropped the minus sign in the definition: adding particles that add entropy makes mu negative."
+      }
+    ]
+  },
+  {
+    "question": "For a pure substance, G = mu N but F is not mu N. Why?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "G's natural variables T and P are intensive, so by extensivity G/N depends on T and P only -- and the Euler relation gives G = U - TS + PV = mu N; F = U - TS = mu N - PV depends on V as well.",
+        "correct": true,
+        "feedback": "Right. The Euler relation U = TS - PV + mu N, from extensivity alone, gives both results. G has one extensive natural variable, N, so it is N times a function of intensive variables -- and that function is mu. F has two, V and N."
+      },
+      {
+        "answer": "Because mu is defined as dG/dN, while F has no derivative with respect to N.",
+        "correct": false,
+        "feedback": "F does have one: mu = (dF/dN) at fixed T and V, too. Both derivatives give the same mu; what differs is whether the potential equals N times its derivative, and that depends on which other variables are extensive."
+      },
+      {
+        "answer": "Because G = mu N is only true for an ideal gas.",
+        "correct": false,
+        "feedback": "It holds for any one-component system whose entropy is extensive. The ideal gas is just the case where the laboratory checks it numerically."
+      },
+      {
+        "answer": "Because F includes the kinetic energy of the particles and G does not.",
+        "correct": false,
+        "feedback": "Both contain U. They differ by PV, which is exactly the term that makes F = mu N - PV."
+      }
+    ]
+  },
+  {
+    "question": "Box 1 holds a gas at density 2 n_0 with mu_1 = -6 k_B T; box 2 holds a gas of the same species at density n_0 with mu_2 = -4 k_B T. The temperatures are equal. A hole is opened between them. What happens?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Particles flow from box 2 into box 1, the denser box, because mu_2 > mu_1.",
+        "correct": true,
+        "feedback": "Right. dS_tot = (mu_2 - mu_1) dN_1 / T > 0 for dN_1 > 0: particles flow from high mu to low, whatever the densities. Box 1 must have a lower floor -- an attractive wall, a lower height -- that makes its mu lower despite the crowding."
+      },
+      {
+        "answer": "Particles flow from box 1 into box 2, because box 1 is denser.",
+        "correct": false,
+        "feedback": "This is the concentration rule, and it fails whenever the boxes differ in anything but density. The chemical potentials rank the other way, and they decide."
+      },
+      {
+        "answer": "Particles flow until the energy per particle is the same in both boxes, then stop.",
+        "correct": false,
+        "feedback": "This is the misconception that the chemical potential is just the energy per particle. Equal energies per particle do not stop the flow: in the laboratory, two boxes with no floors at all -- the same energy per particle from the start -- still exchange particles until their densities match, because mu has an entropic part. Flow stops at equal mu."
+      },
+      {
+        "answer": "Nothing flows, because the temperatures are equal.",
+        "correct": false,
+        "feedback": "Equal temperatures stop the flow of energy, not of particles. Particle exchange needs equal mu as well."
+      }
+    ]
+  },
+  {
+    "question": "In an isothermal atmosphere of nitrogen at 288 K the scale height k_B T/(m g) is 8.72 km. Using constant mu, what is the ratio of the density at 3.0 km to the density at sea level?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          0.704,
+          0.714
+        ],
+        "correct": true,
+        "feedback": "k_B T ln n(z) + m g z is the same at both heights, so n(z)/n(0) = exp(-z/H) = exp(-3.0/8.72) = 0.709. If you answered 0.656, you used 7.1 km, a scale height for a colder or heavier gas, since H = k_B T/(m g); if 0.344, you gave z/H itself rather than the exponential."
+      }
+    ]
+  },
+  {
+    "question": "The grand-canonical weight P(s) ~ exp(-(E_s - mu N_s)/(k_B T)) is a theorem. Which hypotheses does it need?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "A reservoir large enough that its temperature and chemical potential stay fixed when it gives up energy and particles, and coupling weak enough that energies and particle numbers add.",
+        "correct": true,
+        "feedback": "Right. The derivation expands the reservoir's entropy to first order in the energy and particles it gives up; the neglected second-order terms are small only for a large reservoir. Weak coupling is what makes E_total = E_s + E_R."
+      },
+      {
+        "answer": "Every state (E_s, N_s) of the system must be equally probable.",
+        "correct": false,
+        "feedback": "The opposite: states are weighted unequally, by exp(-(E_s - mu N_s)/(k_B T)). Equal probability belongs to the isolated system plus reservoir as a whole, not to the small system -- the same trap as reading the canonical ensemble as equal probability."
+      },
+      {
+        "answer": "The system must be an ideal gas.",
+        "correct": false,
+        "feedback": "Nothing about the system is assumed. The module applies the weight to a single adsorption site, which is not a gas at all."
+      },
+      {
+        "answer": "The system must hold many particles, so that Stirling's approximation applies to it.",
+        "correct": false,
+        "feedback": "Stirling is needed for the reservoir's smooth entropy, not for the system. The weight holds for a system of one site holding zero or one particle."
+      }
+    ]
+  },
+  {
+    "question": "An adsorption site with binding energy epsilon is in contact with a gas at chemical potential mu, where (epsilon - mu)/(k_B T) = 1.5. What is its mean occupation?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          0.179,
+          0.185
+        ],
+        "correct": true,
+        "feedback": "<n> = 1/(exp((epsilon - mu)/(k_B T)) + 1) = 1/(exp(1.5) + 1) = 1/(4.48 + 1) = 0.182. If you answered 0.223, you gave exp(-1.5), the Boltzmann ratio without the +1 of single occupancy; if 0.818, you swapped the sign of epsilon - mu."
+      }
+    ]
+  },
+  {
+    "question": "Molecules convert between forms A and B. Form B lies 1.0 k_B T above form A and has twice A's quantum concentration (two internal states of equal energy). What is n_B/n_A at equilibrium?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          0.726,
+          0.746
+        ],
+        "correct": true,
+        "feedback": "mu_A = mu_B with mu_X = k_B T ln(n_X/n_Q,X) + epsilon_X gives n_B/n_A = (n_Q,B/n_Q,A) exp(-Delta epsilon/(k_B T)) = 2 exp(-1) = 0.736. If you answered 0.368, you left out the factor of two -- the extra ways of being B."
+      }
+    ]
+  },
+  {
+    "question": "A dialysis bag holding 0.2 mol/L sucrose solution is put in pure water at 298 K. The bag's wall passes water but not sucrose. What happens, and how large is the osmotic pressure?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Water flows into the bag, which swells; the osmotic pressure is about n_s k_B T = 5 bar.",
+        "correct": true,
+        "feedback": "Right. Sucrose lowers the water's chemical potential inside the bag by about -k_B T ln(1 - x), so water flows in, toward the lower mu. It would stop only if the inside were at a higher pressure by Pi = n_s k_B T = 0.2 x 1000 x N_A x k_B x 298 = 5.0 x 10^5 Pa."
+      },
+      {
+        "answer": "Sucrose flows out of the bag until the concentrations are equal; the pressure is about 5 bar.",
+        "correct": false,
+        "feedback": "This is the misconception that osmosis is solute pushed through the membrane. The sucrose cannot cross at all. It is the water that moves, down its own chemical-potential difference."
+      },
+      {
+        "answer": "Water flows out of the bag, which shrinks, because the solution is denser.",
+        "correct": false,
+        "feedback": "The solution's water has the lower chemical potential, so water flows in, not out. A bag of pure water in a sugar bath would shrink."
+      },
+      {
+        "answer": "Nothing happens, because no pump is present.",
+        "correct": false,
+        "feedback": "No pump is needed. Water flows down its chemical-potential difference as particles in the two-box simulation flow down theirs."
+      }
+    ]
+  }
+]

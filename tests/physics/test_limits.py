@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 
 from thermolab import (
+    chemical,
     engines,
     ensembles,
     equilibrium,
@@ -1862,3 +1863,127 @@ def test_without_the_gibbs_factor_the_ideal_gas_entropy_is_not_extensive():
     right = entropy(2 * n, 2 * volume, True) - 2 * entropy(n, volume, True)
     assert relative_error(wrong, 2 * n * K_B * np.log(2.0)) < 1e-6
     assert abs(right) < 1e-4 * abs(wrong)
+
+
+# ---------------------------------------------------------------------------
+# Module 13: chemical potential
+# ---------------------------------------------------------------------------
+
+ARGON_13 = 39.95 * 1.66053906660e-27
+T_13 = 300.0
+KT_13 = K_B * T_13
+
+
+def _argon_state_13(n=1.0e22, pressure=1.0e5):
+    volume = n * KT_13 / pressure
+    return n, volume, 1.5 * n * KT_13
+
+
+def test_the_entropic_slope_of_sackur_tetrode_is_the_ideal_gas_mu():
+    """-T (dS/dN)_{U,V} read numerically off S(U, V, N) equals k_B T ln(n / n_Q)."""
+    relation = fundamental.monatomic_ideal_gas(ARGON_13)
+    for pressure in (1.0e3, 1.0e5, 1.0e7):
+        n, volume, energy = _argon_state_13(pressure=pressure)
+        numeric = chemical.mu_from_entropy(relation, energy, volume, n)
+        assert relative_error(numeric, chemical.ideal_gas_mu(n / volume, T_13, ARGON_13)) < 1e-6
+
+
+def test_the_gibbs_slope_equals_the_entropic_slope_and_g_is_mu_n():
+    """Two faces of mu: (dG/dN)_{T,P} and -T (dS/dN)_{U,V}; and G = mu N by extensivity."""
+    relation = fundamental.monatomic_ideal_gas(ARGON_13)
+    n, volume, energy = _argon_state_13()
+    from_gibbs = chemical.mu_from_gibbs(relation, T_13, 1.0e5, n)
+    from_entropy = chemical.mu_from_entropy(relation, energy, volume, n)
+    assert relative_error(from_gibbs, from_entropy) < 1e-6
+    g = potentials.gibbs_from(relation, T_13, 1.0e5, n)
+    assert relative_error(g / n, from_gibbs) < 1e-9
+
+
+def test_classical_gas_mu_is_negative_and_reaches_zero_only_at_the_quantum_concentration():
+    n_q = chemical.quantum_concentration(T_13, ARGON_13)
+    assert chemical.ideal_gas_mu(1e-6 * n_q, T_13, ARGON_13) < 0
+    assert abs(chemical.ideal_gas_mu(n_q, T_13, ARGON_13)) < 1e-12 * KT_13
+
+
+def test_constant_mu_in_a_column_is_the_barometric_formula():
+    """Module 11's exp(-m g z / (k_B T)), reached from mu = const without a Boltzmann factor."""
+    heights = np.linspace(0.0, 30_000.0, 31)
+    mass = 28.0 * 1.66053906660e-27
+    profile = chemical.barometric_profile(heights, T_13, mass, 2.4e25)
+    boltzmann = 2.4e25 * np.exp(-mass * chemical.STANDARD_GRAVITY * heights / KT_13)
+    assert np.max(np.abs(profile / boltzmann - 1.0)) < 1e-12
+    mus = chemical.ideal_gas_mu(profile, T_13, mass, u_ext=mass * chemical.STANDARD_GRAVITY
+                                * heights)
+    assert np.ptp(mus) < 1e-12 * KT_13
+
+
+def test_the_simulated_split_lands_on_the_exact_distribution_and_the_dilute_formula():
+    boxes = chemical.two_boxes(200_000, 200_000, 0.0, 2.0 * KT_13)
+    n_total = 2000
+    tau = chemical.relaxation_steps(boxes, n_total, T_13)
+    study = seed_study(lambda rng: float(chemical.particle_exchange_sim(
+        boxes, [0, n_total], T_13, int(40 * tau), rng, record_every=50).tail(0.75)[:, 0].mean()),
+        n_seeds=6)
+    exact = chemical.exact_count_distribution(boxes, n_total, T_13)
+    assert study.agrees_with(exact.mean)
+    dilute = chemical.equilibrium_split(boxes, n_total, T_13)[0]
+    # Filling is 1%, so the dilute form is off by about that much -- and no more.
+    assert relative_error(dilute, exact.mean) < 0.01
+
+
+def test_equal_densities_are_not_equilibrium_when_the_floors_differ():
+    """The falsifier for 'particles flow from high to low concentration': started at equal
+    densities, particles flow into the box that is already as dense as the other."""
+    boxes = chemical.two_boxes(10_000, 10_000, 0.0, 1.5 * KT_13)
+    trace = chemical.particle_exchange_sim(boxes, [300, 300], T_13, 40_000,
+                                           np.random.default_rng(3), record_every=100)
+    settled = trace.tail(0.5).mean(axis=0)
+    assert settled[0] > 2.5 * settled[1]
+    mus = trace.chemical_potentials[len(trace.steps) // 2:]
+    assert abs(np.mean(mus[:, 0] - mus[:, 1])) < 0.05 * KT_13
+
+
+def test_same_energy_per_particle_does_not_stop_the_flow():
+    """The falsifier for 'mu is the energy per particle': equal floors, unequal densities."""
+    boxes = chemical.two_boxes(1000, 10_000, 0.0, 0.0)
+    trace = chemical.particle_exchange_sim(boxes, [200, 200], T_13, 20_000,
+                                           np.random.default_rng(4), record_every=100)
+    start = trace.chemical_potentials[0]
+    assert start[0] > start[1]  # same u, so the entropic term alone sets the direction
+    assert trace.tail(0.5)[:, 0].mean() < 60
+
+
+def test_the_occupation_function_limits_and_the_exact_adsorption_count():
+    eps = -3.0 * KT_13
+    assert chemical.site_occupation(eps - 40 * KT_13, T_13, eps) < 1e-17
+    assert 1.0 - chemical.site_occupation(eps + 40 * KT_13, T_13, eps) < 1e-15
+    assert chemical.site_occupation(eps, T_13, eps) == 0.5
+    boxes = chemical.two_boxes(200, 1_000_000, eps, 0.0)
+    for n_total in (100, 1000, 20_000):
+        mu, counts = chemical.occupation_equilibrium(boxes, n_total, T_13)
+        exact = chemical.exact_count_distribution(boxes, n_total, T_13)
+        assert relative_error(counts[0], exact.mean) < 1e-4
+        assert counts[0] / 200 == chemical.site_occupation(mu, T_13, eps)
+
+
+def test_mass_action_and_van_t_hoff_in_their_limits():
+    assert chemical.mass_action_ratio(0.0, T_13) == 1.0
+    assert relative_error(chemical.mass_action_ratio(KT_13, T_13, nq_ratio=2.0),
+                          2 * np.exp(-1.0)) < 1e-15
+    v = chemical.WATER_MOLECULAR_VOLUME
+    for x in (1e-4, 1e-3, 1e-2):
+        exact = chemical.lattice_osmotic_pressure(x, v, T_13)
+        dilute = chemical.osmotic_pressure(x / v, T_13)
+        assert relative_error(exact, dilute) == pytest.approx(x / 2, rel=0.02)
+
+
+def test_the_dilute_relaxation_time_matches_the_mean_trajectory():
+    boxes = chemical.two_boxes(100_000, 100_000, 0.0, KT_13)
+    n_total = 1000
+    tau = chemical.relaxation_steps(boxes, n_total, T_13)
+    runs = [chemical.particle_exchange_sim(boxes, [0, n_total], T_13, int(tau), rng,
+                                           record_every=int(tau)).counts[-1, 0]
+            for rng in (np.random.default_rng(s) for s in range(12))]
+    final = chemical.equilibrium_split(boxes, n_total, T_13)[0]
+    predicted = final * (1 - np.exp(-1.0))
+    assert relative_error(np.mean(runs), predicted) < 0.03

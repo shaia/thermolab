@@ -946,3 +946,94 @@ terms:
   - key: vibrational-mode
     en: vibrational mode
     he: אופן תנודה
+  - key: grand-canonical-ensemble
+    en: grand canonical ensemble
+    he: צבר גרנד-קנוני
+    he_reject: [אנסמבל גרנד קנוני, אנסמבל גרנד-קנוני]
+  - key: particle-reservoir
+    en: particle reservoir
+    he: מאגר חלקיקים
+  - key: adsorption
+    en: adsorption
+    he: ספיחה
+    he_reject: [אדסורפציה]
+  - key: adsorption-site
+    en: adsorption site
+    he: אתר ספיחה
+  - key: semipermeable-membrane
+    en: semipermeable membrane
+    he: קרום חדיר-למחצה
+    he_reject: [ממברנה חצי חדירה]
+  - key: law-of-mass-action
+    en: law of mass action
+    he: חוק פעולת המסה
+  - key: equilibrium-constant
+    en: equilibrium constant
+    he: קבוע שיווי המשקל
+  - key: quantum-concentration
+    en: quantum concentration
+    he: ריכוז קוונטי
+  - key: lattice-gas
+    en: lattice gas
+    he: גז סריג
+  - key: langmuir-isotherm
+    en: Langmuir isotherm
+    he: איזותרמת לנגמיור
+  - key: solute
+    en: solute
+    he: מומס
+  - key: solvent
+    en: solvent
+    he: ממס
+  - key: ideal-solution
+    en: ideal solution
+    he: תמיסה אידיאלית
+  - key: osmosis
+    en: osmosis
+    he: אוסמוזה
+  - key: reverse-osmosis
+    en: reverse osmosis
+    he: אוסמוזה הפוכה
+  - key: dialysis-tubing
+    en: dialysis tubing
+    he: צינורית דיאליזה
+  - key: desalination
+    en: desalination
+    he: התפלה
+  - key: fugacity
+    en: fugacity
+    he: פוגסיות
+  - key: activity
+    en: activity
+    he: פעילות
+    he_reject: [אקטיביות]
+  - key: fermi-dirac-function
+    en: Fermi–Dirac function
+    he: פונקציית פרמי–דיראק
+  - key: metropolis-rule
+    en: Metropolis rule
+    he: כלל מטרופוליס
+  - key: occupation
+    en: occupation
+    he: אכלוס
+  - key: semiconductor
+    en: semiconductor
+    he: מוליך למחצה
+  - key: doping
+    en: doping
+    he: סימום
+  - key: gas-constant
+    en: gas constant
+    he: קבוע הגזים
+  - key: binding-energy
+    en: binding energy
+    he: אנרגיית קשירה
+  - key: van-t-hoff-law
+    en: van 't Hoff law
+    he: חוק ואנט הוף
+  - key: avogadro-number
+    en: Avogadro's number
+    he: מספר אבוגדרו
+  - key: clausius-clapeyron-equation
+    en: Clausius–Clapeyron equation
+    he: משוואת קלאוזיוס–קלפרון

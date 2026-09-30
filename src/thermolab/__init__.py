@@ -8,6 +8,7 @@ Modules:
     constants            physical constants and the fixed sign convention
     units                pint registry used by the dimensional tests
     sampling             independent draws: sample averages, random walks, and the CLT
+    chemical             the chemical potential; particle exchange, adsorption, reactions, osmosis
     forms                differential forms in the plane; exact versus inexact, as pure mathematics
     equilibrium          two bodies exchanging energy quanta until they share one temperature
     fundamental          the fundamental relation S(U, V, N): slopes, extensivity, stability
@@ -26,6 +27,7 @@ Modules:
 from __future__ import annotations
 
 from . import (
+    chemical,
     engines,
     ensembles,
     equilibrium,
@@ -50,6 +52,7 @@ __all__ = [
     "N_A",
     "R_GAS",
     "SIGN_CONVENTION",
+    "chemical",
     "engines",
     "ensembles",
     "equilibrium",
