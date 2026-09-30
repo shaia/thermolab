@@ -1,0 +1,174 @@
+[
+  {
+    "question": "A system with fixed energy levels is in contact with a bath. What is -d(ln Z)/d(beta), with beta = 1/(k_B T)?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "The mean energy U of the system.",
+        "correct": true,
+        "feedback": "Right. Differentiating Z = sum_s exp(-beta E_s) brings down -E_s in every term, and dividing by Z -- which is what the logarithm does -- turns that sum into an average: -d(ln Z)/d(beta) = sum_s E_s P_s = U. The second derivative gives the variance of the energy."
+      },
+      {
+        "answer": "The free energy F of the system.",
+        "correct": false,
+        "feedback": "The free energy is -k_B T ln Z itself, with no derivative taken. Differentiating ln Z in beta gives the mean energy; U and F differ by TS."
+      },
+      {
+        "answer": "Nothing physical -- Z only normalizes the probabilities, so its derivative has no meaning.",
+        "correct": false,
+        "feedback": "Z is a function of beta, not a single number, and its shape carries the energy distribution. Its logarithm's first derivative is -U and its second is the variance of E: ln Z is the generating function of the canonical energy distribution."
+      },
+      {
+        "answer": "The entropy S of the system, divided by k_B.",
+        "correct": false,
+        "feedback": "The entropy needs both ln Z and its derivative: S = k_B (ln Z + beta U). The derivative alone is -U."
+      }
+    ]
+  },
+  {
+    "question": "A two-level system has levels 0 and Delta, with Delta = 2 k_B T. Using U = -d(ln Z)/d(beta), what is its mean energy, as a multiple of Delta?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          0.1172,
+          0.1212
+        ],
+        "correct": true,
+        "feedback": "ln Z = ln(1 + exp(-beta Delta)), so U = Delta exp(-beta Delta)/(1 + exp(-beta Delta)) = Delta/(exp(2) + 1) = 0.119 Delta. If you answered 0.135, you gave the population ratio exp(-2), not the excited fraction. If you answered 0.5, you gave the infinite-temperature limit."
+      }
+    ]
+  },
+  {
+    "question": "What is the status of the statement F = -k_B T ln Z?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "A theorem -- it holds because the entropy it implies was checked to obey dS = dQ/T and to equal the Gibbs count of microstates, so it is module 10's F = U - TS.",
+        "correct": true,
+        "feedback": "Right. Module 10 defined F = U - TS before any ensemble existed. That -k_B T ln Z equals it had to be shown: its entropy k_B (ln Z + beta U) obeys Clausius's dS = dQ/T at fixed levels and equals -k_B sum P ln P. The laboratory computes -k_B T ln Z and U - TS independently and finds them equal to rounding."
+      },
+      {
+        "answer": "A definition -- statistical mechanics defines the free energy as -k_B T ln Z.",
+        "correct": false,
+        "feedback": "This is the misconception that F = -k_B T ln Z is a definition. The free energy was already defined, thermodynamically, as U - TS. Calling the formula a definition skips the step that connects the two descriptions: checking that the entropy it implies is the thermodynamic entropy."
+      },
+      {
+        "answer": "An approximation, valid only for large systems.",
+        "correct": false,
+        "feedback": "Nothing in the derivation needs a large system: it holds exactly for any system with fixed levels in contact with a bath, even a single two-level system."
+      },
+      {
+        "answer": "An empirical law, found by measuring free energies.",
+        "correct": false,
+        "feedback": "It is derived, not measured: from the Boltzmann distribution plus two checks on the entropy. Experiments test the model levels, not the formula."
+      }
+    ]
+  },
+  {
+    "question": "A crystal's magnetic moments have been prepared with more of them pointing against the field than along it, so their temperature is negative. The crystal is touched to a copper block at room temperature. Which way does heat flow?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Out of the moments and into the copper -- a negative-temperature system is hotter than any positive-temperature one.",
+        "correct": true,
+        "feedback": "Right. The total entropy changes by k_B (beta_1 - beta_2) dU_1, and it must rise. With beta_1 < 0 < beta_2, that needs dU_1 < 0. In the laboratory an inverted paramagnet gives energy to a solid at 0.56 K, 14 K and 1344 K alike. Ordered by hotness, negative temperatures lie above T = infinity."
+      },
+      {
+        "answer": "Into the moments -- a negative temperature is colder than absolute zero, so they are colder than the copper.",
+        "correct": false,
+        "feedback": "This is the misconception that negative temperature means colder than absolute zero. The moments hold more energy than at any positive temperature -- at T = infinity they split half and half, and here more point against the field. They give energy to anything at a positive temperature, however hot."
+      },
+      {
+        "answer": "No heat flows, because the two temperatures cannot be compared.",
+        "correct": false,
+        "feedback": "They can be compared through beta = (1/k_B) dS/dU, which runs continuously from positive through zero to negative. Heat flows from the smaller beta to the larger."
+      },
+      {
+        "answer": "It depends on whether the copper is hotter than the magnitude of the negative temperature.",
+        "correct": false,
+        "feedback": "The magnitude does not matter. Every negative beta is smaller than every positive beta, so energy leaves the moments whatever the copper's temperature -- the laboratory's 1344 K solid still takes energy from a -0.79 K paramagnet."
+      }
+    ]
+  },
+  {
+    "question": "A paramagnet is in a weak field, mu B << k_B T. Its temperature is halved at fixed field. By what factor does its magnetization change?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          1.95,
+          2.05
+        ],
+        "correct": true,
+        "feedback": "In the Curie regime M = N mu^2 B/(k_B T), so halving T doubles M. The laboratory finds a factor of 1.99999 between 300 K and 150 K in a 1 T field. If you answered 1, you were thinking of saturation, where every moment is already aligned. If you answered 4, you squared the temperature: the Curie law is 1/T, not 1/T^2."
+      }
+    ]
+  },
+  {
+    "question": "A harmonic oscillator with level spacing hbar*omega is in contact with a bath at k_B T = hbar*omega/20. What is its heat capacity?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Exponentially small, about k_B (hbar*omega/(k_B T))^2 exp(-hbar*omega/(k_B T)) -- the oscillator has frozen out.",
+        "correct": true,
+        "feedback": "Right. At k_B T << hbar*omega the first excited level is out of reach, and the smallest amount of energy the oscillator can take is a whole quantum the bath almost never supplies. Here C = 400 exp(-20) k_B, about 8e-7 k_B."
+      },
+      {
+        "answer": "k_B, as for every oscillator at every temperature -- which is why a solid has C = 3 N k_B.",
+        "correct": false,
+        "feedback": "This is the misconception that the Dulong-Petit value holds at all temperatures. C = k_B per oscillator is equipartition, the high-temperature limit k_B T >> hbar*omega. When cold the oscillator freezes out, and solids' heat capacities fall toward zero -- module 16 follows this for real solids."
+      },
+      {
+        "answer": "k_B / 2, because only the kinetic energy still counts.",
+        "correct": false,
+        "feedback": "Freezing out is not a matter of losing one quadratic term: the whole oscillator stops absorbing heat, because its excited levels are out of reach. C falls exponentially, not by half."
+      },
+      {
+        "answer": "Infinite, because the energy changes abruptly between levels.",
+        "correct": false,
+        "feedback": "The canonical mean energy is a smooth function of temperature, so C is finite; and when cold it is tiny, since almost no oscillator is excited at all."
+      }
+    ]
+  },
+  {
+    "question": "Two paramagnets are at the same temperature and in the same field: one has N = 10^4 moments, the other N = 10^6. By what factor is the relative energy fluctuation sigma_E/|U| of the small one larger than that of the large one?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          9.8,
+          10.2
+        ],
+        "correct": true,
+        "feedback": "For independent moments ln Z_N = N ln z, so U grows as N and the variance d^2(ln Z)/d(beta)^2 also grows as N; sigma_E grows as sqrt(N) and sigma_E/|U| falls as N^(-1/2). A hundredfold increase in N divides it by 10. If you answered 100, you let sigma_E stay fixed while U grew; if you answered 1, you treated the relative spread as a property of the material rather than of the sample's size."
+      }
+    ]
+  },
+  {
+    "question": "U is reconstructed from ln Z with the central difference -[ln Z(beta + h) - ln Z(beta - h)]/(2h). The step h is halved, and it is still far larger than the step at which roundoff matters. What happens to the error?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "It falls by a factor of about four, because the central difference is second order.",
+        "correct": true,
+        "feedback": "Right. The truncation error of a central difference is proportional to h^2. The laboratory measures an order of 2.002 +/- 0.001: each halving divides the error by 4.00."
+      },
+      {
+        "answer": "It halves, because the error is proportional to the step.",
+        "correct": false,
+        "feedback": "That is a one-sided difference, first order. The symmetric formula cancels the h term, and the leading error is h^2 f'''/6."
+      },
+      {
+        "answer": "It does not change, because the formula is exact for any step.",
+        "correct": false,
+        "feedback": "It is exact only when ln Z is a quadratic in beta, which it never is here. The error is proportional to h^2 and to the third derivative of ln Z."
+      },
+      {
+        "answer": "It grows, because a smaller step always makes the subtraction less accurate.",
+        "correct": false,
+        "feedback": "That is roundoff, and it wins only for very small steps -- in the laboratory below about 1e-5 of beta for U. Above that, truncation dominates and a smaller step is better."
+      }
+    ]
+  }
+]

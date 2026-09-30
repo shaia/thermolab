@@ -23,7 +23,9 @@ def generate() -> list[Path]:
         parts = [BANNER.format(sources=", ".join(names))]
         parts += [(THEME / name).read_text(encoding="utf-8") for name in names]
         target = ROOT / "content" / lang / "thermolab.css"
-        target.write_text("\n".join(parts), encoding="utf-8")
+        # newline="\n": text mode on Windows would otherwise write CRLF, and .gitattributes
+        # expects LF, so every build would leave the file looking modified.
+        target.write_text("\n".join(parts), encoding="utf-8", newline="\n")
         written.append(target)
     return written
 

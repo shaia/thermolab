@@ -21,6 +21,7 @@ from thermolab import (
     fundamental,
     gases,
     kinetics,
+    partition,
     paths,
     potentials,
     processes,
@@ -570,3 +571,55 @@ def test_what_the_boltzmann_expansion_leaves_out_falls_at_second_order():
 
     study = convergence_study(leftover, [50, 100, 200, 400, 800], 0.0)
     assert 1.9 < study.observed_order < 2.1
+
+
+# ---------------------------------------------------------------------------
+# Module 12: partition functions
+# ---------------------------------------------------------------------------
+
+QUANTUM_12 = 1.0e-21
+
+
+def test_reconstruction_from_ln_z_converges_at_second_order_in_the_step():
+    """Central differences in beta: halving the step quarters the truncation error."""
+    temperature = np.array([QUANTUM_12 / K_B])
+    exact_u = partition.harmonic_energy(QUANTUM_12, temperature[0])
+    exact_c = partition.harmonic_heat_capacity(QUANTUM_12, temperature[0])
+
+    def rebuilt(n: int):
+        return partition.thermo_from_z(lambda t: partition.log_z_harmonic(QUANTUM_12, t),
+                                       temperature, rel_step=1.0 / n)
+
+    refinements = [10, 20, 40, 80, 160]
+    energy = convergence_study(lambda n: float(rebuilt(n).energy[0]), refinements, exact_u)
+    capacity = convergence_study(lambda n: float(rebuilt(n).heat_capacity[0]), refinements,
+                                 exact_c)
+    assert 1.95 < energy.observed_order < 2.05
+    assert 1.95 < capacity.observed_order < 2.05
+
+
+def test_the_default_step_beats_a_far_smaller_one_because_of_roundoff():
+    """The other half of the trade-off: a tiny step is ruined by cancellation, not saved by it.
+
+    Measured at 1 K, where mu B / (k_B T) = 0.67 sits near the Schottky peak. At 300 K the
+    ratio is 0.002, deep in the tail where C is ~x^2 and ln Z barely curves, so even the
+    default step is roundoff-limited there -- its error, ~1e-3, then depends on the platform's
+    libm and failed this bound on Linux while passing on Windows.
+    """
+    t = np.array([1.0])
+    exact = partition.paramagnet_heat_capacity(1000, 9.274e-24, 1.0, t[0])
+    log_z = lambda x: partition.log_z_paramagnet(1000, 9.274e-24, 1.0, x)  # noqa: E731
+    default = partition.thermo_from_z(log_z, t).heat_capacity[0]
+    tiny = partition.thermo_from_z(log_z, t, rel_step=1e-9).heat_capacity[0]
+    assert relative_error(default, exact) < 1e-3 * relative_error(tiny, exact)
+
+
+def test_the_truncated_oscillator_sum_converges_geometrically_in_the_cutoff():
+    """Each extra level cuts the error by e^(-hbar omega / k_B T), the series' own ratio."""
+    temperature = 2 * QUANTUM_12 / K_B
+    closed = np.exp(partition.log_z_harmonic(QUANTUM_12, temperature, zero_point=False))
+    errors = [closed - np.exp(partition.log_z_harmonic(QUANTUM_12, temperature, n_max=m,
+                                                       zero_point=False))
+              for m in range(4, 24, 4)]
+    ratios = [b / a for a, b in pairwise(errors)]
+    assert np.allclose(ratios, np.exp(-0.5 * 4), rtol=1e-9)

@@ -45,6 +45,8 @@ project:
         - file: statistical-mechanics/08-multiplicity-problems.md
         - file: statistical-mechanics/11-ensembles.md
         - file: statistical-mechanics/11-ensembles-problems.md
+        - file: statistical-mechanics/12-partition-functions.md
+        - file: statistical-mechanics/12-partition-functions-problems.md
 site:
   template: book-theme
   options:

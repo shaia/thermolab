@@ -25,6 +25,7 @@ from thermolab import (
     gases,
     kinetics,
     multiplicity,
+    partition,
     paths,
     potentials,
     processes,
@@ -513,3 +514,59 @@ def test_ensembles_functions_return_plain_si_floats():
     mean, spread = ensembles.energy_moments(two, 100.0)
     assert isinstance(mean, float) and isinstance(spread, float)
     assert two.energies.dtype == float
+
+
+# ---------------------------------------------------------------------------
+# Module 12: partition functions
+# ---------------------------------------------------------------------------
+
+QUANTUM_12 = 1.0e-21
+MU_12 = 9.274e-24  # J/T, one Bohr magneton
+
+
+def test_every_exponent_inside_a_partition_function_is_dimensionless():
+    """mu B / (k_B T) and hbar omega / (k_B T) must be pure numbers, or ln Z means nothing."""
+    zeeman = Quantity(MU_12, "J/T") * Quantity(1.0, "T") / (K_B_Q * Quantity(2.0, "K"))
+    oscillator = Quantity(QUANTUM_12, "J") / (K_B_Q * Quantity(300.0, "K"))
+    assert zeeman.to("dimensionless").check("[]")
+    assert oscillator.to("dimensionless").check("[]")
+
+
+def test_magnetization_is_a_magnetic_moment_and_the_curie_form_agrees():
+    """M = N mu tanh(...) and the Curie form N mu^2 B / (k_B T) both come out in J/T."""
+    curie = 1000 * Quantity(MU_12, "J/T") ** 2 * Quantity(0.1, "T") / (
+        K_B_Q * Quantity(300.0, "K"))
+    assert curie.check("[energy]/[magnetic_field]") or curie.check("[current]*[area]")
+    value = partition.curie_magnetization(1000, MU_12, 0.1, 300.0)
+    assert relative_error(value, curie.to("J/T").magnitude) < 1e-12
+
+
+def test_the_thermal_wavelength_is_a_length():
+    lam = Quantity(partition.PLANCK_H, "J*s") / (
+        2 * np.pi * Quantity(6.6e-26, "kg") * K_B_Q * Quantity(300.0, "K")) ** 0.5
+    assert lam.check("[length]")
+    value = partition.thermal_wavelength(300.0, 6.6e-26)
+    assert relative_error(value, lam.to("m").magnitude) < 1e-12
+
+
+def test_rescaling_every_level_and_the_temperature_together_rescales_only_energies():
+    """Homogeneity: ln Z, S and C depend on E/(k_B T) only, U and F scale with the levels."""
+    t = np.array([50.0, 150.0, 400.0])
+    one = partition.thermo_from_z(lambda x: partition.log_z_harmonic(QUANTUM_12, x), t)
+    three = partition.thermo_from_z(lambda x: partition.log_z_harmonic(3 * QUANTUM_12, x), 3 * t)
+    assert np.max(np.abs(three.log_z - one.log_z)) < 1e-12
+    assert np.max(np.abs(three.energy / (3 * one.energy) - 1)) < 1e-8
+    assert np.max(np.abs(three.free_energy / (3 * one.free_energy) - 1)) < 1e-12
+    assert np.max(np.abs(three.entropy / one.entropy - 1)) < 1e-8
+    assert np.max(np.abs(three.heat_capacity / one.heat_capacity - 1)) < 1e-6
+
+
+def test_partition_functions_return_plain_si_floats():
+    assert isinstance(partition.log_z_two_level(QUANTUM_12, 100.0), float)
+    assert isinstance(partition.log_z_paramagnet(100, MU_12, 1.0, 2.0), float)
+    assert isinstance(partition.log_z_harmonic(QUANTUM_12, 100.0), float)
+    assert isinstance(partition.log_z_harmonic(QUANTUM_12, 100.0, n_max=50), float)
+    assert isinstance(partition.harmonic_temperature(2 * QUANTUM_12, QUANTUM_12), float)
+    assert partition.log_z_harmonic(QUANTUM_12, np.array([10.0, 20.0]), n_max=50).shape == (2,)
+    sums = partition.level_sums([0.0, QUANTUM_12], 100.0)
+    assert isinstance(sums.energy, float) and isinstance(sums.entropy, float)

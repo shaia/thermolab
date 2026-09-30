@@ -20,6 +20,7 @@ from thermolab import (
     gases,
     kinetics,
     multiplicity,
+    partition,
     paths,
     potentials,
     processes,
@@ -1676,3 +1677,188 @@ def test_canonical_energy_spread_of_an_einstein_solid_matches_the_closed_form():
         mean, spread = ensembles.energy_moments(levels, temperature)
         assert relative_error(mean, n * QUANTUM_11 / np.expm1(b)) < 1e-10
         assert relative_error(spread, np.sqrt(n * np.exp(b)) * QUANTUM_11 / np.expm1(b)) < 1e-8
+
+
+# ---------------------------------------------------------------------------
+# Module 12: partition functions
+# ---------------------------------------------------------------------------
+
+QUANTUM_12 = 1.0e-21
+MU_12 = 9.274e-24
+
+
+def _systems_12():
+    """(name, ln Z, closed-form U, closed-form C, closed-form S, gap between levels in J)."""
+    field, n = 1.0, 10_000
+    scale = MU_12 * field
+    return [
+        ("two-level",
+         lambda t: partition.log_z_two_level(QUANTUM_12, t),
+         lambda t: partition.two_level_energy(QUANTUM_12, t),
+         lambda t: partition.two_level_heat_capacity(QUANTUM_12, t),
+         None, QUANTUM_12),
+        ("paramagnet",
+         lambda t: partition.log_z_paramagnet(n, MU_12, field, t),
+         lambda t: partition.paramagnet_energy(n, MU_12, field, t),
+         lambda t: partition.paramagnet_heat_capacity(n, MU_12, field, t),
+         lambda t: partition.paramagnet_entropy(n, MU_12, field, t), 2 * scale),
+        ("oscillator",
+         lambda t: partition.log_z_harmonic(QUANTUM_12, t),
+         lambda t: partition.harmonic_energy(QUANTUM_12, t),
+         lambda t: partition.harmonic_heat_capacity(QUANTUM_12, t),
+         lambda t: partition.harmonic_entropy(QUANTUM_12, t), QUANTUM_12),
+    ]
+
+
+@pytest.mark.parametrize("index", range(3))
+def test_thermodynamics_reconstructed_from_ln_z_matches_the_closed_forms(index):
+    """U, C and S from derivatives of ln Z alone, from a tenth of the gap to ten times it.
+
+    U and S hold to 1e-6 across the whole range. C comes from a second difference, which
+    subtracts values of ln Z agreeing to ever more digits as C falls exponentially in either
+    tail, so its guarantee is quoted over the middle of the range, where C is not tiny.
+    """
+    _, log_z, energy, heat_capacity, entropy, gap = _systems_12()[index]
+    t = np.geomspace(0.1, 10.0, 61) * gap / K_B
+    rebuilt = partition.thermo_from_z(log_z, t)
+    assert np.max(np.abs(rebuilt.energy / energy(t) - 1)) < 1e-6
+    if entropy is not None:
+        assert np.max(np.abs(rebuilt.entropy / entropy(t) - 1)) < 1e-6
+    middle = (t >= 0.2 * gap / K_B) & (t <= 5.0 * gap / K_B)
+    assert np.max(np.abs(rebuilt.heat_capacity[middle] / heat_capacity(t[middle]) - 1)) < 1e-4
+
+
+def test_the_two_level_energy_from_z_is_module_elevens_mean_energy():
+    t = np.geomspace(5.0, 5000.0, 30)
+    rebuilt = partition.thermo_from_z(lambda x: partition.log_z_two_level(QUANTUM_12, x), t)
+    reference = ensembles.TwoLevelSystem(QUANTUM_12).mean_energy(t)
+    assert np.max(np.abs(rebuilt.energy / reference - 1)) < 1e-6
+
+
+@pytest.mark.parametrize("temperature", [8.0, 72.0, 700.0])
+def test_minus_kt_ln_z_is_u_minus_ts_with_the_gibbs_entropy(temperature):
+    """F from Z against U - TS built from probabilities, with no F anywhere in the second."""
+    n_max = partition.harmonic_cutoff(QUANTUM_12, temperature)
+    sums = partition.level_sums(QUANTUM_12 * (np.arange(n_max + 1) + 0.5), temperature)
+    assert relative_error(sums.free_energy_direct, sums.free_energy_from_z) < 1e-12
+    assert relative_error(sums.entropy, partition.harmonic_entropy(QUANTUM_12, temperature)) < 1e-10
+    assert relative_error(sums.energy, partition.harmonic_energy(QUANTUM_12, temperature)) < 1e-10
+
+
+def test_the_entropy_from_z_is_minus_the_temperature_slope_of_f():
+    """Module 10's S = -(dF/dT)_V, taken numerically of F = -k_B T ln Z."""
+    t = np.array([20.0, 80.0, 300.0])
+    h = 1e-4 * t
+    free = lambda x: -K_B * x * partition.log_z_harmonic(QUANTUM_12, x)  # noqa: E731
+    slope = -(free(t + h) - free(t - h)) / (2 * h)
+    assert np.max(np.abs(slope / partition.harmonic_entropy(QUANTUM_12, t) - 1)) < 1e-7
+
+
+def test_the_oscillator_recovers_equipartition_when_hot():
+    """k_B T >> hbar omega: U -> k_B T with correction (hbar omega)^2 / (12 k_B T); C -> k_B."""
+    t = 1000.0 * QUANTUM_12 / K_B
+    x = QUANTUM_12 / (K_B * t)
+    assert relative_error(partition.harmonic_energy(QUANTUM_12, t), K_B * t) < x**2 / 12 * 1.01
+    assert relative_error(partition.harmonic_heat_capacity(QUANTUM_12, t), K_B) < x**2 / 12 * 1.01
+
+
+def test_the_oscillator_heat_capacity_freezes_out_exponentially_when_cold():
+    """k_B T << hbar omega: C ~ k_B x^2 e^-x, the relative error of that form ~ 2 e^-x."""
+    for x in (10.0, 20.0, 40.0):
+        t = QUANTUM_12 / (K_B * x)
+        asymptote = K_B * x**2 * np.exp(-x)
+        bound = max(3 * np.exp(-x), 1e-12)  # below 1e-12 the float rounding is the error
+        assert relative_error(partition.harmonic_heat_capacity(QUANTUM_12, t), asymptote) < bound
+    assert partition.harmonic_heat_capacity(QUANTUM_12, QUANTUM_12 / (K_B * 20)) < 1e-6 * K_B
+
+
+def test_the_paramagnet_obeys_curie_when_weak_and_saturates_when_strong():
+    n = 1000
+    weak = partition.paramagnet_magnetization(n, MU_12, 0.01, 300.0)
+    assert relative_error(weak, partition.curie_magnetization(n, MU_12, 0.01, 300.0)) < 1e-9
+    halved = partition.paramagnet_magnetization(n, MU_12, 0.01, 150.0)
+    assert relative_error(halved / weak, 2.0) < 1e-8
+    strong = partition.paramagnet_magnetization(n, MU_12, 10.0, 0.1)
+    assert relative_error(strong, n * MU_12) < 1e-12
+
+
+def test_the_spin_entropy_is_a_symmetric_dome_whose_slope_changes_sign_at_the_peak():
+    spins = partition.spin_entropy_of_energy(200, MU_12, 1.0)
+    peak = int(np.argmax(spins.entropy))
+    assert spins.energy[peak] == 0.0
+    assert np.allclose(spins.entropy, spins.entropy[::-1], rtol=0, atol=1e-12 * spins.entropy.max())
+    beta = spins.beta()
+    assert beta[peak] == 0.0
+    assert np.all(beta[1:peak] > 0) and np.all(beta[peak + 1:-1] < 0)
+    assert np.allclose(beta[1:-1], -beta[1:-1][::-1], rtol=1e-12)
+
+
+def test_the_canonical_flip_fraction_puts_the_microcanonical_slope_at_the_bath_beta():
+    """n / (N - n) = exp(-2 beta mu B) inverted by Stirling's slope returns the same beta."""
+    n_spins, field = 10_000, 1.0
+    spins = partition.spin_entropy_of_energy(n_spins, MU_12, field)
+    stirling = spins.beta_stirling()
+    for temperature in (0.5, 1.0, 3.0):
+        x = MU_12 * field / (K_B * temperature)
+        flipped = n_spins / (1.0 + np.exp(2 * x))
+        n = int(round(flipped))
+        exact_beta = np.log((n_spins - n) / n) / (2 * MU_12 * field)
+        assert relative_error(stirling[n], exact_beta) < 1e-12
+        assert relative_error(stirling[n], 1 / (K_B * temperature)) < 2e-3
+
+
+@pytest.mark.parametrize("per_oscillator", [0.1, 1.0, 10.0, 1000.0])
+def test_an_inverted_spin_population_gives_energy_to_a_solid_at_any_positive_temperature(
+        per_oscillator):
+    """The C3 falsifier: negative T is hotter than every positive T, not colder than zero."""
+    n_osc = 200
+    contact = partition.spin_solid_contact(100, 85, n_osc, int(per_oscillator * n_osc))
+    assert contact.energy_to_solid > 0
+    assert contact.log_omega_change(-1) > 0 > contact.log_omega_change(+1)
+    assert contact.most_probable_flipped <= 50
+
+
+def test_the_truncated_oscillator_sum_is_the_geometric_closed_form():
+    for temperature in (5.0, 72.0, 2000.0):
+        n_max = partition.harmonic_cutoff(QUANTUM_12, temperature)
+        explicit = partition.log_z_harmonic(QUANTUM_12, temperature, n_max=n_max)
+        closed = partition.log_z_harmonic(QUANTUM_12, temperature)
+        assert abs(explicit - closed) < 1e-12 * max(1.0, abs(closed))
+
+
+def test_the_oscillator_temperature_map_is_module_nines_slope_and_module_ones_when_hot():
+    """Three routes, one map: Z (here), S(U)'s slope (09), equipartition (01) when hot."""
+    u = QUANTUM_12 * np.array([0.05, 0.5, 5.0, 500.0])
+    from_z = partition.harmonic_temperature(u, QUANTUM_12)
+    from_slope = fundamental.einstein_solid_temperature(u, 1.0, QUANTUM_12)
+    assert np.max(np.abs(from_z / from_slope - 1)) < 1e-14
+    equipartition = u / K_B
+    offset = from_z - equipartition
+    assert relative_error(offset[-1], QUANTUM_12 / (2 * K_B)) < 1e-3
+    assert from_z[0] > 5 * equipartition[0]
+
+
+def test_the_ideal_gas_z_with_the_gibbs_factor_gives_sackur_tetrode():
+    mass, volume, n, temperature = 6.6335e-26, 1e-3, 10**20, 300.0
+    rebuilt = partition.thermo_from_z(
+        lambda t: partition.log_z_ideal_gas(n, volume, t, mass), np.array([temperature]))
+    assert relative_error(rebuilt.energy[0], 1.5 * n * K_B * temperature) < 1e-7
+    stated = fundamental.sackur_tetrode_entropy(rebuilt.energy[0], volume, n, mass)
+    # lgamma is exact where Sackur-Tetrode uses Stirling; they differ by k_B ln(2 pi N)/2.
+    assert relative_error(rebuilt.entropy[0], stated) < 1e-6
+
+
+def test_without_the_gibbs_factor_the_ideal_gas_entropy_is_not_extensive():
+    """Doubling N and V together must double S; without 1/N! it overshoots by 2N k_B ln 2."""
+    mass, volume, n, temperature = 6.6335e-26, 1e-3, 10**6, 300.0
+
+    def entropy(count: int, v: float, correct: bool) -> float:
+        rebuilt = partition.thermo_from_z(
+            lambda t: partition.log_z_ideal_gas(count, v, t, mass, gibbs_correction=correct),
+            np.array([temperature]))
+        return float(rebuilt.entropy[0])
+
+    wrong = entropy(2 * n, 2 * volume, False) - 2 * entropy(n, volume, False)
+    right = entropy(2 * n, 2 * volume, True) - 2 * entropy(n, volume, True)
+    assert relative_error(wrong, 2 * n * K_B * np.log(2.0)) < 1e-6
+    assert abs(right) < 1e-4 * abs(wrong)
