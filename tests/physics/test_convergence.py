@@ -24,6 +24,7 @@ from thermolab import (
     kinetics,
     partition,
     paths,
+    phases,
     potentials,
     processes,
     sampling,
@@ -642,3 +643,34 @@ def test_the_entropic_mu_stencil_is_second_order_in_dn():
         lambda k: chemical.mu_from_entropy(relation, 1.5 * n * K_B * t, volume, n, dn=n / k),
         [4, 8, 16, 32, 64], exact)
     assert abs(study.observed_order - 2.0) < 0.05
+
+
+# ---------------------------------------------------------------------------
+# Module 14: phase coexistence
+# ---------------------------------------------------------------------------
+
+CO2_A_14, CO2_B_14 = gases.vdw_constants_from_critical(304.13, 7.3773e6)
+
+
+def test_the_clausius_clapeyron_difference_is_second_order_in_dt():
+    """Central difference of P_sat(T) against L / (T Delta v): halving dt quarters the gap."""
+    _, predicted = phases.clausius_clapeyron_check(290.0, CO2_A_14, CO2_B_14)
+    study = convergence_study(
+        lambda k: phases.clausius_clapeyron_check(290.0, CO2_A_14, CO2_B_14, dt=2.0 / k)[0],
+        [1, 2, 4, 8, 16], predicted)
+    assert abs(study.observed_order - 2.0) < 0.02
+
+
+def test_the_construction_converges_to_rounding_across_its_whole_domain():
+    """From T_RATIO_MIN to T_RATIO_MAX the returned state satisfies both equations it was
+    solved from -- P(v_l) = P(v_g) = P_sat and the equal-area residual -- to double precision."""
+    _, t_c, p_c = gases.vdw_critical_point(CO2_A_14, CO2_B_14)
+    t_r = np.concatenate([np.linspace(phases.T_RATIO_MIN, 0.99, 40),
+                          [0.999, 0.9999, phases.T_RATIO_MAX]])
+    p_sat, v_l, v_g = phases.maxwell_construction(t_r * t_c, CO2_A_14, CO2_B_14)
+    for v in (v_l, v_g):
+        on_isotherm = gases.van_der_waals_pressure(v, t_r * t_c, CO2_A_14, CO2_B_14)
+        assert np.all(np.abs(on_isotherm / p_sat - 1.0) < 1e-9)
+    residual = phases._equal_area_residual(p_sat / p_c, t_r)
+    assert np.all(np.abs(residual) < 1e-13)
+    assert np.all(np.diff(p_sat) > 0) and np.all(np.diff(v_l) > 0) and np.all(np.diff(v_g) < 0)

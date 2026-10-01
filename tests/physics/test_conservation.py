@@ -23,6 +23,7 @@ from thermolab import (
     kinetics,
     multiplicity,
     partition,
+    phases,
     potentials,
     processes,
     sampling,
@@ -674,3 +675,51 @@ def test_the_exact_split_distribution_is_normalized():
     dist = chemical.exact_count_distribution(boxes, 500, 300.0)
     assert abs(dist.probability.sum() - 1.0) < 1e-12
     assert dist.n_a.min() == 0 and dist.n_a.max() == 300
+
+
+# ---------------------------------------------------------------------------
+# Module 14: phase coexistence
+# ---------------------------------------------------------------------------
+# Nothing is transported here -- the module has no dynamics -- so what the construction must
+# keep exactly is bookkeeping: the particle count behind the lever rule, the pressure and the
+# chemical potential shared by the two phases, and the two lobe areas it declares equal.
+
+CO2_A_14, CO2_B_14 = gases.vdw_constants_from_critical(304.13, 7.3773e6)
+
+
+def test_the_lever_rule_conserves_particles_and_volume_exactly():
+    """x_l + x_g = 1, and x_l v_l + x_g v_g returns the v it was given, across the whole dome."""
+    _, v_l, v_g = phases.maxwell_construction(280.0, CO2_A_14, CO2_B_14)
+    for v in np.linspace(v_l, v_g, 101):
+        x_l, x_g = phases.lever_rule(v, v_l, v_g)
+        assert abs(x_l + x_g - 1.0) < 1e-15
+        assert relative_error(x_l * v_l + x_g * v_g, v) < 1e-14
+    assert phases.lever_rule(v_l, v_l, v_g) == (1.0, 0.0)
+    assert phases.lever_rule(v_g, v_l, v_g) == (0.0, 1.0)
+    with pytest.raises(ValueError):
+        phases.lever_rule(0.5 * v_l, v_l, v_g)
+
+
+def test_the_chord_at_p_sat_cuts_two_lobes_of_equal_area():
+    """The integral of P - P_sat from v_l to v_g vanishes: measured with a fine trapezoid rule
+    that knows nothing of the solver's own antiderivative."""
+    for t in (250.0, 280.0, 300.0):
+        p_sat, v_l, v_g = phases.maxwell_construction(t, CO2_A_14, CO2_B_14)
+        v = np.linspace(v_l, v_g, 400_001)
+        excess = gases.van_der_waals_pressure(v, t, CO2_A_14, CO2_B_14) - p_sat
+        area = float(np.sum(0.5 * (excess[1:] + excess[:-1]) * np.diff(v)))
+        assert abs(area) < 1e-9 * p_sat * (v_g - v_l)
+        # ... and each lobe on its own is not small: the chord really does cut a loop.
+        lobe = float(np.sum(np.where(excess > 0, excess, 0.0)[:-1] * np.diff(v)))
+        assert lobe > 1e-3 * p_sat * (v_g - v_l)
+
+
+def test_the_coexisting_phases_share_pressure_and_chemical_potential():
+    for t in (240.0, 280.0, 303.0):
+        p_sat, v_l, v_g = phases.maxwell_construction(t, CO2_A_14, CO2_B_14)
+        for v in (v_l, v_g):
+            assert relative_error(gases.van_der_waals_pressure(v, t, CO2_A_14, CO2_B_14),
+                                  p_sat) < 1e-10
+        gap = (phases.vdw_chemical_potential(v_l, t, CO2_A_14, CO2_B_14)
+               - phases.vdw_chemical_potential(v_g, t, CO2_A_14, CO2_B_14))
+        assert abs(gap) < 1e-12 * K_B * t

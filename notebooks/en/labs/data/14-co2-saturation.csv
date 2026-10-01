@@ -1,0 +1,41 @@
+# NOTE: byte-identical copies at notebooks/{en,he}/labs/data/14-co2-saturation.csv --
+# JupyterLite only bundles the notebooks/ tree (jupyter_lite_config.json: "contents":
+# ["notebooks"]), so each language's laboratory notebook needs its own co-located copy to
+# run in the browser. Keep all three in sync -- scripts/check_parity.py enforces it.
+#
+# Saturation (vapour) pressure of carbon dioxide from its triple point (216.592 K) to its
+# critical point (304.1282 K), every 4 K with both endpoints.
+#
+# Reference values, not a measurement made for this course: each row is the auxiliary
+# vapour-pressure equation of the Span & Wagner CO2 equation of state (J. Phys. Chem. Ref.
+# Data 25, 1509 (1996), eq. 3.13; T_c = 304.1282 K, P_c = 7.3773 MPa, four coefficients)
+# evaluated at the stated temperature and rounded to six significant figures. It is the
+# correlation the NIST Chemistry WebBook's CO2 saturation table is computed from, and it
+# agrees with the triple-point pressure 0.51795 MPa to better than 0.01%. Module 02's
+# co2-isotherm-280k.csv shows the same substance's 280 K plateau at 4.1663 MPa; this file's
+# 280 K entry, 4.1607 MPa, is the correlation's value.
+#
+# columns: temperature_K, saturation_pressure_Pa
+216.5920,517962
+220.0,599128
+224.0,706212
+228.0,827034
+232.0,962640
+236.0,1.1141e+06
+240.0,1.2825e+06
+244.0,1.46897e+06
+248.0,1.67463e+06
+252.0,1.90067e+06
+256.0,2.14828e+06
+260.0,2.41871e+06
+264.0,2.71324e+06
+268.0,3.03324e+06
+272.0,3.38012e+06
+276.0,3.75539e+06
+280.0,4.1607e+06
+284.0,4.59785e+06
+288.0,5.06889e+06
+292.0,5.57622e+06
+296.0,6.12286e+06
+300.0,6.71307e+06
+304.1282,7.3773e+06

@@ -20,6 +20,7 @@ from thermolab import (
     kinetics,
     multiplicity,
     partition,
+    phases,
     potentials,
     processes,
     sampling,
@@ -626,3 +627,27 @@ def test_the_relative_split_fluctuation_falls_as_n_to_the_minus_half():
         dist = chemical.exact_count_distribution(boxes, n, 300.0)
         relative.append(dist.std / dist.mean)
     assert abs(scaling_exponent(sizes, relative) + 0.5) < 0.01
+
+
+# ---------------------------------------------------------------------------
+# Module 14: phase coexistence
+# ---------------------------------------------------------------------------
+# No particle number appears anywhere in `phases`: it analyses an intensive equation of
+# state, so the large-N category has nothing to measure here. What scales instead is the
+# substance -- a and b set the units of the critical point and nothing else -- and the test
+# below records that the coexistence curve is one curve across four decades of both.
+
+
+def test_the_reduced_coexistence_curve_is_independent_of_a_and_b():
+    a_0, b_0 = gases.vdw_constants_from_critical(304.13, 7.3773e6)
+    t_r = np.linspace(0.5, 0.99, 25)
+    reference = None
+    for scale_a, scale_b in ((1.0, 1.0), (1e-2, 1e-1), (1e2, 1e1), (1e2, 1e-2)):
+        a, b = scale_a * a_0, scale_b * b_0
+        v_c, t_c, p_c = gases.vdw_critical_point(a, b)
+        p_sat, v_l, v_g = phases.coexistence_curve(t_r * t_c, a, b)
+        reduced = np.stack([p_sat / p_c, v_l / v_c, v_g / v_c,
+                            phases.latent_heat(t_r * t_c, a, b) / (K_B * t_c)])
+        if reference is None:
+            reference = reduced
+        assert np.all(np.abs(reduced / reference - 1.0) < 1e-10)

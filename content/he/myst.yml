@@ -50,6 +50,8 @@ project:
       children:
         - file: advanced/13-chemical-potential.md
         - file: advanced/13-chemical-potential-problems.md
+        - file: advanced/14-coexistence.md
+        - file: advanced/14-coexistence-problems.md
 site:
   template: book-theme
   options:

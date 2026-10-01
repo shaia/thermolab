@@ -20,9 +20,11 @@ from thermolab import (
     engines,
     equilibrium,
     fundamental,
+    gases,
     kinetics,
     multiplicity,
     partition,
+    phases,
     potentials,
     processes,
     sampling,
@@ -472,3 +474,24 @@ def test_the_equilibrium_split_is_the_same_for_every_seed(base_seed):
     study = seed_study(_settled_fraction_in_a, n_seeds=6, base_seed=base_seed)
     assert study.agrees_with(expected)
     assert study.relative_spread < 0.05
+
+
+# ---------------------------------------------------------------------------
+# Module 14: phase coexistence
+# ---------------------------------------------------------------------------
+# There is no generator anywhere in `phases`: every function is deterministic root-finding,
+# so seed independence holds by construction. The test records that -- and fails the day a
+# stochastic routine is added to the module without a seed-independence test of its own.
+
+
+def test_phases_takes_no_generator_and_repeats_itself_exactly():
+    import inspect
+
+    for name, function in inspect.getmembers(phases, inspect.isfunction):
+        assert "rng" not in inspect.signature(function).parameters, name
+    a, b = gases.vdw_constants_from_critical(304.13, 7.3773e6)
+    grid = np.linspace(200.0, 300.0, 11)
+    first = phases.coexistence_curve(grid, a, b)
+    second = phases.coexistence_curve(grid, a, b)
+    for x, y in zip(first, second, strict=True):
+        assert np.array_equal(x, y)

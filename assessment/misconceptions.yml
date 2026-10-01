@@ -155,3 +155,15 @@ misconceptions:
     statement: "Osmosis is the solute being pushed through the membrane."
     assigned_module: 13-chemical-potential
     status: addressed
+  - id: boiling-fixed-temperature
+    statement: "Water boils at exactly 100 C, whatever the surroundings."
+    assigned_module: 14-coexistence
+    status: addressed
+  - id: boiling-heat-raises-t
+    statement: "While a liquid boils, the heat poured into it keeps raising its temperature."
+    assigned_module: 14-coexistence
+    status: addressed
+  - id: critical-point-runs-out
+    statement: "The critical point is where the substance runs out of liquid."
+    assigned_module: 14-coexistence
+    status: addressed

@@ -23,6 +23,7 @@ from thermolab import (
     multiplicity,
     partition,
     paths,
+    phases,
     potentials,
     processes,
     sampling,
@@ -1987,3 +1988,164 @@ def test_the_dilute_relaxation_time_matches_the_mean_trajectory():
     final = chemical.equilibrium_split(boxes, n_total, T_13)[0]
     predicted = final * (1 - np.exp(-1.0))
     assert relative_error(np.mean(runs), predicted) < 0.03
+
+
+# ---------------------------------------------------------------------------
+# Module 14: phase coexistence
+# ---------------------------------------------------------------------------
+
+CO2_A_14, CO2_B_14 = gases.vdw_constants_from_critical(304.13, 7.3773e6)
+V_C_14, T_C_14, P_C_14 = gases.vdw_critical_point(CO2_A_14, CO2_B_14)
+
+
+def test_equal_areas_and_equal_mu_are_one_condition():
+    """The theorem: bisecting the lobe areas and bisecting mu_l - mu_g land on one pressure,
+    at every temperature in the solver's domain."""
+    for t_r in (0.3, 0.5, 0.7, 0.9, 0.99, 0.999, 0.9999, phases.T_RATIO_MAX):
+        t = t_r * T_C_14
+        p_a, l_a, g_a = phases.maxwell_construction(t, CO2_A_14, CO2_B_14)
+        p_m, l_m, g_m = phases.coexistence_from_mu(t, CO2_A_14, CO2_B_14)
+        assert relative_error(p_a, p_m) < 1e-12
+        assert relative_error(l_a, l_m) < 1e-8 and relative_error(g_a, g_m) < 1e-8
+        gap = (phases.vdw_chemical_potential(l_a, t, CO2_A_14, CO2_B_14)
+               - phases.vdw_chemical_potential(g_a, t, CO2_A_14, CO2_B_14))
+        assert abs(gap) < 1e-12 * K_B * t
+
+
+def test_the_construction_collapses_onto_the_critical_point():
+    """As T -> T_c the flat line shrinks to (v_c, P_c), with v_g - v_l ~ 4 v_c sqrt(1 - T/T_c)
+    -- the mean-field exponent 1/2 that module 15 will measure against reality."""
+    for t_r in (0.99, 0.999, 0.9999, phases.T_RATIO_MAX):
+        p, v_l, v_g = phases.maxwell_construction(t_r * T_C_14, CO2_A_14, CO2_B_14)
+        assert relative_error(p, P_C_14) < 5.0 * (1.0 - t_r)
+        assert relative_error(v_l, V_C_14) < 3.0 * np.sqrt(1.0 - t_r)
+        assert relative_error(v_g, V_C_14) < 3.0 * np.sqrt(1.0 - t_r)
+        assert abs((v_g - v_l) / (4.0 * V_C_14 * np.sqrt(1.0 - t_r)) - 1.0) < 0.05
+    p_sat, v_liq, v_gas = phases.coexistence_curve(np.array([0.9, 1.0, 1.1]) * T_C_14,
+                                                   CO2_A_14, CO2_B_14)
+    assert (p_sat[1], v_liq[1], v_gas[1]) == (P_C_14, V_C_14, V_C_14)
+    assert np.isnan(p_sat[2]) and np.isnan(v_liq[2]) and np.isnan(v_gas[2])
+    assert 0.0 < p_sat[0] < P_C_14 and v_liq[0] < V_C_14 < v_gas[0]
+
+
+def test_the_spinodals_bracket_the_binodal_and_meet_at_t_c():
+    """(dP/dv)_T = 0 at k_B T = 2a (v - b)^2 / v^3; the flat line's ends lie outside them and
+    P_sat lies between the loop's minimum and maximum."""
+    for t_r in (0.5, 0.8, 0.95):
+        t = t_r * T_C_14
+        v_min, v_max = phases.spinodal_volumes(t, CO2_A_14, CO2_B_14)
+        for v in (v_min, v_max):
+            assert relative_error(K_B * t, 2.0 * CO2_A_14 * (v - CO2_B_14) ** 2 / v**3) < 1e-10
+        p_sat, v_l, v_g = phases.maxwell_construction(t, CO2_A_14, CO2_B_14)
+        assert v_l < v_min < v_max < v_g
+        p_min = gases.van_der_waals_pressure(v_min, t, CO2_A_14, CO2_B_14)
+        p_max = gases.van_der_waals_pressure(v_max, t, CO2_A_14, CO2_B_14)
+        assert p_min < p_sat < p_max
+    near = phases.spinodal_volumes(phases.T_RATIO_MAX * T_C_14, CO2_A_14, CO2_B_14)
+    assert all(relative_error(v, V_C_14) < 0.01 for v in near)
+    with pytest.raises(ValueError):
+        phases.spinodal_volumes(T_C_14, CO2_A_14, CO2_B_14)
+
+
+def test_the_two_routes_to_the_latent_heat_agree_and_it_dies_at_t_c():
+    """T Delta s and Delta u + P_sat Delta v are one number when mu_l = mu_g; L -> 0 as the
+    two phases merge."""
+    grid = np.array([0.5, 0.7, 0.9, 0.99, 0.999]) * T_C_14
+    entropy_route = phases.latent_heat(grid, CO2_A_14, CO2_B_14)
+    first_law_route = phases.latent_heat_from_first_law(grid, CO2_A_14, CO2_B_14)
+    assert np.all(np.abs(entropy_route / first_law_route - 1.0) < 1e-10)
+    assert np.all(entropy_route > 0) and np.all(np.diff(entropy_route) < 0)
+    close = phases.latent_heat(phases.T_RATIO_MAX * T_C_14, CO2_A_14, CO2_B_14)
+    assert close < 0.02 * phases.latent_heat(0.9 * T_C_14, CO2_A_14, CO2_B_14)
+
+
+def test_no_coexistence_at_or_above_t_c_or_outside_the_trusted_domain():
+    outside = (T_C_14, 1.1 * T_C_14, (phases.T_RATIO_MAX + 1e-6) * T_C_14,
+               0.5 * phases.T_RATIO_MIN * T_C_14)
+    for t in outside:
+        with pytest.raises(ValueError):
+            phases.maxwell_construction(t, CO2_A_14, CO2_B_14)
+        with pytest.raises(ValueError):
+            phases.latent_heat(t, CO2_A_14, CO2_B_14)
+
+
+def test_corresponding_states_make_one_coexistence_curve():
+    """P_sat / P_c and v / v_c at one T / T_c are the same for every a and b."""
+    reference = None
+    for t_c, p_c in ((304.13, 7.3773e6), (126.19, 3.3958e6), (647.096, 22.064e6)):
+        a, b = gases.vdw_constants_from_critical(t_c, p_c)
+        v_c, _, _ = gases.vdw_critical_point(a, b)
+        p, v_l, v_g = phases.maxwell_construction(0.85 * t_c, a, b)
+        latent = phases.latent_heat(0.85 * t_c, a, b) / (K_B * t_c)
+        reduced = (p / p_c, v_l / v_c, v_g / v_c, latent)
+        if reference is None:
+            reference = reduced
+        for mine, theirs in zip(reduced, reference, strict=True):
+            assert relative_error(mine, theirs) < 1e-10
+
+
+def test_textbook_values_of_the_van_der_waals_coexistence_curve():
+    """P_sat / P_c = 0.3834 at T / T_c = 0.8 and 0.6470 at 0.9, as tabulated for the model."""
+    for t_r, p_r in ((0.8, 0.3834), (0.9, 0.6470)):
+        p, _, _ = phases.maxwell_construction(t_r * T_C_14, CO2_A_14, CO2_B_14)
+        assert abs(p / P_C_14 - p_r) < 5e-4
+
+
+def test_the_stable_phase_is_the_one_with_the_lower_chemical_potential():
+    """v(P) jumps from v_g to v_l at exactly P_sat; above T_c it is continuous."""
+    t = 280.0
+    p_sat, v_l, v_g = phases.maxwell_construction(t, CO2_A_14, CO2_B_14)
+    just_below = phases.equilibrium_volume(p_sat * (1.0 - 1e-6), t, CO2_A_14, CO2_B_14)
+    just_above = phases.equilibrium_volume(p_sat * (1.0 + 1e-6), t, CO2_A_14, CO2_B_14)
+    assert relative_error(just_below, v_g) < 1e-4 and relative_error(just_above, v_l) < 1e-4
+    pressures = np.geomspace(0.5 * p_sat, 2.0 * p_sat, 201)
+    volumes = phases.equilibrium_volume(pressures, t, CO2_A_14, CO2_B_14)
+    assert np.all(np.diff(volumes) < 0)
+    low, mid, high = phases.isotherm_volumes(pressures, t, CO2_A_14, CO2_B_14)
+    three = ~np.isnan(mid)
+    assert np.any(three)
+    assert np.all(np.isin(volumes[three], np.concatenate([low[three], high[three]])))
+    assert not np.any(np.isin(volumes[three], mid[three]))
+    for v in volumes[three]:
+        other = high[three][low[three] == v] if v in low[three] else low[three][high[three] == v]
+        assert (phases.vdw_chemical_potential(v, t, CO2_A_14, CO2_B_14)
+                <= phases.vdw_chemical_potential(float(other[0]), t, CO2_A_14, CO2_B_14))
+    hot = phases.equilibrium_volume(np.geomspace(1e5, 3e7, 200), 1.2 * T_C_14, CO2_A_14, CO2_B_14)
+    assert np.all(np.diff(hot) < 0)
+    assert np.max(np.abs(np.diff(np.log(hot)))) < 0.2  # no jump anywhere
+
+
+def test_gibbs_duhem_at_fixed_t_is_d_mu_equals_v_dp():
+    """The chemical potential's v-derivative is v dP/dv along an isotherm."""
+    t = 280.0
+    for v in np.geomspace(1.2 * CO2_B_14, 20.0 * V_C_14, 9):
+        h = 1e-5 * v
+        d_mu = (phases.vdw_chemical_potential(v + h, t, CO2_A_14, CO2_B_14)
+                - phases.vdw_chemical_potential(v - h, t, CO2_A_14, CO2_B_14)) / (2 * h)
+        d_p = (gases.van_der_waals_pressure(v + h, t, CO2_A_14, CO2_B_14)
+               - gases.van_der_waals_pressure(v - h, t, CO2_A_14, CO2_B_14)) / (2 * h)
+        assert relative_error(d_mu, v * d_p) < 1e-7
+
+
+def test_the_clausius_clapeyron_fit_recovers_an_exact_law():
+    """Data that obey ln P = c - L/(k_B T) exactly give back L, zero residuals, and the
+    boiling temperature that inverts the fit."""
+    latent, log_prefactor = 40.0e3 / 6.02214076e23, 25.0
+    temperatures = np.linspace(280.0, 420.0, 15)
+    pressures = np.exp(log_prefactor - latent / (K_B * temperatures))
+    fit = phases.clausius_clapeyron_fit(temperatures, pressures)
+    assert relative_error(fit.latent_heat, latent) < 1e-10
+    assert relative_error(fit.log_prefactor, log_prefactor) < 1e-10
+    assert np.max(np.abs(fit.residuals)) < 1e-12
+    assert fit.latent_heat_error < 1e-10 * latent
+    assert np.all(np.abs(fit.pressure(temperatures) / pressures - 1.0) < 1e-10)
+    assert relative_error(fit.boiling_temperature(fit.pressure(373.0)), 373.0) < 1e-12
+
+
+def test_the_phase_rule_counts_freedoms():
+    assert phases.phase_rule(1, 1) == 2
+    assert phases.phase_rule(1, 2) == 1
+    assert phases.phase_rule(1, 3) == 0
+    assert phases.phase_rule(2, 2) == 2
+    with pytest.raises(ValueError):
+        phases.phase_rule(1, 4)

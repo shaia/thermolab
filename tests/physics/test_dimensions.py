@@ -28,6 +28,7 @@ from thermolab import (
     multiplicity,
     partition,
     paths,
+    phases,
     potentials,
     processes,
     sampling,
@@ -622,3 +623,83 @@ def test_chemical_functions_return_plain_si_floats():
     mu, counts = chemical.occupation_equilibrium(boxes, 100, 300.0)
     assert isinstance(mu, float) and counts.shape == (2,)
     assert chemical.ideal_gas_mu(np.array([1e24, 1e25]), 300.0, ARGON_13).shape == (2,)
+
+
+# ---------------------------------------------------------------------------
+# Module 14: phase coexistence
+# ---------------------------------------------------------------------------
+
+CO2_A_14, CO2_B_14 = gases.vdw_constants_from_critical(304.13, 7.3773e6)
+
+
+def test_the_maxwell_construction_returns_a_pressure_and_two_volumes():
+    """P_sat is P_c times a pure number and each v is v_c times one, so the units are those
+    of the critical point -- which pint builds from a and b alone."""
+    a = Quantity(CO2_A_14, "Pa * m**6")
+    b = Quantity(CO2_B_14, "m**3")
+    p_c, v_c, t_c = a / (27 * b**2), 3 * b, 8 * a / (27 * K_B_Q * b)
+    assert p_c.check("[pressure]") and v_c.check("[volume]") and t_c.check("[temperature]")
+    v_c_value, t_c_value, p_c_value = gases.vdw_critical_point(CO2_A_14, CO2_B_14)
+    assert relative_error(p_c_value, p_c.to("Pa").magnitude) < 1e-12
+    assert relative_error(t_c_value, t_c.to("K").magnitude) < 1e-12
+    p_sat, v_l, v_g = phases.maxwell_construction(280.0, CO2_A_14, CO2_B_14)
+    assert 0.0 < p_sat < p_c_value
+    assert CO2_B_14 < v_l < v_c_value < v_g
+
+
+def test_the_latent_heat_is_an_energy_per_particle_by_both_routes():
+    """k_B T ln((v_g - b)/(v_l - b)) takes the log of a volume ratio; Delta u + P Delta v adds
+    a pressure times a volume to a / v, and a / v is Pa m^6 / m^3 = J."""
+    t = 280.0
+    p_sat, v_l, v_g = phases.maxwell_construction(t, CO2_A_14, CO2_B_14)
+    b = Quantity(CO2_B_14, "m**3")
+    ratio = (Quantity(v_g, "m**3") - b) / (Quantity(v_l, "m**3") - b)
+    assert ratio.to("dimensionless").check("[]")
+    from_entropy = K_B_Q * Quantity(t, "K") * np.log(ratio.to("dimensionless").magnitude)
+    assert from_entropy.check("[energy]")
+    assert relative_error(phases.latent_heat(t, CO2_A_14, CO2_B_14),
+                          from_entropy.to("J").magnitude) < 1e-12
+    delta_u = Quantity(CO2_A_14, "Pa * m**6") * (1 / Quantity(v_l, "m**3")
+                                                 - 1 / Quantity(v_g, "m**3"))
+    from_first_law = delta_u + Quantity(p_sat, "Pa") * Quantity(v_g - v_l, "m**3")
+    assert from_first_law.check("[energy]")
+    assert relative_error(phases.latent_heat_from_first_law(t, CO2_A_14, CO2_B_14),
+                          from_first_law.to("J").magnitude) < 1e-12
+
+
+def test_the_clausius_clapeyron_slope_is_a_pressure_per_kelvin():
+    t = 280.0
+    _, v_l, v_g = phases.maxwell_construction(t, CO2_A_14, CO2_B_14)
+    slope = Quantity(phases.latent_heat(t, CO2_A_14, CO2_B_14), "J") / (
+        Quantity(t, "K") * Quantity(v_g - v_l, "m**3"))
+    assert slope.check("[pressure] / [temperature]")
+    _, predicted = phases.clausius_clapeyron_check(t, CO2_A_14, CO2_B_14)
+    assert relative_error(predicted, slope.to("Pa / K").magnitude) < 1e-12
+
+
+def test_the_van_der_waals_chemical_potential_is_an_energy():
+    """-k_B T ln((v - b)/b) + k_B T b/(v - b) - 2a/v: each term is J once (v - b)/b is a number."""
+    v, t = 2.0 * CO2_B_14, 280.0
+    b = Quantity(CO2_B_14, "m**3")
+    free = (Quantity(v, "m**3") - b) / b
+    assert free.to("dimensionless").check("[]")
+    kt = K_B_Q * Quantity(t, "K")
+    mu = (-kt * np.log(free.to("dimensionless").magnitude) + kt / free.to("dimensionless").magnitude
+          - 2 * Quantity(CO2_A_14, "Pa * m**6") / Quantity(v, "m**3"))
+    assert mu.check("[energy]")
+    assert relative_error(phases.vdw_chemical_potential(v, t, CO2_A_14, CO2_B_14),
+                          mu.to("J").magnitude) < 1e-12
+
+
+def test_phases_functions_return_plain_si_floats_and_shaped_arrays():
+    p_sat, v_l, v_g = phases.maxwell_construction(280.0, CO2_A_14, CO2_B_14)
+    assert all(isinstance(x, float) for x in (p_sat, v_l, v_g))
+    assert isinstance(phases.latent_heat(280.0, CO2_A_14, CO2_B_14), float)
+    assert isinstance(phases.equilibrium_volume(3.0e6, 280.0, CO2_A_14, CO2_B_14), float)
+    x_l, x_g = phases.lever_rule(0.5 * (v_l + v_g), v_l, v_g)
+    assert isinstance(x_l, float) and isinstance(x_g, float)
+    grid = np.array([270.0, 280.0, 290.0])
+    assert all(np.shape(x) == (3,) for x in phases.maxwell_construction(grid, CO2_A_14, CO2_B_14))
+    assert np.shape(phases.latent_heat(grid, CO2_A_14, CO2_B_14)) == (3,)
+    assert all(np.shape(x) == (3,) for x in phases.coexistence_curve(grid, CO2_A_14, CO2_B_14))
+    assert isinstance(phases.phase_rule(1, 2), int)
