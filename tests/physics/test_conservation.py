@@ -13,6 +13,7 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from thermolab import (
+    chemical,
     engines,
     ensembles,
     equilibrium,
@@ -26,6 +27,7 @@ from thermolab import (
     processes,
     sampling,
 )
+from thermolab.constants import K_B
 from thermolab.validation import relative_error
 
 pytestmark = pytest.mark.conservation
@@ -642,3 +644,33 @@ def test_canonical_probabilities_sum_to_one_at_every_temperature():
     for temperature in (1.0, 30.0, 300.0, 3000.0):
         sums = partition.level_sums(levels, temperature)
         assert abs(sums.probabilities.sum() - 1.0) < 1e-12
+
+
+# ---------------------------------------------------------------------------
+# Module 13: chemical potential
+# ---------------------------------------------------------------------------
+
+
+def test_particle_hops_conserve_the_total_number_at_every_step():
+    boxes = chemical.two_boxes(500, 2000, 0.0, 2.0 * K_B * 300.0)
+    trace = chemical.particle_exchange_sim(boxes, [0, 400], 300.0, 20_000,
+                                           np.random.default_rng(13))
+    assert np.all(trace.counts.sum(axis=1) == 400)
+    assert np.all(trace.counts >= 0) and np.all(trace.counts <= boxes.sites)
+    # Single hops only: no record differs from the previous by more than one particle.
+    assert np.max(np.abs(np.diff(trace.counts[:, 0]))) == 1
+
+
+def test_the_column_conserves_particles_across_every_layer():
+    boxes = chemical.column(8, 300, 0.5 * K_B * 300.0)
+    trace = chemical.particle_exchange_sim(boxes, [200, 0, 0, 0, 0, 0, 0, 100], 300.0, 30_000,
+                                           np.random.default_rng(7), record_every=10)
+    assert np.all(trace.counts.sum(axis=1) == 300)
+    assert np.all(trace.counts >= 0)
+
+
+def test_the_exact_split_distribution_is_normalized():
+    boxes = chemical.two_boxes(300, 900, 0.0, K_B * 300.0)
+    dist = chemical.exact_count_distribution(boxes, 500, 300.0)
+    assert abs(dist.probability.sum() - 1.0) < 1e-12
+    assert dist.n_a.min() == 0 and dist.n_a.max() == 300

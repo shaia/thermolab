@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 from thermolab import (
+    chemical,
     engines,
     equilibrium,
     fundamental,
@@ -446,3 +447,28 @@ def test_simulated_endpoints_sit_at_the_temperature_the_oscillator_z_predicts(pe
     equipartition = shared / K_B
     through_z = partition.harmonic_temperature(shared, QUANTUM_12)
     assert 0.3 * QUANTUM_12 / K_B < through_z - equipartition < 0.5 * QUANTUM_12 / K_B
+
+
+# ---------------------------------------------------------------------------
+# Module 13: chemical potential
+# ---------------------------------------------------------------------------
+
+
+def _settled_fraction_in_a(rng: np.random.Generator) -> float:
+    kt = K_B * 300.0
+    boxes = chemical.two_boxes(50_000, 50_000, 0.0, 1.0 * kt)
+    tau = chemical.relaxation_steps(boxes, 1000, 300.0)
+    trace = chemical.particle_exchange_sim(boxes, [500, 500], 300.0, int(30 * tau), rng,
+                                           record_every=20)
+    return float(trace.tail(0.7)[:, 0].mean() / 1000)
+
+
+@pytest.mark.parametrize("base_seed", [0, 99])
+def test_the_equilibrium_split_is_the_same_for_every_seed(base_seed):
+    """Two independent seed families, both on the exact mean, with a few-percent spread."""
+    kt = K_B * 300.0
+    boxes = chemical.two_boxes(50_000, 50_000, 0.0, 1.0 * kt)
+    expected = chemical.exact_count_distribution(boxes, 1000, 300.0).mean / 1000
+    study = seed_study(_settled_fraction_in_a, n_seeds=6, base_seed=base_seed)
+    assert study.agrees_with(expected)
+    assert study.relative_spread < 0.05

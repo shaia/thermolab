@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 
 from thermolab import (
+    chemical,
     engines,
     ensembles,
     equilibrium,
@@ -570,3 +571,54 @@ def test_partition_functions_return_plain_si_floats():
     assert partition.log_z_harmonic(QUANTUM_12, np.array([10.0, 20.0]), n_max=50).shape == (2,)
     sums = partition.level_sums([0.0, QUANTUM_12], 100.0)
     assert isinstance(sums.energy, float) and isinstance(sums.entropy, float)
+
+
+# ---------------------------------------------------------------------------
+# Module 13: chemical potential
+# ---------------------------------------------------------------------------
+
+ARGON_13 = 39.95 * 1.66053906660e-27  # kg
+
+
+def test_the_chemical_potential_is_an_energy_per_particle():
+    """k_B T ln(n / n_Q): the logarithm's argument must be a pure number, so mu is in joules."""
+    lam = Quantity(partition.PLANCK_H, "J*s") / (
+        2 * np.pi * Quantity(ARGON_13, "kg") * K_B_Q * Quantity(300.0, "K")) ** 0.5
+    n_q = 1 / lam**3
+    assert n_q.check("1/[length]**3")
+    ratio = Quantity(2.4e25, "1/m**3") / n_q
+    assert ratio.to("dimensionless").check("[]")
+    mu = K_B_Q * Quantity(300.0, "K") * np.log(ratio.to("dimensionless").magnitude)
+    assert mu.check("[energy]")
+    value = chemical.ideal_gas_mu(2.4e25, 300.0, ARGON_13)
+    assert relative_error(value, mu.to("J").magnitude) < 1e-12
+    assert relative_error(chemical.quantum_concentration(300.0, ARGON_13),
+                          n_q.to("1/m**3").magnitude) < 1e-12
+
+
+def test_van_t_hoff_osmotic_pressure_is_a_pressure():
+    """Pi = n_s k_B T: a number density times an energy is a pressure."""
+    pi = Quantity(6.0e25, "1/m**3") * K_B_Q * Quantity(298.0, "K")
+    assert pi.check("[pressure]")
+    assert relative_error(chemical.osmotic_pressure(6.0e25, 298.0), pi.to("Pa").magnitude) < 1e-12
+    lattice = K_B_Q * Quantity(298.0, "K") / Quantity(chemical.WATER_MOLECULAR_VOLUME, "m**3")
+    assert lattice.check("[pressure]")
+
+
+def test_every_exponent_in_the_occupation_and_mass_action_laws_is_dimensionless():
+    x = (Quantity(3e-21, "J") - Quantity(1e-21, "J")) / (K_B_Q * Quantity(300.0, "K"))
+    assert x.to("dimensionless").check("[]")
+    assert 0.0 < chemical.site_occupation(1e-21, 300.0, 3e-21) < 0.5
+
+
+def test_chemical_functions_return_plain_si_floats():
+    boxes = chemical.two_boxes(1000, 1000, 0.0, 1e-21)
+    assert isinstance(chemical.ideal_gas_mu(1e25, 300.0, ARGON_13), float)
+    assert isinstance(chemical.quantum_concentration(300.0, ARGON_13), float)
+    assert isinstance(chemical.site_occupation(0.0, 300.0, 1e-21), float)
+    assert isinstance(chemical.mass_action_ratio(1e-21, 300.0), float)
+    assert isinstance(chemical.osmotic_pressure(1e25, 300.0), float)
+    assert isinstance(chemical.relaxation_steps(boxes, 100, 300.0), float)
+    mu, counts = chemical.occupation_equilibrium(boxes, 100, 300.0)
+    assert isinstance(mu, float) and counts.shape == (2,)
+    assert chemical.ideal_gas_mu(np.array([1e24, 1e25]), 300.0, ARGON_13).shape == (2,)
