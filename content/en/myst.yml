@@ -47,6 +47,10 @@ project:
         - file: statistical-mechanics/11-ensembles-problems.md
         - file: statistical-mechanics/12-partition-functions.md
         - file: statistical-mechanics/12-partition-functions-problems.md
+    - title: Advanced topics
+      children:
+        - file: advanced/13-chemical-potential.md
+        - file: advanced/13-chemical-potential-problems.md
 site:
   template: book-theme
   options:

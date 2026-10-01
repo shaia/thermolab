@@ -43,6 +43,7 @@ Currently available:
 - **[Thermodynamic potentials](thermodynamics/10-potentials.md)** — why chemists, engineers and physicists each tabulate a different "energy", and how a pressure gauge and a thermometer measure an entropy change.
 - **[Statistical ensembles](statistical-mechanics/11-ensembles.md)** — how "every microstate is equally probable" and "high-energy states are exponentially rare" are both true, and where the Boltzmann factor comes from.
 - **[Partition functions](statistical-mechanics/12-partition-functions.md)** — why the number you divide by knows a system's energy, entropy and heat capacity, and why a negative temperature is hotter than any positive one.
+- **[Chemical potential](advanced/13-chemical-potential.md)** *(advanced)* — why particles can pile up where they are already crowded, and what the atmosphere, an adsorbing surface and a swelling cell have in common.
 
 Two reference pages sit outside the sequence and are meant to be returned to:
 [conventions](conventions.md) and the [mathematics refresher](foundations/math-refresher.md).

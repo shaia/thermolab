@@ -59,6 +59,7 @@ import socketserver
 import sys
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -85,6 +86,14 @@ SCROLLER = ".jp-WindowedPanel-outer"
 SCROLL_STEP_PX = 400
 SCROLL_SETTLE_S = 0.25
 MAX_SCROLL_STEPS = 400
+
+#: A notebook whose run never settles is retried once, in a fresh browser context. CI saw
+#: en/02 hang in one leg and he/07 in the other on the same commit -- byte-identical code
+#: cells, each passing in ~30s in the other language -- so a timeout alone is not evidence
+#: about the notebook. A cell that genuinely blocks hangs on both attempts and still fails;
+#: a traceback is never retried. Retries are printed, so a flake stays visible in the log.
+TIMEOUT_ATTEMPTS = 2
+TIMEOUT_PREFIX = "no cell raised and execution never settled within"
 
 TRACEBACK_MARKER = "Traceback (most recent call last)"
 EXCEPTION_RE = re.compile(r"\b(\w*(?:Error|Exception|Interrupt))\b")
@@ -133,15 +142,21 @@ def any_traceback_visible(page) -> bool:
     )
 
 
-def wait_for_quiescence(page) -> bool:
-    """Block until the run has settled or a cell has raised. False only on timeout."""
+def wait_for_quiescence(page) -> str | None:
+    """Block until the run has settled or a cell has raised.
+
+    Returns None when it has, and otherwise a description of how it hung, because the two
+    hangs mean different things: a kernel that never went busy means Run All never took
+    effect, while one stuck busy means a cell really is blocking.
+    """
     deadline = time.monotonic() + RUN_TIMEOUT_S
     seen_busy = False
     quiet = 0
+    status = ""
 
     while time.monotonic() < deadline:
         if any_traceback_visible(page):
-            return True
+            return None
 
         status = kernel_status(page)
         seen_busy = seen_busy or status == "busy"
@@ -150,12 +165,14 @@ def wait_for_quiescence(page) -> bool:
         if seen_busy and status == "idle":
             quiet += 1
             if quiet >= QUIESCENT_POLLS:
-                return True
+                return None
         else:
             quiet = 0
         time.sleep(POLL_S)
 
-    return False
+    if not seen_busy:
+        return f"the kernel never went busy (last status {status!r}), so Run All never took effect"
+    return f"the kernel went busy and was still {status!r} at the deadline, so a cell blocks"
 
 
 def harvest_outputs(page) -> tuple[list[str], bool]:
@@ -222,12 +239,12 @@ def run_notebook(page, base_url: str, lang: str, slug: str) -> list[Finding]:
             )
         ]
 
-    if not wait_for_quiescence(page):
+    hang = wait_for_quiescence(page)
+    if hang:
         return [
             Finding(
                 path, None, "error",
-                f"no cell raised and execution never settled within {RUN_TIMEOUT_S}s. Either "
-                f"the kernel never came up or a cell blocks in the browser.",
+                f"{TIMEOUT_PREFIX} {RUN_TIMEOUT_S}s: {hang}.",
             )
         ]
 
@@ -263,6 +280,27 @@ def run_notebook(page, base_url: str, lang: str, slug: str) -> list[Finding]:
     return []
 
 
+def is_timeout(findings: list[Finding]) -> bool:
+    """True when the only thing wrong was a run that never settled."""
+    return bool(findings) and all(f.message.startswith(TIMEOUT_PREFIX) for f in findings)
+
+
+def run_with_retry(attempt: Callable[[], list[Finding]],
+                   attempts: int = TIMEOUT_ATTEMPTS) -> tuple[list[Finding], int]:
+    """Run `attempt` until it passes or fails for a reason other than a timeout.
+
+    Returns the last attempt's findings and how many attempts were made. Only a timeout is
+    retried: a traceback, a missing bundle or an empty run is a fact about the notebook, and
+    running it again would only hide it.
+    """
+    findings: list[Finding] = []
+    for made in range(1, attempts + 1):
+        findings = attempt()
+        if not is_timeout(findings):
+            return findings, made
+    return findings, attempts
+
+
 def check(languages: tuple[str, ...] = LANGUAGES, notebook: str | None = None,
           headed: bool = False) -> list[Finding]:
     if not (SITE / "lite").is_dir():
@@ -286,19 +324,25 @@ def check(languages: tuple[str, ...] = LANGUAGES, notebook: str | None = None,
             try:
                 for lang in languages:
                     for slug in [s for s in lab_notebooks(lang) if notebook in (None, s)]:
-                        # One context per notebook: JupyterLite keeps the kernel and its
-                        # installed packages in browser storage, and a reused one would hide
-                        # exactly the bootstrap failures this check exists to find.
-                        context = browser.new_context()
-                        page = context.new_page()
+                        def attempt(lang: str = lang, slug: str = slug) -> list[Finding]:
+                            # One context per attempt: JupyterLite keeps the kernel and its
+                            # installed packages in browser storage, and a reused one would
+                            # hide exactly the bootstrap failures this check exists to find.
+                            context = browser.new_context()
+                            try:
+                                found = run_notebook(context.new_page(), base_url, lang, slug)
+                            finally:
+                                context.close()
+                            if is_timeout(found):
+                                print(f"  {lang}/{slug:<22} timed out: {found[0].message}")
+                            return found
+
                         started = time.monotonic()
-                        try:
-                            found = run_notebook(page, base_url, lang, slug)
-                        finally:
-                            context.close()
+                        found, made = run_with_retry(attempt)
                         elapsed = time.monotonic() - started
                         status = "FAIL" if found else "ok"
-                        print(f"  {lang}/{slug:<22} {status:<5} {elapsed:5.0f}s")
+                        retried = f"   (attempt {made} of {TIMEOUT_ATTEMPTS})" if made > 1 else ""
+                        print(f"  {lang}/{slug:<22} {status:<5} {elapsed:5.0f}s{retried}")
                         findings.extend(found)
             finally:
                 browser.close()

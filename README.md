@@ -118,6 +118,6 @@ phase equilibrium, phase transitions, radiation & solids, quantum statistics, fl
 transport). Currently built: orientation, thermal equilibrium, equations of state, probability
 & emergence, the microscopic origin of pressure, work & thermodynamic paths, thermodynamic
 processes, the second law & heat engines, entropy & multiplicity, the fundamental relation,
-thermodynamic potentials, statistical ensembles, and partition functions — plus two reference
-pages, the course
-conventions and a mathematics refresher.
+thermodynamic potentials, statistical ensembles, partition functions, and the first advanced
+module, the chemical potential — plus two reference pages, the course conventions and a
+mathematics refresher.

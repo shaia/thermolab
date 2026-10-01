@@ -14,6 +14,7 @@ import pytest
 from scipy.special import ndtr
 
 from thermolab import (
+    chemical,
     engines,
     ensembles,
     equilibrium,
@@ -623,3 +624,21 @@ def test_the_truncated_oscillator_sum_converges_geometrically_in_the_cutoff():
               for m in range(4, 24, 4)]
     ratios = [b / a for a, b in pairwise(errors)]
     assert np.allclose(ratios, np.exp(-0.5 * 4), rtol=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# Module 13: chemical potential
+# ---------------------------------------------------------------------------
+
+
+def test_the_entropic_mu_stencil_is_second_order_in_dn():
+    """Central difference in N at fixed U, V: halving dn quarters the error."""
+    argon = 39.95 * 1.66053906660e-27
+    n, t = 1.0e22, 300.0
+    volume = n * K_B * t / 1.0e5
+    relation = fundamental.monatomic_ideal_gas(argon)
+    exact = chemical.ideal_gas_mu(n / volume, t, argon)
+    study = convergence_study(
+        lambda k: chemical.mu_from_entropy(relation, 1.5 * n * K_B * t, volume, n, dn=n / k),
+        [4, 8, 16, 32, 64], exact)
+    assert abs(study.observed_order - 2.0) < 0.05

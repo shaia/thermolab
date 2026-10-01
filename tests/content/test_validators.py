@@ -19,12 +19,14 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 
 import build_site  # noqa: E402
 import check_assessment  # noqa: E402
+import check_browser_labs  # noqa: E402
 import check_glossary  # noqa: E402
 import check_modelspec  # noqa: E402
 import check_notebooks  # noqa: E402
 import check_parity  # noqa: E402
 
 from _content import sha256_normalized  # noqa: E402
+from _findings import Finding  # noqa: E402
 
 
 def write(path: Path, text: str) -> None:
@@ -960,3 +962,52 @@ class TestUnrenderableMath:
     def test_missing_ast_directory_checks_nothing(self, tmp_path):
         """`verify_math` turns a zero count into a failure; this is the zero it sees."""
         assert build_site.unrenderable_math(tmp_path / "absent", "content/en") == (0, [])
+
+
+# ---------------------------------------------------------------------------
+# check_browser_labs.py — which failures are retried
+# ---------------------------------------------------------------------------
+
+
+def browser_finding(message: str):
+    return Finding(Path("notebooks/en/labs/07-second-law.ipynb"), None, "error", message)
+
+
+TIMED_OUT = browser_finding(
+    f"{check_browser_labs.TIMEOUT_PREFIX} 600s: the kernel never went busy (last status "
+    "'idle'), so Run All never took effect.")
+RAISED = browser_finding("raised in the browser: ModuleNotFoundError: No module named 'scipy'")
+
+
+class TestBrowserLabRetry:
+    @staticmethod
+    def scripted(*outcomes):
+        """An attempt that returns each outcome in turn, counting how often it was called."""
+        queue = list(outcomes)
+        calls = []
+
+        def attempt():
+            calls.append(None)
+            return queue.pop(0)
+
+        return attempt, calls
+
+    def test_a_timeout_followed_by_a_clean_run_passes_on_the_second_attempt(self):
+        attempt, calls = self.scripted([TIMED_OUT], [])
+        assert check_browser_labs.run_with_retry(attempt) == ([], 2)
+        assert len(calls) == 2
+
+    def test_a_notebook_that_hangs_every_time_still_fails(self):
+        attempt, _ = self.scripted([TIMED_OUT], [TIMED_OUT], [])
+        findings, made = check_browser_labs.run_with_retry(attempt)
+        assert findings == [TIMED_OUT] and made == check_browser_labs.TIMEOUT_ATTEMPTS
+
+    def test_a_traceback_is_never_retried(self):
+        attempt, calls = self.scripted([RAISED], [])
+        assert check_browser_labs.run_with_retry(attempt) == ([RAISED], 1)
+        assert len(calls) == 1
+
+    def test_a_timeout_mixed_with_a_real_error_is_not_a_timeout(self):
+        assert check_browser_labs.is_timeout([TIMED_OUT])
+        assert not check_browser_labs.is_timeout([TIMED_OUT, RAISED])
+        assert not check_browser_labs.is_timeout([])
