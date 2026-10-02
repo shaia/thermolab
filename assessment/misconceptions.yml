@@ -167,3 +167,15 @@ misconceptions:
     statement: "The critical point is where the substance runs out of liquid."
     assigned_module: 14-coexistence
     status: addressed
+  - id: critical-fastest-settling
+    statement: "At the critical temperature a system settles fastest, because it is 'between' phases and nothing holds it back."
+    assigned_module: 15-ising
+    status: addressed
+  - id: ensemble-cancellation
+    statement: "Below T_c the equilibrium magnetization is zero, because up and down samples cancel."
+    assigned_module: 15-ising
+    status: addressed
+  - id: mc-is-real-dynamics
+    statement: "A Monte Carlo simulation shows the magnet's real time evolution."
+    assigned_module: 15-ising
+    status: addressed

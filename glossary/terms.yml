@@ -1095,3 +1095,152 @@ terms:
   - key: steam-table
     en: steam table
     he: טבלת קיטור
+  - key: ising-model
+    en: Ising model
+    he: מודל איזינג
+    he_reject: [מודל אייזינג]
+  - key: order-parameter
+    en: order parameter
+    he: פרמטר סדר
+  - key: symmetry-breaking
+    en: spontaneous symmetry breaking
+    he: שבירת סימטריה ספונטנית
+  - key: spontaneous-magnetization
+    en: spontaneous magnetization
+    he: מגנוט ספונטני
+  - key: ferromagnet
+    en: ferromagnet
+    he: פרומגנט
+    he_reject: [פרו-מגנט]
+  - key: magnetic-domain
+    en: magnetic domain
+    he: תחום מגנטי
+  - key: domain-wall
+    en: domain wall
+    he: קיר תחום
+    he_reject: [דופן תחום]
+  - key: curie-temperature
+    en: Curie temperature
+    he: טמפרטורת קירי
+    he_reject: [טמפרטורת קורי]
+  - key: monte-carlo
+    en: Monte Carlo method
+    he: שיטת מונטה קרלו
+    he_reject: [מונטה-קרלו]
+  - key: markov-chain
+    en: Markov chain
+    he: שרשרת מרקוב
+  - key: detailed-balance
+    en: detailed balance
+    he: איזון מפורט
+  - key: metropolis
+    en: Metropolis algorithm
+    he: אלגוריתם מטרופוליס
+  - key: glauber-rule
+    en: Glauber rule
+    he: כלל גלאובר
+  - key: checkerboard-update
+    en: checkerboard update
+    he: עדכון לוח שחמט
+  - key: mc-sweep
+    en: sweep
+    he: סריקה
+  - key: burn-in
+    en: burn-in
+    he: שלב חימום
+  - key: quench
+    en: quench
+    he: צינון חטוף
+  - key: coarsening
+    en: coarsening
+    he: הגסה
+  - key: susceptibility
+    en: susceptibility
+    he: סוספטיביליות
+    he_reject: [סוסצפטיביליות, סוספטיבליות]
+  - key: critical-exponent
+    en: critical exponent
+    he: מעריך קריטי
+  - key: correlation-length
+    en: correlation length
+    he: אורך מתאם
+    he_reject: [אורך קורלציה]
+  - key: autocorrelation-time
+    en: autocorrelation time
+    he: זמן מתאם עצמי
+    he_reject: [זמן אוטוקורלציה]
+  - key: effective-samples
+    en: effective number of samples
+    he: מספר הדגימות האפקטיבי
+  - key: critical-slowing-down
+    en: critical slowing down
+    he: האטה קריטית
+  - key: ergodicity-breaking
+    en: ergodicity breaking
+    he: שבירת ארגודיות
+  - key: first-order-transition
+    en: first-order transition
+    he: מעבר מסדר ראשון
+  - key: continuous-transition
+    en: continuous transition
+    he: מעבר רציף
+  - key: universality
+    en: universality
+    he: אוניברסליות
+  - key: transfer-matrix
+    en: transfer matrix
+    he: מטריצת העברה
+  - key: finite-size-scaling
+    en: finite-size scaling
+    he: סקיילינג בגודל סופי
+  - key: renormalization-group
+    en: renormalization group
+    he: חבורת הרנורמליזציה
+  - key: coupling-constant
+    en: coupling
+    he: צימוד
+  - key: bond
+    en: bond
+    he: קשר
+  - key: spin-configuration
+    en: configuration
+    he: קונפיגורציה
+  - key: acceptance-probability
+    en: acceptance probability
+    he: הסתברות קבלה
+  - key: stationary-distribution
+    en: stationary distribution
+    he: התפלגות סטציונרית
+  - key: estimator
+    en: estimator
+    he: אומד
+  - key: random-seed
+    en: seed
+    he: זרע
+  - key: mc-trace
+    en: trace
+    he: עקבה
+  - key: effective-field
+    en: effective field
+    he: שדה אפקטיבי
+  - key: nearest-neighbours
+    en: nearest neighbours
+    he: שכנים קרובים
+  - key: self-consistency
+    en: self-consistency
+    he: עקביות עצמית
+  - key: critical-opalescence
+    en: critical opalescence
+    he: אופלסצנציה קריטית
+  - key: coercive-field
+    en: coercive field
+    he: שדה כופה
+  - key: cluster-algorithm
+    en: cluster algorithm
+    he: אלגוריתם אשכולות
+  - key: simulated-annealing
+    en: simulated annealing
+    he: חישול מדומה
+  - key: curie-point
+    en: Curie point
+    he: נקודת קירי

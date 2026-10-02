@@ -21,6 +21,7 @@ from thermolab import (
     equilibrium,
     fundamental,
     gases,
+    ising,
     kinetics,
     multiplicity,
     partition,
@@ -495,3 +496,58 @@ def test_phases_takes_no_generator_and_repeats_itself_exactly():
     second = phases.coexistence_curve(grid, a, b)
     for x, y in zip(first, second, strict=True):
         assert np.array_equal(x, y)
+
+
+# ---------------------------------------------------------------------------
+# Module 15: the Ising model
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(("temperature", "ordered"), [(1.5, True), (3.0, False)])
+def test_the_phase_verdict_is_the_same_for_every_seed(temperature, ordered):
+    def abs_m(rng):
+        m, _, _ = ising.simulate(ising.random_state(16, rng), temperature, 1500, rng,
+                                 burn_in=500)
+        return float(np.abs(m).mean())
+
+    study = seed_study(abs_m, n_seeds=8)
+    verdicts = study.values > 0.6
+    assert np.all(verdicts) if ordered else not np.any(verdicts)
+    other = seed_study(abs_m, n_seeds=8, base_seed=1)
+    combined = np.hypot(study.standard_error, other.standard_error)
+    assert abs(study.mean - other.mean) < 3 * combined
+
+
+def test_the_tau_corrected_error_bar_matches_the_scatter_across_seeds():
+    """Near T_c, tau is several sweeps at L = 16. The corrected error bar must match the
+    seed-to-seed scatter of the mean; the naive sigma / sqrt(n) underestimates it."""
+    temperature = 2.35
+    means, errors, naive = [], [], []
+    for seed in np.random.SeedSequence(15).spawn(16):
+        rng = np.random.default_rng(seed)
+        m, _, _ = ising.simulate(ising.random_state(16, rng), temperature, 3000, rng,
+                                 burn_in=500)
+        mean, error, _ = ising.mean_with_error(np.abs(m))
+        means.append(mean)
+        errors.append(error)
+        naive.append(np.abs(m).std(ddof=1) / np.sqrt(m.size))
+    scatter = np.std(means, ddof=1)
+    assert 0.6 < np.mean(errors) / scatter < 1.6
+    assert np.mean(naive) < 0.5 * scatter
+
+
+def test_metropolis_and_glauber_sample_the_same_equilibrium():
+    """Different update rules relax at different rates but share a stationary
+    distribution -- the reason Monte Carlo sweeps are not physical time."""
+    temperature = 2.8
+
+    def energy(rule):
+        def measure(rng):
+            _, e, _ = ising.simulate(ising.random_state(16, rng), temperature, 1500, rng,
+                                     burn_in=300, rule=rule)
+            return float(e.mean())
+        return seed_study(measure, n_seeds=8)
+
+    metropolis, glauber = energy("metropolis"), energy("glauber")
+    combined = np.hypot(metropolis.standard_error, glauber.standard_error)
+    assert abs(metropolis.mean - glauber.mean) < 3 * combined

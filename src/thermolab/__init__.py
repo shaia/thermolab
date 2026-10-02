@@ -15,6 +15,7 @@ Modules:
     engines              closed cycles between reservoirs; efficiency and the second-law bound
     ensembles            a small system on a finite heat bath; where the Boltzmann factor comes from
     gases                the ideal gas, the van der Waals correction, and the critical point
+    ising                the Ising model by Monte Carlo; order, symmetry breaking, criticality
     kinetics             free particles in a box; the microscopic origin of pressure
     paths                quasistatic paths in the P-V plane; work as a path function
     phases               liquid-gas coexistence of a van der Waals fluid; the Maxwell construction
@@ -35,6 +36,7 @@ from . import (
     forms,
     fundamental,
     gases,
+    ising,
     kinetics,
     multiplicity,
     partition,
@@ -61,6 +63,7 @@ __all__ = [
     "forms",
     "fundamental",
     "gases",
+    "ising",
     "kinetics",
     "multiplicity",
     "partition",

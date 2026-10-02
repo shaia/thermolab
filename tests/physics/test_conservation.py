@@ -20,6 +20,7 @@ from thermolab import (
     forms,
     fundamental,
     gases,
+    ising,
     kinetics,
     multiplicity,
     partition,
@@ -723,3 +724,51 @@ def test_the_coexisting_phases_share_pressure_and_chemical_potential():
         gap = (phases.vdw_chemical_potential(v_l, t, CO2_A_14, CO2_B_14)
                - phases.vdw_chemical_potential(v_g, t, CO2_A_14, CO2_B_14))
         assert abs(gap) < 1e-12 * K_B * t
+
+
+# ---------------------------------------------------------------------------
+# Module 15: the Ising model
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(("rule", "field"), [("metropolis", 0.0), ("glauber", 0.0),
+                                              ("metropolis", 0.37)])
+def test_incremental_totals_never_drift_from_a_recompute(rule, field):
+    """Every sweep updates E and M by the flips it accepted; 1000 sweeps later they must
+    still equal a from-scratch sum. At h = 0 every quantity is an integer, so equality is
+    exact; in a field the energy carries h, and rounding is the only allowed difference."""
+    rng = np.random.default_rng(15)
+    state = ising.random_state(16, rng, field=field)
+    _, _, state = ising.simulate(state, 2.3, 1000, rng, burn_in=0, rule=rule)
+    assert state.magnetization == int(state.lattice.sum())
+    recomputed = ising.lattice_energy(state.lattice, field)
+    if field == 0.0:
+        assert state.energy == recomputed
+    else:
+        assert relative_error(state.energy, recomputed) < 1e-12
+
+
+def test_flipping_every_spin_leaves_the_zero_field_energy_unchanged():
+    """The up-down symmetry of the h = 0 model, checked on random configurations."""
+    rng = np.random.default_rng(1)
+    for dimension in (1, 2):
+        lattice = ising.random_state(12, rng, dimension=dimension).lattice
+        assert ising.lattice_energy(lattice) == ising.lattice_energy(-lattice)
+        if lattice.sum():
+            assert ising.lattice_energy(lattice, 0.5) != ising.lattice_energy(-lattice, 0.5)
+
+
+def test_changing_the_field_changes_only_the_field_term():
+    state = ising.random_state(16, np.random.default_rng(2), field=0.2)
+    moved = ising.with_field(state, -0.7)
+    assert moved.magnetization == state.magnetization
+    assert relative_error(moved.energy, ising.lattice_energy(moved.lattice, -0.7)) < 1e-12
+
+
+def test_one_sweep_offers_every_site_exactly_one_flip():
+    """At effectively infinite temperature every proposal is accepted, so one sweep flips
+    every spin exactly once: the checkerboard visits each site once, never twice or zero
+    times."""
+    state = ising.random_state(8, np.random.default_rng(3))
+    after = ising.sweep(state, 1e300, np.random.default_rng(4))
+    assert np.array_equal(after.lattice, -state.lattice)

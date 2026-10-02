@@ -1,0 +1,188 @@
+[
+  {
+    "question": "The Ising energy is E = -J sum_<ij> s_i s_j - h sum_i s_i with J > 0. At h = 0, which statement about its symmetry and the order parameter m = (1/N) sum_i s_i is correct?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Flipping every spin leaves E unchanged and reverses m, so every canonical average of m vanishes at h = 0 for any finite N; an ordered state must pick one sign the equations do not prefer.",
+        "correct": true,
+        "feedback": "Right. Each bond energy depends only on the product s_i s_j, so the all-flipped twin of any configuration has the same Boltzmann weight and the opposite m. The average over the pair is zero. Order appears only as spontaneous symmetry breaking: in the limit N -> infinity an infinitesimal field selects one branch."
+      },
+      {
+        "answer": "J > 0 favours spins pointing up, so the h = 0 ground state is all up and m = +1.",
+        "correct": false,
+        "feedback": "J > 0 favours neighbours that *agree*, whichever way they point. All up and all down have exactly the same energy, -2NJ on the square lattice. Only a field h breaks the tie, and at h = 0 there is none."
+      },
+      {
+        "answer": "m measures the energy per spin, so it is zero whenever E is zero.",
+        "correct": false,
+        "feedback": "m counts spins, not bonds. A checkerboard of alternating spins has m = 0 and the highest possible energy, +2NJ; an all-up lattice has m = 1 and the lowest. The order parameter and the energy are different functions of the configuration."
+      },
+      {
+        "answer": "The symmetry holds only above T_c; below T_c the energy itself prefers one sign.",
+        "correct": false,
+        "feedback": "The energy function does not depend on the temperature at all, and its up-down symmetry holds at every T. What changes below T_c is not the equations but the state the system settles into."
+      }
+    ]
+  },
+  {
+    "question": "A Metropolis simulation proposes a spin flip that would raise the energy by DeltaE = 4J, at temperature k_B T = 2J. With what probability is the flip accepted?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          0.133,
+          0.137
+        ],
+        "correct": true,
+        "feedback": "A = min(1, e^(-DeltaE/(k_B T))) = e^(-4J/2J) = e^(-2) = 0.135. A move that lowers the energy would be accepted with probability 1. If you answered 0.0183, you used e^(-4); if 0.5, you halved the energy rather than exponentiating it."
+      }
+    ]
+  },
+  {
+    "question": "A simulation reports that a 64 x 64 lattice quenched below T_c took about 2000 Metropolis sweeps to order. What does one sweep correspond to physically?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Nothing fixed. A sweep is one flip attempt per spin, a unit of computation; another rule with the same stationary distribution (Glauber) relaxes at a different speed to the same equilibrium.",
+        "correct": true,
+        "feedback": "Right. Detailed balance fixes where the chain goes, not how fast. The laboratory runs Metropolis and Glauber side by side: the equilibrium energies agree within error, and the relaxation curves do not. The order of the domains forming is suggestive, but the clock is the algorithm's."
+      },
+      {
+        "answer": "About one picosecond, the time a real spin takes to flip; multiply by 2000 to get the real ordering time.",
+        "correct": false,
+        "feedback": "This is the misconception that Monte Carlo simulates the real magnet's motion. No physical constant converts sweeps into seconds: the update rule was chosen to sample the Boltzmann distribution, and a different valid rule gives a different number of sweeps for the same physics."
+      },
+      {
+        "answer": "One period of the lattice vibrations that carry heat to the spins.",
+        "correct": false,
+        "feedback": "The model ignores lattice vibrations entirely; the bath is implicit. Nothing in the chain knows about phonons, so nothing in it can be timed by them."
+      },
+      {
+        "answer": "The time for the field to propagate across the lattice at the speed of light.",
+        "correct": false,
+        "feedback": "Nothing propagates in the model. Each flip depends only on the current state of its neighbours, and the order in which sites are visited is a free choice of the algorithm."
+      }
+    ]
+  },
+  {
+    "question": "Why does the one-dimensional Ising chain have no ordered phase at any T > 0, while the square lattice orders below 2.269 J/k_B?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "In 1-D a domain wall costs a fixed energy 2J but can sit at any of N places, so its free energy 2J - k_B T ln N turns negative for large N at any T > 0; in 2-D a wall across the lattice costs energy proportional to its length, which can beat its entropy at low T.",
+        "correct": true,
+        "feedback": "Right. Entropy grows with the system and the 1-D wall's cost does not, so walls always win and destroy long-range order. In 2-D, energy and entropy both scale with the wall's length, and the energy wins below a temperature of order J/k_B."
+      },
+      {
+        "answer": "The coupling J is weaker in one dimension.",
+        "correct": false,
+        "feedback": "J is the same bond energy in both. The difference is geometric: in 1-D one broken bond splits the system in two, while in 2-D splitting it takes a whole line of broken bonds."
+      },
+      {
+        "answer": "The chain does order, but at a temperature too low to simulate.",
+        "correct": false,
+        "feedback": "The exact solution has m = 0 at every T > 0 in zero field: E/(NJ) = -tanh(J/(k_B T)) is smooth all the way down. Mean field predicts a transition at k_B T = 2J for the chain, and that prediction is simply wrong."
+      },
+      {
+        "answer": "A chain has fewer spins, so fluctuations are larger.",
+        "correct": false,
+        "feedback": "A chain can have as many spins as you like; the argument is about N -> infinity. What matters is how the cost of breaking the order scales with the system, not how many spins there are."
+      }
+    ]
+  },
+  {
+    "question": "Mean-field theory gives k_B T_c = qJ = 4J for the square lattice; Onsager's exact result is 2J/ln(1 + sqrt(2)) = 2.269J. By what percentage does mean field overestimate T_c?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          75.8,
+          76.8
+        ],
+        "correct": true,
+        "feedback": "(4 - 2.269)/2.269 = 0.763, a 76% overestimate. Mean field replaces each neighbour by its average and so discards the correlations that, near T_c, decide everything. For the chain (q = 2) it is worse than inaccurate: it predicts a transition at 2J/k_B where there is none. If you answered 43.3, you divided by 4 instead of by the exact value."
+      }
+    ]
+  },
+  {
+    "question": "A 32 x 32 lattice above T_c, at k_B T = 2.5 J, gives a magnetization trace with variance Var(m) = 0.0049. Using chi = N Var(m)/(k_B T), in units where J = 1, what is the susceptibility per spin?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          1.9799999999999998,
+          2.0399999999999996
+        ],
+        "correct": true,
+        "feedback": "N = 32^2 = 1024, so chi = 1024 x 0.0049 / 2.5 = 2.01. This is module 12's fluctuation identity: the response to a field is the size of the spontaneous fluctuations without one. If you answered 0.0628, you used N = 32 instead of 32^2."
+      }
+    ]
+  },
+  {
+    "question": "A Metropolis simulation of a 32 x 32 lattice is run at k_B T = 1.5 J, 2.27 J and 3.5 J. At which temperature does the magnetization trace take the longest to decorrelate?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "At 2.27 J, near T_c -- the autocorrelation time peaks there, and grows with L (critical slowing down).",
+        "correct": true,
+        "feedback": "Right. At T_c the lattice is a patchwork of correlated domains of every size up to L, and a local rule rearranges a domain of size xi in a time that grows like xi^z with z near 2. The laboratory measures tau of |m| at about 1 sweep deep in either phase and tens of sweeps at T_c."
+      },
+      {
+        "answer": "At 2.27 J it decorrelates fastest, since the system is between phases and neither holds it back.",
+        "correct": false,
+        "feedback": "This is the misconception the slowing-down measurement falsifies. Being between phases means domains of both signs at every scale, and large correlated domains are the slowest thing a local update can change. tau peaks at T_c and keeps growing with L."
+      },
+      {
+        "answer": "At 1.5 J, because the low temperature makes flips rare.",
+        "correct": false,
+        "feedback": "Flips are rare deep in the ordered phase, but |m| has almost nothing to do: it sits near 0.99 with tiny independent fluctuations, so its trace decorrelates within a couple of sweeps."
+      },
+      {
+        "answer": "At 3.5 J, because high temperature means large fluctuations.",
+        "correct": false,
+        "feedback": "Large fluctuations are not slow ones. Far above T_c spins are correlated over only a few sites, and a sweep or two scrambles them completely."
+      }
+    ]
+  },
+  {
+    "question": "A single large ferromagnetic sample is cooled in zero field to well below its Curie temperature. A magnetometer measures its magnetization. What does it read?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Close to +m_0 or -m_0, one or the other, held for as long as anyone watches -- the canonical average is zero, but the sample does not visit both branches.",
+        "correct": true,
+        "feedback": "Right. To reverse, the sample must pass through configurations with a wall across it, whose cost grows with its size, so the time between reversals grows exponentially with N. The laboratory shows it: an 8 x 8 lattice at 2.0 J flips back and forth; a 32 x 32 lattice never flips in a hundred thousand sweeps."
+      },
+      {
+        "answer": "Zero, because the up and down states are equally probable and cancel.",
+        "correct": false,
+        "feedback": "This is the misconception that the ensemble average is the reading of one sample. <m> = 0 is a statement about averaging over both branches; a single macroscopic sample sits in one of them for longer than the age of the universe."
+      },
+      {
+        "answer": "A value that drifts slowly between +m_0 and -m_0 as the sample equilibrates.",
+        "correct": false,
+        "feedback": "Reversals, when they happen at all, are abrupt crossings between the branches, not a slow drift. For a macroscopic sample they do not happen on any observable time."
+      },
+      {
+        "answer": "Exactly +1, since below T_c all spins align.",
+        "correct": false,
+        "feedback": "Below T_c the spontaneous magnetization is less than 1 at any T > 0: thermal fluctuations flip a fraction of the spins. At 2.0 J on the square lattice it is 0.911."
+      }
+    ]
+  },
+  {
+    "question": "A trace of 10000 samples of |m| has autocorrelation time tau = 25 samples. By what factor is the naive standard error sigma/sqrt(n) too small?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          6.970000000000001,
+          7.17
+        ],
+        "correct": true,
+        "feedback": "N_eff = n/(2 tau) = 10000/50 = 200, so the honest error is sigma/sqrt(200) and the naive sigma/sqrt(10000) is too small by sqrt(10000/200) = sqrt(50) = 7.07. If you answered 5, you used sqrt(tau) and forgot the factor 2; if 50, you forgot the square root."
+      }
+    ]
+  }
+]
