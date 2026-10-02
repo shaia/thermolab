@@ -24,6 +24,7 @@ from thermolab import (
     forms,
     fundamental,
     gases,
+    ising,
     kinetics,
     multiplicity,
     partition,
@@ -703,3 +704,42 @@ def test_phases_functions_return_plain_si_floats_and_shaped_arrays():
     assert np.shape(phases.latent_heat(grid, CO2_A_14, CO2_B_14)) == (3,)
     assert all(np.shape(x) == (3,) for x in phases.coexistence_curve(grid, CO2_A_14, CO2_B_14))
     assert isinstance(phases.phase_rule(1, 2), int)
+
+
+# ---------------------------------------------------------------------------
+# Module 15: the Ising model
+# ---------------------------------------------------------------------------
+# `ising` is the course's one licensed exception to SI: energies in units of J, temperature
+# as k_B T / J, field as h / J (plans/15-ising.md section 7). Critical behaviour is where the
+# material constants scale out, so the module computes in those units and k_B returns only
+# when a number is quoted for a material. The dimensional content of the convention is that
+# every quantity the module computes is a pure number, and that restoring J and k_B turns
+# the reduced critical temperature into a temperature.
+
+
+def test_an_aligned_square_lattice_has_two_bonds_per_spin():
+    """E = -J * (2N bonds) for all spins up: the reduced-units anchor, an exact integer."""
+    for size in (4, 8, 16):
+        state = ising.aligned_state(size)
+        assert state.energy == -2 * size**2
+        assert state.e == -2.0
+        assert state.m == 1.0
+    chain = ising.aligned_state(8, dimension=1)
+    assert chain.energy == -8  # a ring has one bond per spin
+
+
+def test_restoring_j_and_k_b_turns_the_reduced_t_c_into_a_temperature():
+    coupling = Quantity(2.0e-21, "J")  # a typical exchange energy, about 12 meV
+    t_c = ising.onsager_tc() * coupling / K_B_Q
+    assert t_c.check("[temperature]")
+    assert 300.0 < t_c.to("K").magnitude < 340.0
+
+
+def test_the_fluctuation_identities_are_pure_numbers_in_reduced_units():
+    """c = N Var(e) / T^2 is dimensionless once energies are in J and T in J / k_B; with the
+    units restored the same identity, C = Var(E) / (k_B T^2), is an energy per temperature."""
+    reduced_variance = Quantity(0.01, "J**2") / Quantity(1.0, "J**2")
+    reduced_t = Quantity(2.0, "J") / Quantity(1.0, "J")
+    assert (100 * reduced_variance / reduced_t**2).check("[]")
+    heat_capacity = Quantity(0.01, "J**2") / (K_B_Q * Quantity(300.0, "K") ** 2)
+    assert heat_capacity.check("[energy] / [temperature]")

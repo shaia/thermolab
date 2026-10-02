@@ -19,6 +19,7 @@ from thermolab import (
     forms,
     fundamental,
     gases,
+    ising,
     kinetics,
     multiplicity,
     partition,
@@ -2149,3 +2150,141 @@ def test_the_phase_rule_counts_freedoms():
     assert phases.phase_rule(2, 2) == 2
     with pytest.raises(ValueError):
         phases.phase_rule(1, 4)
+
+
+# ---------------------------------------------------------------------------
+# Module 15: the Ising model
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("rule", ["metropolis", "glauber"])
+def test_both_acceptance_rules_satisfy_detailed_balance(rule):
+    """A(dE) / A(-dE) = exp(-dE / T): the condition that makes Boltzmann stationary."""
+    delta = np.array([0.0, 0.5, 2.0, 4.0, 8.0, 8.6])
+    for t in (0.7, 2.269, 5.0):
+        ratio = ising.acceptance(delta, t, rule) / ising.acceptance(-delta, t, rule)
+        assert np.allclose(ratio, np.exp(-delta / t), rtol=1e-12, atol=0.0)
+
+
+def test_onsagers_critical_temperature_to_machine_precision():
+    assert relative_error(ising.onsager_tc(), 2.0 / np.log(1.0 + np.sqrt(2.0))) < 1e-15
+    assert abs(ising.onsager_tc() - 2.269185314213022) < 1e-14
+
+
+def test_the_exact_spontaneous_magnetization_vanishes_with_exponent_one_eighth():
+    t_c = ising.onsager_tc()
+    assert ising.onsager_magnetization(t_c * 1.01) == 0.0
+    gaps = np.array([1e-4, 1e-5])
+    m = ising.onsager_magnetization(t_c * (1.0 - gaps))
+    assert abs(np.log(m[0] / m[1]) / np.log(gaps[0] / gaps[1]) - 0.125) < 1e-3
+
+
+def test_the_one_dimensional_energy_reduces_to_minus_tanh():
+    t = np.array([0.5, 1.0, 3.0, 10.0])
+    e, m = ising.ising_1d_exact(t)
+    assert np.allclose(e, -np.tanh(1.0 / t), rtol=1e-13, atol=0.0)
+    assert np.all(m == 0.0)
+
+
+def test_the_one_dimensional_energy_is_minus_the_beta_derivative_of_ln_lambda():
+    """The closed-form e(T, h) against a finite difference of ln lambda in beta."""
+    h, beta, step = 0.4, 0.8, 1e-5
+
+    def log_lambda(b):
+        return b + np.log(np.cosh(b * h) + np.sqrt(np.sinh(b * h) ** 2 + np.exp(-4.0 * b)))
+
+    numeric = -(log_lambda(beta + step) - log_lambda(beta - step)) / (2.0 * step)
+    assert relative_error(ising.ising_1d_exact(1.0 / beta, h)[0], numeric) < 1e-9
+
+
+@pytest.mark.parametrize(("temperature", "field"), [(1.0, 0.0), (2.0, 0.0), (1.0, 0.3)])
+def test_the_simulated_chain_matches_the_transfer_matrix(temperature, field):
+    """Exact anchors for the Monte Carlo: a 1024-site ring is the infinite chain to far below
+    rounding at these temperatures (finite-size corrections go as tanh(1/T)^N). Glauber,
+    because Metropolis mixes slowly on the zero-field ring (see the `ising` docstring and
+    the convergence test that pins it)."""
+    e_exact, m_exact = ising.ising_1d_exact(temperature, field)
+
+    def run(rng):
+        state = ising.random_state(1024, rng, field=field, dimension=1)
+        return ising.simulate(state, temperature, 400, rng, burn_in=300, rule="glauber")
+
+    energies = seed_study(lambda rng: float(run(rng)[1].mean()), n_seeds=8)
+    assert energies.agrees_with(e_exact)
+    if field:
+        magnetizations = seed_study(lambda rng: float(run(rng)[0].mean()), n_seeds=8)
+        assert magnetizations.agrees_with(m_exact)
+
+
+def test_the_two_dimensional_lattice_matches_onsager_yang_below_t_c():
+    """Below T_c finite-size corrections to |m| decay exponentially in L, so L = 32 must
+    already reproduce the infinite-lattice spontaneous magnetization."""
+    temperature = 1.9
+    study = seed_study(lambda rng: float(np.abs(ising.simulate(
+        ising.aligned_state(32), temperature, 400, rng, burn_in=100)[0]).mean()), n_seeds=8)
+    assert study.agrees_with(ising.onsager_magnetization(temperature))
+
+
+def test_the_high_temperature_response_follows_the_series_not_the_free_spin():
+    """Far above T_c, chi T = 1 + 4v + 12v^2 + 36v^3 + 100v^4 + ..., v = tanh(J / (k_B T)):
+    the square-lattice high-temperature series. The free-spin (paramagnet) value 1 is off by
+    23% at T = 20 J -- the neighbours still matter -- and the simulation must see it."""
+    temperature, field, size = 20.0, 0.2, 64
+    v = np.tanh(1.0 / temperature)
+    series = 1 + 4 * v + 12 * v**2 + 36 * v**3 + 100 * v**4
+    study = seed_study(lambda rng: float(ising.simulate(
+        ising.random_state(size, rng, field=field), temperature, 500, rng,
+        burn_in=50)[0].mean()), n_seeds=8)
+    assert study.agrees_with(series * field / temperature)
+    assert not study.agrees_with(np.tanh(field / temperature))
+
+
+def test_mean_field_orders_below_qj_with_exponent_one_half():
+    assert ising.mean_field_tc() == 4.0
+    assert ising.mean_field_magnetization(4.0001) == 0.0
+    assert ising.mean_field_magnetization(3.0) > 0.5
+    gaps = np.array([1e-4, 1e-6])
+    m = ising.mean_field_magnetization(4.0 * (1.0 - gaps))
+    assert abs(np.log(m[0] / m[1]) / np.log(gaps[0] / gaps[1]) - 0.5) < 1e-3
+    # m ~ sqrt(3 (1 - T / T_c)) just below the mean-field transition
+    assert relative_error(m[1], np.sqrt(3e-6)) < 1e-4
+
+
+def test_mean_field_invents_a_transition_the_chain_does_not_have():
+    """q = 2: mean field orders below k_B T = 2J; the exact chain has m = 0 at every T > 0."""
+    assert ising.mean_field_magnetization(1.0, coordination=2) > 0.9
+    assert ising.ising_1d_exact(1.0)[1] == 0.0
+
+
+def test_mean_field_in_a_field_is_odd_and_solves_its_equation():
+    for t, h in ((3.0, 0.2), (5.0, 0.5), (1.0, 0.01)):
+        m = ising.mean_field_magnetization(t, h)
+        assert abs(m - np.tanh((4.0 * m + h) / t)) < 1e-14
+        assert ising.mean_field_magnetization(t, -h) == -m
+
+
+def test_the_integrated_autocorrelation_time_of_an_ar1_process():
+    """x_t = phi x_(t-1) + noise has rho(t) = phi^t and tau = (1 + phi) / (2 (1 - phi))."""
+    rng = np.random.default_rng(7)
+    phi = 0.9
+    noise = rng.normal(size=200_000)
+    x = np.empty_like(noise)
+    x[0] = noise[0]
+    for i in range(1, x.size):
+        x[i] = phi * x[i - 1] + noise[i]
+    assert relative_error(ising.autocorrelation_time(x), (1 + phi) / (2 * (1 - phi))) < 0.1
+    assert abs(ising.autocorrelation_time(rng.normal(size=50_000)) - 0.5) < 0.05
+
+
+def test_a_loop_ladder_is_closed_and_a_square_loop_has_its_area():
+    fields = ising.hysteresis_fields(1.0, 11)
+    assert fields[0] == fields[-1] == 1.0 and fields.min() == -1.0
+    square_h = np.array([1.0, -1.0, -1.0, 1.0])
+    square_m = np.array([1.0, 1.0, -1.0, -1.0])
+    assert ising.loop_area(square_h, square_m) == 4.0
+
+
+def test_branch_flips_count_full_traverses_only():
+    trace = np.array([0.9, 0.2, -0.3, 0.4, -0.8, -0.9, 0.1, 0.7, 0.8])
+    assert ising.branch_flips(trace) == 2
+    assert ising.branch_flips(np.array([0.3, -0.3, 0.4, -0.2])) == 0

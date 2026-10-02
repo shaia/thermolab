@@ -21,6 +21,7 @@ from thermolab import (
     forms,
     fundamental,
     gases,
+    ising,
     kinetics,
     partition,
     paths,
@@ -30,7 +31,7 @@ from thermolab import (
     sampling,
 )
 from thermolab.constants import K_B
-from thermolab.validation import convergence_study, relative_error
+from thermolab.validation import convergence_study, relative_error, seed_study
 
 pytestmark = pytest.mark.convergence
 
@@ -674,3 +675,70 @@ def test_the_construction_converges_to_rounding_across_its_whole_domain():
     residual = phases._equal_area_residual(p_sat / p_c, t_r)
     assert np.all(np.abs(residual) < 1e-13)
     assert np.all(np.diff(p_sat) > 0) and np.all(np.diff(v_l) > 0) and np.all(np.diff(v_g) < 0)
+
+
+# ---------------------------------------------------------------------------
+# Module 15: the Ising model
+# ---------------------------------------------------------------------------
+
+
+def test_burn_in_removes_the_memory_of_a_cold_start():
+    """Start a 1-D ring all up (e = -1) at T = 1, where the exact answer is -tanh(1).
+
+    Averaging from sweep 0 keeps the start's bias; discarding a burn-in removes it, and the
+    bias of a short window shrinks as the burn-in grows."""
+    temperature = 1.0
+    exact = ising.ising_1d_exact(temperature)[0]
+
+    def window_mean(burn_in):
+        def measure(rng):
+            state = ising.aligned_state(8192, dimension=1)
+            _, e, _ = ising.simulate(state, temperature, 20, rng, burn_in=burn_in,
+                                     rule="glauber")
+            return float(e.mean())
+        return seed_study(measure, n_seeds=8).mean
+
+    study = convergence_study(window_mean, [0, 2, 4, 8, 16, 64], exact)
+    assert study.errors[0] > 10 * study.errors[-1]
+    assert np.all(np.diff(study.errors[:4]) < 0)
+
+
+def test_how_much_burn_in_is_enough_depends_on_the_update_rule():
+    """Same ring, same start, same 100 sweeps of burn-in: Glauber has forgotten the cold
+    start and Metropolis has not, because Metropolis pushes zero-cost domain walls
+    ballistically under the checkerboard. Both converge to the same answer eventually --
+    burn-in is a property of the algorithm, not of the physics."""
+    temperature = 1.0
+    exact = ising.ising_1d_exact(temperature)[0]
+
+    def energy(rule):
+        def measure(rng):
+            state = ising.aligned_state(4096, dimension=1)
+            _, e, _ = ising.simulate(state, temperature, 200, rng, burn_in=100, rule=rule)
+            return float(e.mean())
+        return seed_study(measure, n_seeds=16)
+
+    glauber, metropolis = energy("glauber"), energy("metropolis")
+    assert glauber.agrees_with(exact)
+    assert metropolis.mean < exact - 3 * metropolis.standard_error
+
+
+def test_thinning_leaves_the_averages_unchanged_within_their_error():
+    temperature = 2.6
+    rng = np.random.default_rng(5)
+    full_m, full_e, _ = ising.simulate(ising.random_state(32, rng), temperature, 4000, rng,
+                                       burn_in=300)
+    for full in (np.abs(full_m), full_e):
+        mean, error, tau = ising.mean_with_error(full)
+        thin_mean, thin_error, thin_tau = ising.mean_with_error(full[9::10])
+        assert abs(mean - thin_mean) < 3 * max(error, thin_error)
+        assert thin_tau < tau  # measured in thinned samples, so it shrinks
+
+
+def test_the_error_bar_shrinks_as_the_run_lengthens():
+    """At fixed tau the standard error falls as (run length)^(-1/2)."""
+    rng = np.random.default_rng(6)
+    m, _, _ = ising.simulate(ising.random_state(16, rng), 3.0, 12_000, rng, burn_in=200)
+    lengths = np.array([750, 3000, 12_000])
+    errors = [ising.mean_with_error(np.abs(m[:n]))[1] for n in lengths]
+    assert abs(np.polyfit(np.log(lengths), np.log(errors), 1)[0] + 0.5) < 0.15

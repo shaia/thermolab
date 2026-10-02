@@ -17,6 +17,7 @@ from thermolab import (
     equilibrium,
     fundamental,
     gases,
+    ising,
     kinetics,
     multiplicity,
     partition,
@@ -651,3 +652,53 @@ def test_the_reduced_coexistence_curve_is_independent_of_a_and_b():
         if reference is None:
             reference = reduced
         assert np.all(np.abs(reduced / reference - 1.0) < 1e-10)
+
+
+# ---------------------------------------------------------------------------
+# Module 15: the Ising model
+# ---------------------------------------------------------------------------
+
+
+def test_disordered_magnetization_falls_as_n_to_the_minus_half():
+    """Above T_c spins are correlated over a finite length, so |m| is a sum of effectively
+    independent blocks: <|m|> ~ N^(-1/2), the module-03 law, at T = 4 J."""
+    sizes = np.array([8, 16, 32])
+    means = []
+    for size in sizes:
+        rng = np.random.default_rng(int(size))
+        m, _, _ = ising.simulate(ising.random_state(int(size), rng), 4.0, 2000, rng,
+                                 burn_in=100)
+        means.append(np.abs(m).mean())
+    assert abs(scaling_exponent(sizes**2, means) + 0.5) < 0.05
+
+
+def test_branch_crossings_die_out_as_the_lattice_grows():
+    """Below T_c a small lattice hops between +m and -m; a larger one at the same T stays
+    put for the whole run. The ensemble average is zero; the sample is not."""
+    temperature = 2.0
+    flips = []
+    for size in (8, 16):
+        rng = np.random.default_rng(15)
+        m, _, _ = ising.simulate(ising.aligned_state(size), temperature, 10_000, rng,
+                                 burn_in=0)
+        flips.append(ising.branch_flips(m))
+    assert flips[0] >= 3
+    assert flips[1] == 0
+
+
+@pytest.mark.slow
+def test_the_susceptibility_peak_grows_and_drifts_toward_onsager():
+    """chi' peaks higher and closer to T_c as L grows: 8, 16, 32. The growth exponent is
+    gamma/nu = 7/4 in the limit; at these sizes we demand only that it is clearly positive,
+    and that the peak approaches T_c from above."""
+    temperatures = np.linspace(2.2, 2.9, 15)
+    heights, locations = [], []
+    for size in (8, 16, 32):
+        rng = np.random.default_rng(size)
+        scan = ising.temperature_scan(size, temperatures[::-1], 4000, rng, burn_in=500)[::-1]
+        chi = np.array([r.susceptibility for r in scan])
+        heights.append(chi.max())
+        locations.append(temperatures[chi.argmax()])
+    assert heights[0] < heights[1] < heights[2]
+    assert scaling_exponent([8, 16, 32], heights) > 1.0
+    assert locations[0] > locations[2] >= ising.onsager_tc() - 0.05
