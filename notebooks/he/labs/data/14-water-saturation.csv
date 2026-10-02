@@ -1,0 +1,48 @@
+# NOTE: byte-identical copies at notebooks/{en,he}/labs/data/14-water-saturation.csv --
+# JupyterLite only bundles the notebooks/ tree (jupyter_lite_config.json: "contents":
+# ["notebooks"]), so each language's laboratory notebook needs its own co-located copy to
+# run in the browser. Keep all three in sync -- scripts/check_parity.py enforces it.
+#
+# Saturation (vapour) pressure of water against temperature, 275 K to 425 K in steps of 5 K.
+#
+# Reference values, not a measurement made for this course: each row is the IAPWS-95
+# auxiliary saturation-pressure equation (Wagner & Pruss, J. Phys. Chem. Ref. Data 31, 387
+# (2002), eq. 2.5; T_c = 647.096 K, P_c = 22.064 MPa, six coefficients) evaluated at the
+# stated temperature and rounded to six significant figures. That equation reproduces the
+# measured steam tables to within 0.01%, and it is what the NIST Chemistry WebBook and the
+# printed IAPWS tables themselves are computed from; its fixed points are the triple point
+# (611.657 Pa at 273.16 K) and the critical point. The laboratory treats these rows as the
+# published steam-table data they stand in for and fits the Clausius-Clapeyron form to them.
+#
+# columns: temperature_K, saturation_pressure_Pa
+275.00,698.436
+280.00,991.759
+285.00,1388.93
+290.00,1919.88
+295.00,2621.11
+300.00,3536.72
+305.00,4719.33
+310.00,6231.2
+315.00,8145.31
+320.00,10546.4
+325.00,13532.1
+330.00,17214
+335.00,21718.7
+340.00,27189
+345.00,33784.6
+350.00,41683.1
+355.00,51081.1
+360.00,62194.7
+365.00,75260.3
+370.00,90535.5
+375.00,108299
+380.00,128852
+385.00,152518
+390.00,179642
+395.00,210594
+400.00,245765
+405.00,285571
+410.00,330449
+415.00,380861
+420.00,437291
+425.00,500245

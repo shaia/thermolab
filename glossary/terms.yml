@@ -1037,3 +1037,61 @@ terms:
   - key: clausius-clapeyron-equation
     en: Clausius–Clapeyron equation
     he: משוואת קלאוזיוס–קלפרון
+  - key: phase-diagram
+    en: phase diagram
+    he: דיאגרמת פאזות
+    he_reject: [דיאגרמת פזות]
+  - key: latent-heat
+    en: latent heat
+    he: חום כמוס
+    he_reject: [חום סמוי]
+  - key: maxwell-construction
+    en: Maxwell construction
+    he: בניית מקסוול
+  - key: lever-rule
+    en: lever rule
+    he: כלל המנוף
+  - key: binodal
+    en: binodal
+    he: בינודל
+  - key: spinodal
+    en: spinodal
+    he: ספינודל
+  - key: metastable
+    en: metastable
+    he: מטא-יציב
+    he_reject: [מטה-יציב, מטה יציב]
+  - key: superheating
+    en: superheating
+    he: חימום-יתר
+  - key: supercooling
+    en: supercooling
+    he: קירור-יתר
+  - key: nucleation
+    en: nucleation
+    he: גרעון
+    he_reject: [נוקלאציה]
+  - key: boiling
+    en: boiling
+    he: רתיחה
+  - key: boiling-point
+    en: boiling point
+    he: נקודת רתיחה
+  - key: sublimation
+    en: sublimation
+    he: המראה
+  - key: melting
+    en: melting
+    he: התכה
+  - key: evaporation
+    en: evaporation
+    he: אידוי
+  - key: pressure-cooker
+    en: pressure cooker
+    he: סיר לחץ
+  - key: two-phase-region
+    en: two-phase region
+    he: אזור דו-פאזי
+  - key: steam-table
+    en: steam table
+    he: טבלת קיטור

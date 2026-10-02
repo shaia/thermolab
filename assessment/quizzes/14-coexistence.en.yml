@@ -1,0 +1,269 @@
+module: 14-coexistence
+questions:
+  - id: Q-14-1
+    type: multiple-choice
+    objectives: [OBJ-14-1]
+    prompt: >-
+      Below its critical temperature the van der Waals isotherm loops: between two points it
+      rises as the volume grows. Which part of the isotherm cannot describe any equilibrium
+      state, and why?
+    choices:
+      - text: The segment between the loop's minimum and its maximum, where (dP/dv)_T > 0 -- a positive slope means a negative compressibility, which module 09's stability criterion forbids.
+        correct: true
+        feedback: >-
+          Right. Between the two spinodal points, where the slope changes sign, a density
+          fluctuation lowers the pressure where the fluid is denser and grows without limit;
+          the entropy is convex there instead of concave. Outside them the slope is negative
+          again and the states are at least metastable.
+      - text: The whole sub-critical isotherm, because real fluids never loop.
+        correct: false
+        feedback: >-
+          Real fluids do not loop, but the outer parts of the model isotherm are perfectly good
+          liquid and gas states; the construction keeps them and replaces only the middle with
+          a flat line. Only the segment with a positive slope is forbidden outright.
+      - text: Only the part of the loop where the pressure is negative.
+        correct: false
+        feedback: >-
+          A negative pressure is a liquid under tension, which is a real state (sap in trees,
+          water in capillaries). What is forbidden is a positive slope, whatever the sign of the
+          pressure -- and below 27/32 of T_c some of the forbidden segment is at positive
+          pressure.
+      - text: The gas tail at large volume, because the vapour is not an ideal gas there.
+        correct: false
+        feedback: >-
+          Non-ideality is the model's whole point and is no crime. The gas branch has a negative
+          slope, satisfies the stability criterion, and is the state the fluid is actually in
+          at low pressure.
+
+  - id: Q-14-2
+    type: multiple-choice
+    objectives: [OBJ-14-2]
+    prompt: >-
+      A horizontal line through the loop can be drawn at any pressure between the loop's
+      minimum and its maximum. What fixes the one nature draws?
+    choices:
+      - text: Equal chemical potentials of the two phases -- which, with d mu = v dP at fixed T integrated along the isotherm, is the same statement as "the two lobes cut off by the line have equal areas".
+        correct: true
+        feedback: >-
+          Right. Two phases exchanging particles equilibrate at equal mu (module 13). Integrating
+          d mu = v dP along the model isotherm from the liquid state to the gas state and
+          demanding mu_gas = mu_liq gives, by parts, integral of P dv = P_sat (v_gas - v_liq):
+          equal areas, as a theorem.
+      - text: The line is drawn where the two areas look equal -- a graphical convention that gives sensible results.
+        correct: false
+        feedback: >-
+          This is the misconception the module is built to confront. Equal areas is not a
+          convention: it is what mu_gas = mu_liq becomes when d mu = v dP is integrated along
+          the isotherm. A line at any other height leaves the two phases with different chemical
+          potentials, and particles would flow from one to the other.
+      - text: The pressure at the loop's maximum, since above it there is no gas state.
+        correct: false
+        feedback: >-
+          At the loop's maximum the gas state coincides with the forbidden segment; the lower
+          lobe would have all the area and the upper none. The chemical potentials are not equal
+          there, so it is not an equilibrium.
+      - text: The average of the loop's minimum and maximum pressures.
+        correct: false
+        feedback: >-
+          Nothing physical singles out that average. The line is fixed by the areas, which
+          depend on the whole shape of the loop, not on its two extremes.
+
+  - id: Q-14-3
+    type: numeric
+    objectives: [OBJ-14-3]
+    prompt: >-
+      At some temperature a fluid's coexisting volumes are v_liq = 0.080 L/mol and
+      v_gas = 0.270 L/mol. A cylinder holds the fluid at an average volume of 0.150 L/mol.
+      What fraction of the molecules is vapour?
+    answer: 0.368
+    tolerance: 0.006
+    feedback: >-
+      Lever rule: x_gas = (v - v_liq)/(v_gas - v_liq) = (0.150 - 0.080)/(0.270 - 0.080) =
+      0.070/0.190 = 0.368. If you answered 0.632, you gave the liquid fraction; if 0.556, you
+      divided by v_gas instead of by the width of the flat segment.
+
+  - id: Q-14-4
+    type: multiple-choice
+    objectives: [OBJ-14-4]
+    misconception: boiling-fixed-temperature
+    prompt: >-
+      Water is brought to the boil in an open pan on a mountain 3000 m high, where the air
+      pressure is about 0.7 atm. At what temperature does it boil?
+    choices:
+      - text: Below 100 C -- at about 90 C -- because water boils where its saturation pressure P_sat(T) equals the pressure on it, and P_sat reaches 0.7 atm at about 363 K.
+        correct: true
+        feedback: >-
+          Right. Boiling is the point where P_sat(T) meets the ambient pressure. P_sat rises
+          with T (Clausius-Clapeyron), so a lower ambient pressure is reached at a lower
+          temperature: the laboratory's fit gives 363.5 K at 0.7 atm, and 71 C at the 0.33 atm
+          of Everest's summit.
+      - text: At exactly 100 C -- altitude is irrelevant, because the boiling point is a property of water.
+        correct: false
+        feedback: >-
+          This is the misconception that 100 C is written on the water molecule. It is the
+          temperature at which water's saturation pressure happens to equal one atmosphere;
+          at 0.7 atm the same curve is crossed at about 90 C, which is why tea tastes weak on
+          mountains and pressure cookers exist.
+      - text: Above 100 C, because the thinner air carries heat away more slowly.
+        correct: false
+        feedback: >-
+          How fast heat leaves the pan sets how fast the water boils, not the temperature at
+          which it does. The boiling temperature is fixed by P_sat(T) = ambient pressure, which
+          at 0.7 atm is below 100 C.
+      - text: It does not boil at all, because 0.7 atm is below the triple-point pressure.
+        correct: false
+        feedback: >-
+          The triple-point pressure of water is 611 Pa, about 0.006 atm; 0.7 atm is far above it.
+          Liquid water exists and boils at 0.7 atm, at about 90 C.
+
+  - id: Q-14-5
+    type: numeric
+    objectives: [OBJ-14-4, OBJ-14-5]
+    prompt: >-
+      Water's saturation pressure is 70.2 kPa at 363.15 K and 101.4 kPa at 373.15 K. Treating
+      the vapour as ideal and L as constant, estimate the latent heat of vaporization in kJ/mol
+      (R = 8.314 J/(mol K)).
+    answer: 41.5
+    tolerance: 0.6
+    feedback: >-
+      ln(P_2/P_1) = (L/R)(1/T_1 - 1/T_2), so L = R ln(101.4/70.2)/(1/363.15 - 1/373.15) =
+      8.314 x 0.3677/(7.378 x 10^(-5)) = 41.4 kJ/mol. The tabulated value at 100 C is 40.7; the
+      excess is the ideal-vapour approximation and the 10 K average. If you answered about
+      0.041, you forgot the factor 10^3 in kJ; if about 4.98, you left out R.
+
+  - id: Q-14-6
+    type: multiple-choice
+    objectives: [OBJ-14-5]
+    misconception: boiling-heat-raises-t
+    prompt: >-
+      A kettle is at a rolling boil at atmospheric pressure, with a thermometer in the water.
+      The burner is turned up to deliver twice the heat. What does the thermometer do over the
+      next minute?
+    choices:
+      - text: It stays at the boiling point; the water boils twice as fast, and the extra heat goes into the latent heat L = T (s_gas - s_liq) of the molecules leaving the liquid.
+        correct: true
+        feedback: >-
+          Right. At fixed pressure the two phases can only coexist at the one temperature where
+          P_sat(T) equals that pressure. Heat poured in is spent carrying molecules from liquid
+          to vapour at that temperature -- the latent heat -- and only the rate of boiling
+          changes. A thermometer logged while the burner is turned up shows a flat line.
+      - text: It climbs, just more slowly than it did before the water began to boil.
+        correct: false
+        feedback: >-
+          This is the misconception that added heat always raises the temperature. While liquid
+          and vapour coexist at fixed pressure the temperature is pinned at the boiling point;
+          the heat goes into the entropy difference between the phases, not into the
+          temperature. Only when the last of the liquid is gone can the temperature rise again.
+      - text: It climbs twice as fast as before.
+        correct: false
+        feedback: >-
+          Before boiling, doubling the heat doubles the warming rate. Once the water boils the
+          temperature stops rising altogether, at any burner setting -- the heat is absorbed as
+          latent heat at fixed T.
+      - text: It drops slightly, because faster evaporation cools the water.
+        correct: false
+        feedback: >-
+          Evaporation cools a liquid that is below its boiling point and losing molecules to
+          unsaturated air. A boiling liquid is at P_sat(T) = ambient pressure and sits exactly at
+          the boiling point, neither above nor below.
+
+  - id: Q-14-7
+    type: multiple-choice
+    objectives: [OBJ-14-6]
+    prompt: >-
+      How many intensive variables can be varied independently while ice, liquid water and
+      water vapour coexist in a sealed cell?
+    choices:
+      - text: None -- F = C - P + 2 = 1 - 3 + 2 = 0; the triple point is a single point in the P-T plane, at 273.16 K and 611.657 Pa.
+        correct: true
+        feedback: >-
+          Right. Three phases of one component impose two independent mu-equality conditions on
+          the two variables T and P, leaving none free. That is why the triple point of water
+          could serve as the definition of the kelvin: it is the same in every cell.
+      - text: One -- you can still slide along the melting curve while keeping all three phases.
+        correct: false
+        feedback: >-
+          Along the melting curve only ice and liquid coexist (F = 1). Adding the vapour as a
+          third phase imposes one more condition, mu_vapour = mu_liquid, which pins the point.
+          Miscounting the constraints as C(P - 1) = 1 instead of 2 gives this answer.
+      - text: Two -- temperature and pressure, as for any system.
+        correct: false
+        feedback: >-
+          F = 2 is the single-phase answer: an area of the phase diagram. Each additional
+          coexisting phase removes one freedom.
+      - text: Three -- one for each phase present.
+        correct: false
+        feedback: >-
+          Freedoms are removed by coexistence, not added. With C = 1 the maximum is F = 2, for a
+          single phase.
+
+  - id: Q-14-8
+    type: multiple-choice
+    objectives: [OBJ-14-7]
+    misconception: critical-point-runs-out
+    prompt: >-
+      A strong sealed container is half full of liquid carbon dioxide with its vapour above it,
+      and is slowly heated through the critical temperature, 304 K. What happens?
+    choices:
+      - text: The meniscus fades and disappears -- the liquid's density falls and the vapour's rises until at T_c they are equal and one fluid fills the container; nothing boils and nothing is used up.
+        correct: true
+        feedback: >-
+          Right. Along the coexistence curve v_liq and v_gas approach each other (as
+          sqrt(1 - T/T_c) in the model) and the latent heat falls to zero. At T_c the
+          distinction between the two phases ends; the curve in the P-T plane simply stops.
+          Cooling the container brings the meniscus back.
+      - text: The last of the liquid evaporates there, leaving only gas.
+        correct: false
+        feedback: >-
+          This is the misconception that the critical point is where the substance runs out of
+          liquid. Nothing is exhausted: a half-full container stays at the critical density
+          throughout, and the liquid does not boil away -- its density and the vapour's simply
+          become the same. The laboratory's path around the critical point turns gas into liquid
+          with no event at all along the way.
+      - text: The last of the vapour condenses, leaving only liquid.
+        correct: false
+        feedback: >-
+          Neither phase wins. Both densities move toward the critical density, from opposite
+          sides, and meet.
+      - text: The container bursts, because the saturation pressure becomes infinite at T_c.
+        correct: false
+        feedback: >-
+          P_sat(T_c) = P_c is finite -- 7.4 MPa for carbon dioxide -- and above T_c the pressure
+          simply follows the single-phase equation of state. The curve ends; it does not
+          diverge.
+
+  - id: Q-14-9
+    type: numeric
+    objectives: [OBJ-14-5]
+    prompt: >-
+      For the van der Waals fluid the latent heat is L = k_B T ln((v_gas - b)/(v_liq - b)). At
+      some temperature v_liq - b = 0.0383 L/mol and v_gas - b = 0.2244 L/mol. What is L in
+      units of k_B T per molecule?
+    answer: 1.77
+    tolerance: 0.03
+    feedback: >-
+      L/(k_B T) = ln(0.2244/0.0383) = ln(5.86) = 1.77. The two phases differ in entropy only
+      through their free volumes v - b. If you answered 0.77, you used log base 10; if 5.86,
+      you forgot the logarithm.
+
+  - id: Q-14-10
+    type: short-answer
+    objectives: [OBJ-14-2, OBJ-14-7]
+    prompt: >-
+      In four or five sentences: why does "the two lobes have equal areas" follow from equal
+      chemical potentials rather than being a drawing rule -- and if the flat line is the
+      equilibrium, how can a superheated liquid exist at all?
+    discussion: >-
+      Two phases that exchange particles are in equilibrium only at equal mu (module 13). At
+      fixed T, Gibbs-Duhem gives d mu = v dP, so integrating along the model isotherm from the
+      liquid state to the gas state, mu_gas - mu_liq = integral of v dP = P_sat (v_gas - v_liq)
+      - integral of P dv by parts. Setting it to zero is exactly the statement that the chord
+      cuts the loop into two lobes of equal area: the areas are a consequence, and the
+      laboratory checks that bisecting the area difference and bisecting mu_liq - mu_gas give
+      the same pressure. A superheated liquid sits on the liquid branch continued below P_sat,
+      between the binodal and the spinodal: its slope (dP/dv)_T is still negative, so it is
+      stable against small fluctuations -- the stability criterion is satisfied -- but its mu
+      is higher than the vapour's at the same T and P, so it is only metastable. Reaching the
+      vapour needs a bubble, which costs surface energy the model ignores, so the liquid can
+      persist until something nucleates one. A strong answer separates "the state exists" (the
+      model's claim) from "how long it lasts" (nucleation kinetics, outside the model).

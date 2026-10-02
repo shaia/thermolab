@@ -399,8 +399,8 @@ Below $T_c$, the bare van der Waals equation does not plateau the way real $\mat
 does — it develops the non-monotonic loop the isotherm animation shows, with a region where
 $(\partial P/\partial v)_T > 0$. That region cannot describe any stable equilibrium state, and
 this module deliberately does not explain what replaces it or how the flat, physically correct
-plateau is actually located. Module 14 resolves this with the Maxwell construction, reusing
-the exact isotherms `gases.py` computes here. For now: the loop is a
+plateau is actually located. [Module 14](../advanced/14-coexistence.md) resolves this with the
+Maxwell construction, reusing the exact isotherms `gases.py` computes here. For now: the loop is a
 real, checkable feature of the bare equation, and *why* it is unphysical, and what to do about
 it, are questions this module raises without answering.
 :::
@@ -415,8 +415,8 @@ it, are questions this module raises without answering.
 - **Forward to module 9.** $V$, $N$ and $U$ all doubling together under the doubling test is
   exactly the extensivity the fundamental relation's Euler relation depends on.
 - **Forward to module 14, named and dated.** The wiggle above is real, checkable, and
-  unexplained — module 14 names it, resolves it with the Maxwell construction, and reuses
-  these exact isotherms to do it.
+  unexplained here — [module 14](../advanced/14-coexistence.md) names it, resolves it with the
+  Maxwell construction, and reuses these exact isotherms to do it.
 - **Forward to module 17.** Even the "ideal" sheet fails eventually — in the cryogenic,
   quantum-degenerate regime, where $Z \to 1$ stops being the right limit.
 

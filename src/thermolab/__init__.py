@@ -17,6 +17,7 @@ Modules:
     gases                the ideal gas, the van der Waals correction, and the critical point
     kinetics             free particles in a box; the microscopic origin of pressure
     paths                quasistatic paths in the P-V plane; work as a path function
+    phases               liquid-gas coexistence of a van der Waals fluid; the Maxwell construction
     partition            partition functions; U, S, F and C from ln Z; the paramagnet and negative T
     potentials           H, F and G by Legendre transform; Maxwell relations; minimum principles
     processes            the named process families, heat capacities, and irreversible change
@@ -38,6 +39,7 @@ from . import (
     multiplicity,
     partition,
     paths,
+    phases,
     potentials,
     processes,
     sampling,
@@ -63,6 +65,7 @@ __all__ = [
     "multiplicity",
     "partition",
     "paths",
+    "phases",
     "potentials",
     "processes",
     "sampling",
