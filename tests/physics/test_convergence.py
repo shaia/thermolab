@@ -28,6 +28,7 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    radiation,
     sampling,
 )
 from thermolab.constants import K_B
@@ -742,3 +743,53 @@ def test_the_error_bar_shrinks_as_the_run_lengthens():
     lengths = np.array([750, 3000, 12_000])
     errors = [ising.mean_with_error(np.abs(m[:n]))[1] for n in lengths]
     assert abs(np.polyfit(np.log(lengths), np.log(errors), 1)[0] + 0.5) < 0.15
+
+
+# ---------------------------------------------------------------------------
+# Module 16: radiation and solids
+# ---------------------------------------------------------------------------
+
+N_A_16 = 6.02214076e23
+
+
+def test_the_stefan_boltzmann_quadrature_converges_at_fourth_order():
+    """Simpson's rule on the Planck integrand: error ~ h^4, so each doubling divides it by 16."""
+    exact = radiation.energy_density(300.0)
+    study = convergence_study(lambda n: radiation.integrate_u_nu(300.0, n),
+                              [64, 128, 256, 512, 1024], exact)
+    assert abs(study.observed_order - 4.0) < 0.1
+    assert study.errors[-1] < 2e-8
+
+
+def test_the_debye_quadrature_converges_geometrically():
+    """Gauss-Legendre on an analytic integrand: the error falls geometrically with the nodes."""
+    for t in (5.0, 50.0, 300.0):
+        reference = radiation.debye_heat_capacity(t, 1000.0, N_A_16, n_quad=256)
+        errors = [relative_error(radiation.debye_heat_capacity(t, 1000.0, N_A_16, n_quad=n),
+                                 reference) for n in (4, 8, 16)]
+        assert errors[0] > errors[1] > errors[2] or errors[2] < 1e-14
+        assert relative_error(radiation.debye_heat_capacity(t, 1000.0, N_A_16, n_quad=64),
+                              reference) < 1e-12
+    # The coldest case integrates the longest interval [0, 60] and converges slowest.
+    cold = [relative_error(radiation.debye_heat_capacity(5.0, 1000.0, N_A_16, n_quad=n),
+                           radiation.debye_heat_capacity(5.0, 1000.0, N_A_16, n_quad=256))
+            for n in (8, 16, 32)]
+    assert cold[1] < cold[0] / 100 and cold[2] < cold[1] / 1e6
+
+
+def test_counting_standing_waves_one_by_one_approaches_the_continuum_as_one_over_size():
+    """count / smooth - 1 ~ -c / R with R = 2 L nu / c: the surface correction, order one."""
+    def deficit(radius: int) -> float:
+        nu = radius * radiation.C_LIGHT / 2.0
+        return radiation.count_cavity_modes(1.0, nu) / radiation.mode_count_smooth(1.0, nu)
+
+    study = convergence_study(deficit, [20, 40, 80, 160, 320], 1.0)
+    assert abs(study.observed_order - 1.0) < 0.05
+    assert study.errors[-1] < 0.01
+
+
+def test_the_wavelength_integral_converges_spectrally_on_a_log_grid():
+    exact = radiation.energy_density(300.0)
+    errors = [relative_error(radiation.integrate_u_lambda(300.0, n), exact) for n in (64, 128, 256)]
+    assert errors[1] < errors[0] / 1e5
+    assert errors[2] < 1e-14

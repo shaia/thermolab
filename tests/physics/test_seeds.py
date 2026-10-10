@@ -28,6 +28,7 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    radiation,
     sampling,
 )
 from thermolab.constants import K_B
@@ -551,3 +552,30 @@ def test_metropolis_and_glauber_sample_the_same_equilibrium():
     metropolis, glauber = energy("metropolis"), energy("glauber")
     combined = np.hypot(metropolis.standard_error, glauber.standard_error)
     assert abs(metropolis.mean - glauber.mean) < 3 * combined
+
+
+# ---------------------------------------------------------------------------
+# Module 16: radiation and solids
+# ---------------------------------------------------------------------------
+#
+# Every physics function in `radiation` is deterministic. The one stochastic helper is the
+# synthetic data set, and the question a seed study can answer about it is the one the
+# laboratory relies on: does a fit recover the theta that was put in, and does the error bar
+# the fit reports describe the scatter it actually has?
+
+
+def test_a_debye_fit_to_noisy_synthetic_data_recovers_theta_across_seeds():
+    n_atoms, theta = 6.02214076e23, 225.0
+    temperatures = np.geomspace(3.0, 150.0, 40)
+    reported = []
+
+    def measure(rng: np.random.Generator) -> float:
+        data = radiation.synthetic_heat_capacity(temperatures, theta, n_atoms, rng, noise=0.02)
+        fit = radiation.fit_debye_temperature(temperatures, data, n_atoms)
+        reported.append(fit.sigma)
+        return fit.value
+
+    study = seed_study(measure, n_seeds=16, base_seed=16)
+    assert study.agrees_with(theta)
+    scatter = float(np.std(study.values, ddof=1))
+    assert 0.6 < np.mean(reported) / scatter < 1.6

@@ -179,3 +179,15 @@ misconceptions:
     statement: "A Monte Carlo simulation shows the magnet's real time evolution."
     assigned_module: 15-ising
     status: addressed
+  - id: blackbody-peak-absolute
+    statement: "The peak of the blackbody spectrum is a property of the radiation alone."
+    assigned_module: 16-radiation-solids
+    status: addressed
+  - id: hotter-rescaled-spectrum
+    statement: "Hotter bodies radiate more only because they are brighter versions of the same spectrum."
+    assigned_module: 16-radiation-solids
+    status: addressed
+  - id: cold-solid-motion-stops
+    statement: "A solid's atoms stop moving at low temperature, so its heat capacity falls to zero."
+    assigned_module: 16-radiation-solids
+    status: addressed

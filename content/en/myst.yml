@@ -55,6 +55,8 @@ project:
         - file: advanced/14-coexistence-problems.md
         - file: advanced/15-ising.md
         - file: advanced/15-ising-problems.md
+        - file: advanced/16-radiation-solids.md
+        - file: advanced/16-radiation-solids-problems.md
 site:
   template: book-theme
   options:

@@ -21,6 +21,7 @@ Modules:
     phases               liquid-gas coexistence of a van der Waals fluid; the Maxwell construction
     partition            partition functions; U, S, F and C from ln Z; the paramagnet and negative T
     potentials           H, F and G by Legendre transform; Maxwell relations; minimum principles
+    radiation            Planck's law, the photon gas, and the Einstein and Debye solids
     processes            the named process families, heat capacities, and irreversible change
     multiplicity         microstate counting, entropy, and why equilibrium wins
     validation           the reusable accuracy checks (seeds, convergence, scaling)
@@ -44,6 +45,7 @@ from . import (
     phases,
     potentials,
     processes,
+    radiation,
     sampling,
     units,
     validation,
@@ -71,6 +73,7 @@ __all__ = [
     "phases",
     "potentials",
     "processes",
+    "radiation",
     "sampling",
     "units",
     "validation",

@@ -24,6 +24,7 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    radiation,
     sampling,
 )
 from thermolab.constants import K_B
@@ -702,3 +703,59 @@ def test_the_susceptibility_peak_grows_and_drifts_toward_onsager():
     assert heights[0] < heights[1] < heights[2]
     assert scaling_exponent([8, 16, 32], heights) > 1.0
     assert locations[0] > locations[2] >= ising.onsager_tc() - 0.05
+
+
+# ---------------------------------------------------------------------------
+# Module 16: radiation and solids
+# ---------------------------------------------------------------------------
+
+N_A_16 = 6.02214076e23
+
+
+def test_the_integrated_energy_density_scales_as_t_to_the_fourth():
+    """The exponent from quadrature over a decade and a half of T, not from the closed form."""
+    temperatures = np.geomspace(100.0, 3000.0, 9)
+    energies = [radiation.integrate_u_nu(t) for t in temperatures]
+    assert abs(scaling_exponent(temperatures, energies) - 4.0) < 1e-9
+
+
+def test_the_photon_number_scales_as_t_cubed():
+    temperatures = np.geomspace(1.0, 1e4, 9)
+    assert abs(scaling_exponent(temperatures, radiation.photon_number_density(temperatures))
+               - 3.0) < 1e-12
+
+
+def test_doubling_t_multiplies_the_energy_by_16_and_does_not_rescale_the_spectrum():
+    """Falsifies `hotter-rescaled-spectrum`: no single factor maps the 300 K spectrum onto 600 K."""
+    cold, hot = 300.0, 600.0
+    factor = radiation.integrate_u_nu(hot) / radiation.integrate_u_nu(cold)
+    assert relative_error(factor, 16.0) < 1e-10
+    nu = np.linspace(1e12, 6e13, 200)
+    ratio = radiation.planck_u_nu(nu, hot) / radiation.planck_u_nu(nu, cold)
+    assert ratio.max() / ratio.min() > 50   # 2 at the red end, thousands in the blue
+    assert relative_error(radiation.wien_peak_nu(hot) / radiation.wien_peak_nu(cold), 2.0) < 1e-14
+
+
+def test_cold_debye_heat_capacity_scales_as_t_cubed():
+    theta = 225.0
+    temperatures = np.geomspace(0.2, theta / 50, 12)
+    exponent = scaling_exponent(temperatures,
+                                radiation.debye_heat_capacity(temperatures, theta, N_A_16))
+    assert abs(exponent - 3.0) < 1e-9
+
+
+def test_einstein_heat_capacity_falls_far_faster_than_t_cubed_in_the_same_window():
+    """The two models are distinguishable by a slope, as they are in the data."""
+    theta = 225.0
+    temperatures = np.geomspace(theta / 40, theta / 10, 12)
+    exponent = scaling_exponent(temperatures,
+                                radiation.einstein_heat_capacity(temperatures, theta, N_A_16))
+    assert exponent > 10.0
+
+
+def test_the_explicit_mode_count_grows_as_nu_cubed():
+    side = 1.0
+    nus = np.geomspace(100.0, 400.0, 6) * radiation.C_LIGHT / (2.0 * side)
+    counts = [radiation.count_cavity_modes(side, nu) for nu in nus]
+    # The surface deficit, ~2/R, tilts the slope slightly above 3 at these sizes.
+    assert abs(scaling_exponent(nus, counts) - 3.0) < 0.02

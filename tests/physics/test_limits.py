@@ -27,6 +27,7 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    radiation,
     sampling,
 )
 from thermolab.constants import K_B
@@ -2288,3 +2289,164 @@ def test_branch_flips_count_full_traverses_only():
     trace = np.array([0.9, 0.2, -0.3, 0.4, -0.8, -0.9, 0.1, 0.7, 0.8])
     assert ising.branch_flips(trace) == 2
     assert ising.branch_flips(np.array([0.3, -0.3, 0.4, -0.2])) == 0
+
+
+# ---------------------------------------------------------------------------
+# Module 16: radiation and solids
+# ---------------------------------------------------------------------------
+
+N_A_16 = 6.02214076e23
+
+
+@pytest.mark.parametrize("temperature", [30.0, 300.0, 3000.0])
+def test_mode_occupation_matches_a_brute_force_boltzmann_sum(temperature):
+    """The C4b pin: <n> = 1/(e^x - 1) equals module 12's explicit sum over levels n hbar omega.
+
+    Module 17 re-derives the same occupation as Bose-Einstein at mu = 0; this test is the end
+    of that loop that exists today.
+    """
+    quantum = 4e-21
+    levels = quantum * np.arange(0, 4000)
+    brute = partition.level_sums(levels, temperature).energy / quantum
+    assert relative_error(radiation.mode_occupation(quantum, temperature), brute) < 1e-12
+
+
+def test_a_cheap_quantum_holds_k_b_t_and_a_dear_one_almost_nothing():
+    t = 300.0
+    cheap = radiation.mean_mode_energy(1e9, t)            # h nu / k_B T ~ 1.6e-4
+    assert relative_error(cheap, K_B * t) < 1e-4
+    nu = 30 * K_B * t / radiation.PLANCK_H               # h nu = 30 k_B T
+    dear = radiation.mean_mode_energy(nu, t)
+    assert relative_error(dear, radiation.PLANCK_H * nu * np.exp(-30.0)) < 1e-12
+    assert radiation.mean_mode_energy(0.0, t) == K_B * t
+
+
+def test_planck_recovers_rayleigh_jeans_at_low_frequency():
+    """u_nu / u_RJ = x / (e^x - 1) -> 1 - x/2 for x = h nu / k_B T << 1."""
+    t = 1000.0
+    for x in (1e-6, 1e-4, 1e-2):
+        nu = x * K_B * t / radiation.PLANCK_H
+        ratio = radiation.planck_u_nu(nu, t) / radiation.rayleigh_jeans_u_nu(nu, t)
+        assert abs(ratio - (1.0 - x / 2.0)) < x**2
+
+
+def test_planck_falls_as_the_wien_exponential_at_high_frequency():
+    t = 1000.0
+    for x in (20.0, 40.0):
+        nu = x * K_B * t / radiation.PLANCK_H
+        wien = 8 * np.pi * radiation.PLANCK_H * nu**3 / radiation.C_LIGHT**3 * np.exp(-x)
+        # The exact relative deviation is e^-x / (1 - e^-x), plus a roundoff floor.
+        assert relative_error(radiation.planck_u_nu(nu, t), wien) < 2 * np.exp(-x) + 1e-13
+
+
+@pytest.mark.parametrize("temperature", [2.725, 300.0, 5772.0, 1e4])
+def test_the_quadrature_reproduces_a_t4_built_on_pi4_over_15(temperature):
+    numeric, closed = radiation.stefan_boltzmann_check(temperature)
+    assert relative_error(numeric, closed) < 1e-10
+
+
+def test_the_wien_roots_solve_their_equations_and_match_the_textbook_values():
+    for power, root in ((3, radiation.WIEN_X_NU), (5, radiation.WIEN_X_LAMBDA)):
+        assert abs(root - power * (1 - np.exp(-root))) < 1e-14
+    assert abs(radiation.WIEN_X_NU - 2.821439372) < 1e-9
+    assert abs(radiation.WIEN_X_LAMBDA - 4.965114232) < 1e-9
+
+
+@pytest.mark.parametrize("temperature", [300.0, 5772.0])
+def test_wien_peaks_match_a_brute_force_search(temperature):
+    nu_max = radiation.wien_peak_nu(temperature)
+    nu = np.linspace(0.5 * nu_max, 1.5 * nu_max, 200_001)
+    assert relative_error(nu[np.argmax(radiation.planck_u_nu(nu, temperature))], nu_max) < 1e-5
+    lam_max = radiation.wien_peak_lambda(temperature)
+    lam = np.linspace(0.5 * lam_max, 1.5 * lam_max, 200_001)
+    assert relative_error(lam[np.argmax(radiation.planck_u_lambda(lam, temperature))],
+                          lam_max) < 1e-5
+
+
+def test_the_two_peaks_are_different_photons_at_every_temperature():
+    """nu_max lambda_max / c = 2.821/4.965 = 0.568, independent of T -- never 1."""
+    for t in (3.0, 300.0, 5772.0, 3e4):
+        product = radiation.wien_peak_nu(t) * radiation.wien_peak_lambda(t) / radiation.C_LIGHT
+        assert relative_error(product, radiation.DUAL_PEAK_RATIO) < 1e-12
+    assert abs(radiation.DUAL_PEAK_RATIO - 0.5683) < 1e-4
+
+
+def test_the_photon_number_is_the_integral_of_the_occupation_over_the_modes():
+    t = 2.725
+    nu = np.linspace(1e6, 50 * K_B * t / radiation.PLANCK_H, 20_001)
+    per_volume = radiation.mode_density(nu) * radiation.mode_occupation(radiation.PLANCK_H * nu, t)
+    # The grid starts at 1 MHz, not 0: the integrand behaves as nu there, so the missing sliver
+    # is ~ (1e6 / 1e12)^2 of the total -- far below the tolerance.
+    assert relative_error(radiation.simpson(per_volume, nu),
+                          radiation.photon_number_density(t)) < 1e-9
+    assert relative_error(radiation.photon_gas(t).energy_per_photon / (K_B * t), 2.701178) < 1e-6
+
+
+def test_einstein_heat_capacity_approaches_dulong_petit_as_one_minus_x_squared_over_12():
+    for ratio in (10.0, 30.0, 100.0):
+        c = radiation.einstein_heat_capacity(ratio * 300.0, 300.0, N_A_16) / (3 * N_A_16 * K_B)
+        x = 1.0 / ratio
+        assert abs(c - (1.0 - x**2 / 12.0)) < x**4 / 200
+
+
+def test_debye_heat_capacity_approaches_dulong_petit_as_one_minus_x_squared_over_20():
+    for ratio in (10.0, 30.0, 100.0):
+        c = radiation.debye_heat_capacity(ratio * 300.0, 300.0, N_A_16) / (3 * N_A_16 * K_B)
+        x = 1.0 / ratio
+        assert abs(c - (1.0 - x**2 / 20.0)) < x**4 / 500
+
+
+def test_einstein_and_debye_agree_at_high_t_when_theta_e_squared_is_three_fifths_theta_d_squared():
+    """Both are 1 - <(hbar omega / k_B T)^2> / 12, and Debye's <omega^2> is (3/5) omega_D^2."""
+    theta_d = 400.0
+    theta_e = np.sqrt(0.6) * theta_d
+    for t in (2000.0, 4000.0):
+        einstein = radiation.einstein_heat_capacity(t, theta_e, N_A_16)
+        debye = radiation.debye_heat_capacity(t, theta_d, N_A_16)
+        assert relative_error(einstein, debye) < (theta_d / t) ** 4 / 50
+
+
+def test_debye_heat_capacity_follows_the_t3_law_when_cold():
+    theta = 225.0
+    for t in (0.5, 2.0, theta / 50):
+        assert relative_error(radiation.debye_heat_capacity(t, theta, N_A_16),
+                              radiation.debye_low_t(t, theta, N_A_16)) < 1e-11
+
+
+def test_einstein_heat_capacity_vanishes_exponentially_and_never_returns_nan():
+    theta = 300.0
+    for ratio in (20.0, 40.0):
+        t = theta / ratio
+        c = radiation.einstein_heat_capacity(t, theta, N_A_16) / (3 * N_A_16 * K_B)
+        assert relative_error(c, ratio**2 * np.exp(-ratio)) < 3 * np.exp(-ratio) + 1e-13
+    frozen = radiation.einstein_heat_capacity(1e-3, theta, N_A_16)   # theta / T = 300 000
+    assert np.isfinite(frozen) and 0.0 <= frozen < 1e-250
+    assert np.isfinite(radiation.debye_heat_capacity(1e-3, theta, N_A_16))
+
+
+def test_fits_return_the_temperature_of_a_noise_free_curve():
+    t = np.geomspace(2.0, 300.0, 40)
+    debye = radiation.fit_debye_temperature(
+        t, radiation.debye_heat_capacity(t, 225.0, N_A_16), N_A_16)
+    einstein = radiation.fit_einstein_temperature(
+        t, radiation.einstein_heat_capacity(t, 160.0, N_A_16), N_A_16)
+    assert relative_error(debye.value, 225.0) < 1e-8
+    assert relative_error(einstein.value, 160.0) < 1e-8
+    assert debye.rms_residual < 1e-8
+
+
+def test_a_blackbody_fit_recovers_the_temperature_of_an_exact_spectrum():
+    nu = radiation.C_LIGHT * 100.0 * np.linspace(2.27, 21.33, 43)   # FIRAS's band, in Hz
+    exact = radiation.planck_radiance_nu(nu, 2.72548)
+    fit = radiation.fit_blackbody_temperature(nu, exact, 1e-3 * exact)
+    assert relative_error(fit.value, 2.72548) < 1e-9
+    assert fit.chi_squared < 1e-12
+
+
+def test_the_greenhouse_toy_reduces_to_the_bare_planet_and_adds_layers_as_fourth_roots():
+    bare = radiation.greenhouse_surface_temperature(0)
+    absorbed = 0.7 * 1361.0 / 4.0
+    assert relative_error(radiation.STEFAN_BOLTZMANN * bare**4, absorbed) < 1e-12
+    for n in (1, 2, 5):
+        assert relative_error(radiation.greenhouse_surface_temperature(n),
+                              bare * (n + 1) ** 0.25) < 1e-14

@@ -1,0 +1,97 @@
+# NOTE: byte-identical copies at notebooks/{en,he}/labs/data/16-silver-heat-capacity.csv --
+# JupyterLite only bundles the notebooks/ tree (jupyter_lite_config.json: "contents":
+# ["notebooks"]), so each language's laboratory notebook needs its own co-located copy to
+# run in the browser. Keep all three in sync -- scripts/check_parity.py enforces it.
+#
+# Specific heat at constant pressure of pure silver from 1 K to 300 K, as tabulated in
+# Table 8 ("Thermodynamic functions for silver") of D. R. Smith and F. R. Fickett,
+# "Low-Temperature Properties of Silver", J. Res. Natl. Inst. Stand. Technol. 100, 119-171
+# (1995), a publication of the US National Institute of Standards and Technology. Copied
+# column for column from that table (temperature and Cp only), in the table's own units;
+# nothing here is smoothed, rounded or re-fitted for the course.
+#
+# These are recommended values selected by the authors from the calorimetric literature,
+# not one experiment. Convert to a molar heat capacity with the molar mass of silver,
+# M = 0.1078682 kg/mol. Below about 4 K the conduction electrons' contribution, gamma T with
+# gamma = 0.6409 mJ/(mol K^2) (the paper's value), is comparable to the lattice's; above
+# about 50 K the difference C_P - C_V, of order 1% at 100 K and 4% at 300 K, is not.
+#
+# columns: temperature_K, cp_J_per_kg_K
+1.0,0.00758
+2.0,0.02457
+3.0,0.06026
+4.0,0.1242
+5.0,0.2253
+6.0,0.3736
+7.0,0.5803
+8.0,0.8594
+9.0,1.224
+10.0,1.696
+11.0,2.290
+12.0,3.013
+13.0,3.903
+14.0,4.960
+15.0,6.211
+16.0,7.657
+17.0,9.289
+18.0,11.115
+19.0,13.108
+20.0,15.268
+25.0,28.423
+30.0,44.257
+35.0,61.296
+40.0,78.048
+45.0,93.724
+50.0,108.09
+55.0,120.89
+60.0,132.29
+65.0,142.30
+70.0,151.11
+75.0,158.89
+80.0,165.66
+85.0,171.78
+90.0,177.16
+95.0,181.98
+100.0,186.34
+105.0,190.23
+110.0,193.66
+115.0,196.81
+120.0,199.68
+125.0,202.28
+130.0,204.60
+135.0,206.82
+140.0,208.77
+145.0,210.62
+150.0,212.29
+155.0,213.87
+160.0,215.26
+165.0,216.65
+170.0,217.85
+175.0,219.06
+180.0,220.17
+185.0,221.19
+190.0,222.12
+195.0,223.05
+200.0,223.97
+205.0,224.71
+210.0,225.55
+215.0,226.29
+220.0,227.03
+225.0,227.68
+230.0,228.33
+235.0,228.89
+240.0,229.54
+245.0,230.09
+250.0,230.65
+255.0,231.11
+260.0,231.67
+265.0,232.13
+270.0,232.59
+273.2,232.87
+275.0,233.06
+280.0,233.52
+285.0,233.99
+290.0,234.36
+295.0,234.73
+298.2,235.01
+300.0,235.19

@@ -27,6 +27,7 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    radiation,
     sampling,
 )
 from thermolab.constants import K_B
@@ -772,3 +773,67 @@ def test_one_sweep_offers_every_site_exactly_one_flip():
     state = ising.random_state(8, np.random.default_rng(3))
     after = ising.sweep(state, 1e300, np.random.default_rng(4))
     assert np.array_equal(after.lattice, -state.lattice)
+
+
+# ---------------------------------------------------------------------------
+# Module 16: radiation and solids
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("temperature", [2.725, 300.0, 5772.0])
+def test_the_energy_is_the_same_in_either_spectral_variable(temperature):
+    """Integrate u_nu over frequency and u_lambda over wavelength, on unrelated grids.
+
+    The two densities peak at different photons; the energy they integrate to cannot differ.
+    """
+    by_frequency = radiation.integrate_u_nu(temperature)
+    by_wavelength = radiation.integrate_u_lambda(temperature)
+    assert relative_error(by_wavelength, by_frequency) < 1e-10
+
+
+def test_the_photon_gas_obeys_the_euler_relation_with_zero_chemical_potential():
+    """U = TS - PV + mu N with mu = 0, per unit volume: u = T s - P, and f = u - T s = -P."""
+    for temperature in (2.725, 300.0, 1e4):
+        gas = radiation.photon_gas(temperature)
+        assert relative_error(temperature * gas.entropy_density - gas.pressure,
+                              gas.energy_density) < 1e-14
+        assert relative_error(gas.free_energy_density, -gas.pressure) < 1e-14
+
+
+def test_the_photon_entropy_is_the_integral_of_heat_over_temperature():
+    """At fixed volume dU = T dS, so s(T) = integral of (du/dT') / T' dT' = (4/3) a T^3."""
+    temperature = 500.0
+    t = np.linspace(0.0, temperature, 2001)
+    integrand = 4.0 * radiation.RADIATION_CONSTANT * t**2   # (du/dT) / T = 4 a T^2
+    entropy = radiation.simpson(integrand, t)
+    assert relative_error(entropy, radiation.photon_gas(temperature).entropy_density) < 1e-12
+
+
+def test_the_debye_cutoff_keeps_exactly_three_n_modes():
+    """The sound-wave density of modes, integrated to omega_D, counts every degree of freedom."""
+    n, volume, speed = 5.86e28, 1.0, 1740.0
+    omega_d = radiation.debye_frequency_cutoff(n, volume, speed)
+    omega = np.linspace(0.0, omega_d, 1001)
+    density = 3.0 * volume * omega**2 / (2.0 * np.pi**2 * speed**3)
+    assert relative_error(radiation.simpson(density, omega), 3.0 * n) < 1e-12
+
+
+def test_blackbody_band_fractions_add():
+    """Energy is additive over wavelength bands, and the whole spectrum holds all of it."""
+    t = 3000.0
+    blue = radiation.band_fraction(t, 380e-9, 550e-9)
+    red = radiation.band_fraction(t, 550e-9, 750e-9)
+    visible = radiation.band_fraction(t, 380e-9, 750e-9)
+    assert relative_error(blue + red, visible) < 1e-10
+    # 10 nm to 1 mm holds all but the Rayleigh-Jeans tail, (15 / pi^4) / (3 y^3) with
+    # y = lambda k_B T / (h c) = 208 at 1 mm: 6e-9 of the energy.
+    everything = radiation.band_fraction(t, 1e-8, 1e-3, n_points=200_000)
+    assert relative_error(everything, 1.0) < 1e-8
+
+
+def test_the_einstein_solid_is_three_n_copies_of_module_12s_oscillator():
+    """C_Einstein / (3N) is exactly partition.harmonic_heat_capacity at the same quantum."""
+    t = np.array([20.0, 150.0, 900.0])
+    per_atom = radiation.einstein_heat_capacity(t, 300.0, 1.0) / 3.0
+    oscillator = partition.harmonic_heat_capacity(K_B * 300.0, t)
+    assert np.max(np.abs(per_atom / oscillator - 1.0)) < 1e-14

@@ -32,8 +32,10 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    radiation,
     sampling,
 )
+from thermolab.constants import N_A
 from thermolab.units import K_B_Q, Quantity
 from thermolab.validation import relative_error
 
@@ -743,3 +745,98 @@ def test_the_fluctuation_identities_are_pure_numbers_in_reduced_units():
     assert (100 * reduced_variance / reduced_t**2).check("[]")
     heat_capacity = Quantity(0.01, "J**2") / (K_B_Q * Quantity(300.0, "K") ** 2)
     assert heat_capacity.check("[energy] / [temperature]")
+
+
+# ---------------------------------------------------------------------------
+# Module 16: radiation and solids
+# ---------------------------------------------------------------------------
+
+H_Q = Quantity(radiation.PLANCK_H, "J*s")
+C_Q = Quantity(radiation.C_LIGHT, "m/s")
+
+
+def test_every_exponent_in_planck_s_law_is_dimensionless():
+    """h nu / (k_B T) and h c / (lambda k_B T) must be pure numbers, in either variable."""
+    by_frequency = H_Q * Quantity(5e14, "Hz") / (K_B_Q * Quantity(5772.0, "K"))
+    by_wavelength = H_Q * C_Q / (Quantity(500e-9, "m") * K_B_Q * Quantity(5772.0, "K"))
+    assert by_frequency.to("dimensionless").check("[]")
+    assert by_wavelength.to("dimensionless").check("[]")
+
+
+def test_planck_u_nu_is_an_energy_per_volume_per_hertz():
+    nu, t = Quantity(1e14, "Hz"), Quantity(3000.0, "K")
+    x = (H_Q * nu / (K_B_Q * t)).to("dimensionless").magnitude
+    u_nu = 8 * np.pi * H_Q * nu**3 / C_Q**3 / np.expm1(x)
+    assert u_nu.check("[energy] / [length]**3 * [time]")
+    assert relative_error(radiation.planck_u_nu(1e14, 3000.0),
+                          u_nu.to("J*s/m**3").magnitude) < 1e-12
+
+
+def test_planck_u_lambda_is_an_energy_per_volume_per_metre():
+    lam, t = Quantity(1e-6, "m"), Quantity(3000.0, "K")
+    x = (H_Q * C_Q / (lam * K_B_Q * t)).to("dimensionless").magnitude
+    u_lambda = 8 * np.pi * H_Q * C_Q / lam**5 / np.expm1(x)
+    assert u_lambda.check("[energy] / [length]**4")
+    assert relative_error(radiation.planck_u_lambda(1e-6, 3000.0),
+                          u_lambda.to("J/m**4").magnitude) < 1e-12
+
+
+def test_the_radiation_constant_and_stefan_boltzmann_constant_carry_their_units():
+    a = 8 * np.pi**5 * K_B_Q**4 / (15 * H_Q**3 * C_Q**3)
+    sigma = a * C_Q / 4
+    assert a.check("[energy] / [length]**3 / [temperature]**4")
+    assert sigma.check("[power] / [length]**2 / [temperature]**4")
+    assert relative_error(radiation.RADIATION_CONSTANT, a.to("J/m**3/K**4").magnitude) < 1e-12
+    # CODATA 2018's exact sigma, since h, k_B and c are all exact in SI 2019.
+    assert relative_error(radiation.STEFAN_BOLTZMANN, 5.670374419e-8) < 1e-9
+
+
+def test_the_wien_constant_is_a_length_times_a_temperature():
+    b = H_Q * C_Q / (radiation.WIEN_X_LAMBDA * K_B_Q)
+    assert b.check("[length] * [temperature]")
+    assert relative_error(radiation.WIEN_B, 2.897771955e-3) < 1e-9
+
+
+def test_photon_gas_quantities_carry_their_units():
+    t = Quantity(300.0, "K")
+    a = Quantity(radiation.RADIATION_CONSTANT, "J/m**3/K**4")
+    u, s = a * t**4, 4 * a * t**3 / 3
+    n = 16 * np.pi * radiation.ZETA_3 * (K_B_Q * t / (H_Q * C_Q)) ** 3
+    assert u.check("[pressure]") and (u / 3).check("[pressure]")
+    assert s.check("[energy] / [temperature] / [length]**3")
+    assert n.check("1 / [length]**3")
+    gas = radiation.photon_gas(300.0)
+    assert relative_error(gas.energy_density, u.to("J/m**3").magnitude) < 1e-12
+    assert relative_error(gas.entropy_density, s.to("J/K/m**3").magnitude) < 1e-12
+    assert relative_error(gas.number_density, n.to("1/m**3").magnitude) < 1e-12
+
+
+def test_solid_heat_capacities_are_energies_per_kelvin():
+    """3 N k_B is an energy per kelvin; per mole it is 3R = 24.94 J/(mol K)."""
+    dulong_petit = 3 * Quantity(N_A, "1/mol") * K_B_Q
+    assert dulong_petit.check("[energy] / [temperature] / [substance]")
+    hot = radiation.einstein_heat_capacity(1e6, 300.0, N_A)
+    assert relative_error(hot, dulong_petit.to("J/K/mol").magnitude) < 1e-6
+
+
+def test_a_debye_temperature_from_the_speed_of_sound_is_a_temperature():
+    """theta_D = hbar (6 pi^2 N / V)^(1/3) c_s / k_B."""
+    number_density = Quantity(5.86e28, "1/m**3")   # silver
+    speed = Quantity(1740.0, "m/s")
+    hbar = Quantity(radiation.H_BAR, "J*s")
+    theta = hbar * (6 * np.pi**2 * number_density) ** (1 / 3) * speed / K_B_Q
+    assert theta.check("[temperature]")
+    value = radiation.debye_temperature(5.86e28, 1.0, 1740.0)
+    assert relative_error(value, theta.to("K").magnitude) < 1e-12
+
+
+def test_radiation_functions_return_plain_si_floats_and_shaped_arrays():
+    assert isinstance(radiation.mode_occupation(1e-21, 300.0), float)
+    assert isinstance(radiation.planck_u_nu(1e14, 3000.0), float)
+    assert isinstance(radiation.planck_u_lambda(1e-6, 3000.0), float)
+    assert isinstance(radiation.wien_peak_nu(300.0), float)
+    assert isinstance(radiation.debye_heat_capacity(100.0, 300.0, N_A), float)
+    assert isinstance(radiation.einstein_heat_capacity(100.0, 300.0, N_A), float)
+    temps = np.array([10.0, 100.0, 1000.0])
+    assert radiation.debye_heat_capacity(temps, 300.0, N_A).shape == (3,)
+    assert radiation.planck_u_nu(np.linspace(0, 1e15, 5), 3000.0).shape == (5,)
