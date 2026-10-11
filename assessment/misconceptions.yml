@@ -191,3 +191,15 @@ misconceptions:
     statement: "A solid's atoms stop moving at low temperature, so its heat capacity falls to zero."
     assigned_module: 16-radiation-solids
     status: addressed
+  - id: quantum-only-cold
+    statement: "Quantum effects matter only when it is cold."
+    assigned_module: 17-quantum-gases
+    status: addressed
+  - id: bec-atoms-stop
+    statement: "Bose-Einstein condensation is just the atoms stopping."
+    assigned_module: 17-quantum-gases
+    status: addressed
+  - id: pauli-exclusion-force
+    statement: "A Pauli 'force' pushes fermions apart, and that force is what causes degeneracy pressure."
+    assigned_module: 17-quantum-gases
+    status: addressed

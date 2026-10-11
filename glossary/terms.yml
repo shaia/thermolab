@@ -1459,3 +1459,122 @@ terms:
   - key: convection
     en: convection
     he: הסעה
+  - key: boson
+    en: boson
+    he: בוזון
+  - key: fermion
+    en: fermion
+    he: פרמיון
+    he_reject: [פרמיאון]
+  - key: identical-particles
+    en: identical particles
+    he: חלקיקים זהים
+  - key: symmetry-postulate
+    en: symmetry postulate
+    he: פוסטולט הסימטריה
+  - key: pauli-exclusion
+    en: Pauli exclusion principle
+    he: עקרון האיסור של פאולי
+  - key: spin-statistics
+    en: spin–statistics theorem
+    he: משפט הספין–סטטיסטיקה
+  - key: spin-degeneracy
+    en: spin degeneracy
+    he: ניוון ספין
+  - key: occupation-number
+    en: occupation number
+    he: מספר אכלוס
+    he_reject: [מספר איכלוס]
+  - key: grand-partition-function
+    en: grand partition function
+    he: פונקציית החלוקה הגרנד-קנונית
+  - key: bose-einstein-distribution
+    en: Bose–Einstein distribution
+    he: התפלגות בוזה–איינשטיין
+    he_reject: [התפלגות בוז-איינשטיין]
+  - key: fermi-dirac-distribution
+    en: Fermi–Dirac distribution
+    he: התפלגות פרמי–דיראק
+    he_reject: [התפלגות פרמי-דירק]
+  - key: bose-einstein-condensation
+    en: Bose–Einstein condensation
+    he: עיבוי בוזה–איינשטיין
+  - key: bose-einstein-condensate
+    en: Bose–Einstein condensate
+    he: קונדנסט בוזה–איינשטיין
+  - key: condensate
+    en: condensate
+    he: קונדנסט
+  - key: condensate-fraction
+    en: condensate fraction
+    he: חלק הקונדנסט
+  - key: condensation-temperature
+    en: condensation temperature
+    he: טמפרטורת העיבוי
+  - key: density-of-states
+    en: density of states
+    he: צפיפות מצבים
+  - key: dilute-limit
+    en: dilute limit
+    he: הגבול המדולל
+  - key: classical-criterion
+    en: classical criterion
+    he: הקריטריון הקלאסי
+  - key: occupation-integral
+    en: occupation integral
+    he: אינטגרל האכלוס
+  - key: degeneracy-parameter
+    en: degeneracy parameter
+    he: פרמטר הניוון
+  - key: degenerate-gas
+    en: degenerate gas
+    he: גז מנוון
+  - key: degeneracy-pressure
+    en: degeneracy pressure
+    he: לחץ ניוון
+  - key: fermi-energy
+    en: Fermi energy
+    he: אנרגיית פרמי
+    he_reject: [אנרגית פרמי]
+  - key: fermi-temperature
+    en: Fermi temperature
+    he: טמפרטורת פרמי
+  - key: fermi-velocity
+    en: Fermi velocity
+    he: מהירות פרמי
+  - key: fermi-momentum
+    en: Fermi momentum
+    he: תנע פרמי
+  - key: free-electron-model
+    en: free-electron model
+    he: מודל האלקטרונים החופשיים
+  - key: effective-mass
+    en: effective mass
+    he: מסה אפקטיבית
+  - key: sommerfeld-expansion
+    en: Sommerfeld expansion
+    he: פיתוח זומרפלד
+  - key: superfluid
+    en: superfluid
+    he: נוזל-על
+  - key: lambda-point
+    en: lambda point
+    he: נקודת למדא
+  - key: harmonic-trap
+    en: harmonic trap
+    he: מלכודת הרמונית
+  - key: ultracold-atoms
+    en: ultracold atoms
+    he: אטומים אולטרה-קרים
+  - key: white-dwarf
+    en: white dwarf
+    he: ננס לבן
+  - key: neutron-star
+    en: neutron star
+    he: כוכב נייטרונים
+  - key: chandrasekhar-mass
+    en: Chandrasekhar mass
+    he: מסת צ'נדראסקאר
+  - key: single-particle-state
+    en: single-particle state
+    he: מצב חד-חלקיקי

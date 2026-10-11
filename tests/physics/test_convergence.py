@@ -28,6 +28,7 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    quantum,
     radiation,
     sampling,
 )
@@ -793,3 +794,61 @@ def test_the_wavelength_integral_converges_spectrally_on_a_log_grid():
     errors = [relative_error(radiation.integrate_u_lambda(300.0, n), exact) for n in (64, 128, 256)]
     assert errors[1] < errors[0] / 1e5
     assert errors[2] < 1e-14
+
+
+# ---------------------------------------------------------------------------
+# Module 17: quantum statistics
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("statistics,eta", [("be", -0.5), ("be", -1e-6), ("fd", 3.0),
+                                            ("fd", 40.0)])
+def test_the_occupation_integrals_converge_faster_than_any_power_of_the_grid(statistics, eta):
+    """An even, smooth integrand makes the trapezoidal rule exponentially accurate.
+
+    A fourth-order rule would gain a factor 16 per doubling of the grid; this one gains orders
+    of magnitude until it reaches rounding.
+    """
+    exact = quantum.occupation_integral(eta, statistics, 1.5, 8192)
+    # A Fermi gas needs at least 4 eta intervals to resolve its edge; start the study there.
+    base = max(16, 4 * int(np.ceil(eta)))
+    refinements = [int(base * k) for k in (1, 1.5, 2, 3, 4, 6, 8, 12, 16)]
+    study = convergence_study(lambda n: quantum.occupation_integral(eta, statistics, 1.5, n),
+                              refinements, exact)
+    resolved = [n for n, e in zip(refinements, study.errors, strict=True) if e < 1e-13]
+    assert resolved and resolved[0] <= 16 * base
+    usable = study.errors > 1e-13
+    if usable.sum() >= 2:
+        slope = -np.polyfit(np.log(study.refinements[usable]), np.log(study.errors[usable]), 1)[0]
+        assert slope > 8
+
+
+def test_the_bose_pole_subtraction_keeps_full_accuracy_next_to_tc():
+    """Just above T_c, F_{3/2}(-a) has a sqrt(a) cusp that only the pole subtraction resolves.
+
+    Its expansion is zeta(3/2) - 2 sqrt(pi a) - zeta(1/2) a + zeta(-1/2) a^2 / 2 - ..., and 64
+    intervals must reproduce it at every a, however small.
+    """
+    zeta_half, zeta_minus_half = -1.4603545088095868, -0.2078862250773545
+    for a in (1e-4, 1e-8, 1e-12):
+        coarse = quantum.occupation_integral(-a, "be", 1.5, 64)
+        expansion = (quantum.ZETA_3_2 - 2 * np.sqrt(np.pi * a) - zeta_half * a
+                     + zeta_minus_half * a**2 / 2)
+        assert relative_error(coarse, expansion) < 1e-12
+
+
+def test_the_solver_honours_its_tolerance_for_every_statistics():
+    for statistics in quantum.STATISTICS:
+        for target in (1e-6, 1e-2, 0.5, 2.0, 50.0, 400.0):
+            if statistics == "be" and target >= quantum.ZETA_3_2:
+                assert quantum.solve_eta(target, "be") == 0.0
+                continue
+            eta = quantum.solve_eta(target, statistics)
+            assert relative_error(quantum.occupation_integral(eta, statistics), target) < 1e-13
+
+
+def test_the_finite_box_result_does_not_depend_on_its_level_cutoff():
+    for t in (0.3, 0.9, 1.2):
+        base = float(quantum.finite_box_condensate_fraction(10_000, t, x_cut=30.0))
+        wider = float(quantum.finite_box_condensate_fraction(10_000, t, x_cut=45.0))
+        assert abs(base - wider) < 1e-10

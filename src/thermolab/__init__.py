@@ -22,6 +22,7 @@ Modules:
     partition            partition functions; U, S, F and C from ln Z; the paramagnet and negative T
     potentials           H, F and G by Legendre transform; Maxwell relations; minimum principles
     radiation            Planck's law, the photon gas, and the Einstein and Debye solids
+    quantum              identical particles: Bose-Einstein and Fermi-Dirac gases, BEC, metals
     processes            the named process families, heat capacities, and irreversible change
     multiplicity         microstate counting, entropy, and why equilibrium wins
     validation           the reusable accuracy checks (seeds, convergence, scaling)
@@ -45,6 +46,7 @@ from . import (
     phases,
     potentials,
     processes,
+    quantum,
     radiation,
     sampling,
     units,
@@ -73,6 +75,7 @@ __all__ = [
     "phases",
     "potentials",
     "processes",
+    "quantum",
     "radiation",
     "sampling",
     "units",

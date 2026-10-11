@@ -24,6 +24,7 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    quantum,
     radiation,
     sampling,
 )
@@ -759,3 +760,53 @@ def test_the_explicit_mode_count_grows_as_nu_cubed():
     counts = [radiation.count_cavity_modes(side, nu) for nu in nus]
     # The surface deficit, ~2/R, tilts the slope slightly above 3 at these sizes.
     assert abs(scaling_exponent(nus, counts) - 3.0) < 0.02
+
+
+# ---------------------------------------------------------------------------
+# Module 17: quantum statistics
+# ---------------------------------------------------------------------------
+
+
+def test_counting_box_states_one_by_one_approaches_the_smooth_count():
+    """The continuum g(eps) misses only the states on the octant's faces: a 1/|n| surface error."""
+    side, mass = 1e-6, 6.6e-27
+    unit = quantum.box_level_unit(side, mass)
+    shortfalls = {}
+    for radius in (20, 80, 320):
+        counted = quantum.count_box_states(side, mass, unit * radius**2)
+        smooth = quantum.smooth_state_count(side, mass, unit * radius**2)
+        shortfalls[radius] = 1.0 - counted / smooth
+    assert 0 < shortfalls[320] < shortfalls[80] < shortfalls[20]
+    for radius in (80, 320):
+        # Weyl's law for a box with hard walls: the deficit is (9/4) / |n|.
+        assert abs(shortfalls[radius] * radius - 9 / 4) < 0.15
+
+
+def test_the_degeneracy_table_and_the_direct_count_agree():
+    side, mass = 1e-6, 6.6e-27
+    unit = quantum.box_level_unit(side, mass)
+    degeneracy = quantum.box_level_degeneracies(40_000)
+    for radius in (10, 57, 199):
+        assert degeneracy[: radius**2 + 1].sum() == quantum.count_box_states(side, mass,
+                                                                           unit * radius**2)
+
+
+def test_a_finite_box_condenses_toward_the_ideal_fraction_as_n_grows():
+    """Fewer low-lying states than the continuum: condensation comes early, by ~N^(-1/3) ln N."""
+    ideal = 1 - 0.5**1.5
+    excess = [float(quantum.finite_box_condensate_fraction(n, 0.5)) - ideal
+              for n in (1000, 10_000, 100_000, 1_000_000)]
+    assert all(e > 0 for e in excess)
+    assert all(b < a for a, b in zip(excess, excess[1:], strict=False))
+    for n, e in zip((1000, 10_000, 100_000, 1_000_000), excess, strict=True):
+        assert 0.18 < e * n ** (1 / 3) / np.log(n) < 0.24
+
+
+def test_the_condensate_exponent_approaches_three_halves_as_the_box_grows():
+    t = np.linspace(0.2, 0.8, 7)
+    exponents = [scaling_exponent(t, 1 - np.asarray(quantum.finite_box_condensate_fraction(n, t)))
+                 for n in (1000, 10_000, 100_000, 1_000_000)]
+    assert all(b < a for a, b in zip(exponents, exponents[1:], strict=False))
+    assert all(e > 1.5 for e in exponents)
+    assert exponents[-1] - 1.5 < 0.05
+    assert abs(scaling_exponent(t, 1 - quantum.condensate_fraction(t, 1.0)) - 1.5) < 1e-12

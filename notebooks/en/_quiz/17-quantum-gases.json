@@ -1,0 +1,226 @@
+[
+  {
+    "question": "Two particles share two single-particle states, a and b. How many distinct two-particle states are there if the particles are classical (labelled), identical bosons, or identical fermions?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "4, 3 and 1 -- labelled particles can be swapped to make a new state; identical ones cannot, and fermions may not share.",
+        "correct": true,
+        "feedback": "Right. Classically: both in a, both in b, and \"1 in a, 2 in b\" plus its swap -- 4. Identical bosons: both in a, both in b, one in each -- 3, because a swap of identical particles is the same state. Identical fermions: only one in each -- 1. With equal weights, the chance of finding both in one state is 1/2, 2/3 and 0: bosons bunch and fermions avoid each other, with no force involved."
+      },
+      {
+        "answer": "4 in every case -- each particle still chooses one of two states.",
+        "correct": false,
+        "feedback": "That counts identical particles as if they carried labels. The symmetry postulate says a state of identical particles is fixed entirely by its occupation numbers, so \"1 in a, 2 in b\" and its swap are one state, not two. Counting by labels is classical physics."
+      },
+      {
+        "answer": "3, 3 and 1 -- swapping never makes a new state, and fermions may not share.",
+        "correct": false,
+        "feedback": "For identical particles that is right, but classical particles are labelled: \"particle 1 in a, particle 2 in b\" and the reverse are distinct microstates, so classical counting gives 4. That difference is exactly what module 12's division by N! was patching."
+      },
+      {
+        "answer": "4, 2 and 2 -- bosons must share a state and fermions must not.",
+        "correct": false,
+        "feedback": "Bosons are allowed to share a state, not required to: one in each state is a perfectly good boson state. Fermions forbid only double occupation, which leaves the single state with one fermion in each."
+      }
+    ]
+  },
+  {
+    "question": "In a gas of bosons the chemical potential must lie below the energy eps_0 of the lowest single-particle state. Why?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "The lowest state's grand sum, the sum over n of exp(-n (eps_0 - mu)/(k_B T)), converges only if mu < eps_0; as mu approaches eps_0 its mean occupation grows without limit.",
+        "correct": true,
+        "feedback": "Right. Bosons may pile up without limit, so a state's weights form a geometric series, which converges only if each term is smaller than the last: exp(-(eps - mu)/(k_B T)) < 1, i.e. mu < eps, for every state and so for the lowest. At mu = eps_0 the lowest state would hold infinitely many particles -- which is what Bose-Einstein condensation pushes against."
+      },
+      {
+        "answer": "Because the chemical potential of every gas is negative.",
+        "correct": false,
+        "feedback": "It is not. A classical gas has mu = k_B T ln(n lambda^3), negative only when the gas is dilute, and a degenerate Fermi gas has mu close to eps_F, several electronvolts above the bottom of the box in a metal. The bound is specific to bosons."
+      },
+      {
+        "answer": "Because the Pauli principle forbids two bosons in the lowest state.",
+        "correct": false,
+        "feedback": "The exclusion principle applies to fermions, not bosons, and the Fermi-Dirac occupation needs no bound on mu at all, because each state holds at most one particle whatever mu is."
+      },
+      {
+        "answer": "Because a reservoir cannot supply particles with less energy than eps_0.",
+        "correct": false,
+        "feedback": "The reservoir supplies particles at whatever energy the states have. The bound comes from the sum over how many particles one state can hold, not from which energies are on offer."
+      }
+    ]
+  },
+  {
+    "question": "A single-particle state lies 2 k_B T above the chemical potential. What is its mean occupation in a gas of bosons? (Give three decimal places.)",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          0.155,
+          0.159
+        ],
+        "correct": true,
+        "feedback": "n_BE = 1/(e^2 - 1) = 1/6.389 = 0.157. For comparison n_MB = e^-2 = 0.135 and n_FD = 1/(e^2 + 1) = 0.119: at the same (eps - mu)/(k_B T) the order is always BE > MB > FD, because e^x - 1 < e^x < e^x + 1. At 2 k_B T they still differ by tens of percent; at (eps - mu) = 4.6 k_B T (e^x = 100) they agree within 1%."
+      }
+    ]
+  },
+  {
+    "question": "Copper has 8.5e28 conduction electrons per cubic metre. At 300 K, roughly what is the degeneracy parameter n lambda^3 of this electron gas, and is it classical or quantum?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "About 7000 -- deeply quantum. An electron's thermal wavelength at 300 K is about 4 nm, nineteen times the spacing between electrons.",
+        "correct": true,
+        "feedback": "Right. lambda = h/sqrt(2 pi m k_B T) = 4.3 nm for the electron's tiny mass, and n lambda^3 = 8.5e28 x (4.3e-9)^3 = 6800. Equivalently T/T_F = 300/81 700 = 0.004. What decides is n lambda^3 -- density and mass as well as temperature: helium gas at the same temperature and atmospheric pressure has n lambda^3 = 4e-6."
+      },
+      {
+        "answer": "About 1e-5 -- at room temperature everything is classical; quantum statistics matter only near absolute zero.",
+        "correct": false,
+        "feedback": "This is the misconception that quantum effects need cold. Degeneracy is set by n lambda^3, not by T alone. Helium gas at 300 K has n lambda^3 = 4e-6 and is classical, but electrons are 7300 times lighter and copper's are 3500 times denser than that gas, and their n lambda^3 is about 7000. Their measured heat capacity, a hundred times below the classical value, confirms it."
+      },
+      {
+        "answer": "About 1 -- borderline; room temperature sits right at the crossover.",
+        "correct": false,
+        "feedback": "The crossover is at n lambda^3 of order 1, but copper's electrons are nowhere near it: compute lambda = h/sqrt(2 pi m_e k_B T) = 4.3e-9 m and cube it. Since n lambda^3 falls as T^(-3/2), they would reach n lambda^3 = 1 only at about 100 000 K."
+      },
+      {
+        "answer": "It cannot be decided -- the electrons' temperature is far above 300 K, because they move at 1.6e6 m/s.",
+        "correct": false,
+        "feedback": "The electrons are in equilibrium with the lattice at 300 K. Their high speeds are not thermal: they are the Fermi velocity, forced on them because the low-energy states are already full. That is a consequence of degeneracy, not evidence of a high temperature."
+      }
+    ]
+  },
+  {
+    "question": "A gas is cooled at fixed density. Which way does its chemical potential move, for a Fermi gas and for a Bose gas (energies measured from the bottom of the box)?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Both climb. The Fermi gas's mu rises toward eps_F and settles there as T -> 0; the Bose gas's rises toward 0 and, below T_c, stays at 0.",
+        "correct": true,
+        "feedback": "Right. n lambda^3 grows as T^(-3/2), so the occupation integral F(mu/k_B T) must grow, and mu/k_B T climbs. Fermions can keep climbing: mu tends to eps_F, the top of the filled sea. Bosons hit their bound mu < eps_0 = 0 at n lambda^3 = 2.612 and stop; the surplus goes into the ground state."
+      },
+      {
+        "answer": "Both dive toward minus infinity, as the chemical potential of a classical gas does.",
+        "correct": false,
+        "feedback": "A classical gas's mu = k_B T ln(n lambda^3) is very negative when it is hot and dilute, and rises as it is cooled, because n lambda^3 grows. Cooling at fixed density drives every gas's mu/k_B T up, not down."
+      },
+      {
+        "answer": "Both tend to zero, because mu is proportional to k_B T.",
+        "correct": false,
+        "feedback": "mu is not proportional to k_B T. For fermions it tends to the fixed energy eps_F, which depends only on the density; for bosons it is exactly zero below T_c. The ratio mu/k_B T is what the density fixes, and it is not constant as T changes."
+      },
+      {
+        "answer": "Both climb without limit, because n lambda^3 grows without limit.",
+        "correct": false,
+        "feedback": "For fermions mu climbs until it reaches eps_F, a finite energy. For bosons the climb stops at the lowest energy, 0, because no boson state may have mu above it; from then on the excess particles condense."
+      }
+    ]
+  },
+  {
+    "question": "A uniform gas of rubidium-87 atoms (mass 1.443e-25 kg, g_s = 1) has density 1.0e20 per cubic metre. What is its Bose-Einstein condensation temperature, in nanokelvin?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          388,
+          408
+        ],
+        "correct": true,
+        "feedback": "k_B T_c = (2 pi hbar^2/m)(n/2.612)^(2/3). 2 pi hbar^2/m = 4.84e-43 J m^2 and (n/2.612)^(2/3) = (3.83e19)^(2/3) = 1.14e13 per m^2, so k_B T_c = 5.50e-30 J and T_c = 398 nK. At half that temperature 1 - 0.5^(3/2) = 65% of the atoms are in the single lowest state. Real experiments hold atoms in harmonic traps rather than boxes, and their condensate fraction follows 1 - (T/T_c)^3 instead."
+      }
+    ]
+  },
+  {
+    "question": "Copper has 8.5e28 conduction electrons per cubic metre (g_s = 2). What is their Fermi energy, in electronvolts?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          6.95,
+          7.1499999999999995
+        ],
+        "correct": true,
+        "feedback": "eps_F = (hbar^2/2m)(3 pi^2 n)^(2/3) = 6.10e-39 J m^2 x 1.85e20 per m^2 = 1.13e-18 J = 7.05 eV, so T_F = 81 800 K. The degeneracy pressure (2/5) n eps_F is 3.8e10 Pa -- 380 000 atmospheres, over a hundred times the classical n k_B T at 300 K -- and it is there at absolute zero."
+      }
+    ]
+  },
+  {
+    "question": "A classical gas of conduction electrons would add (3/2) R per mole to a metal's heat capacity. At room temperature the measured electronic contribution is less than 1% of that. Why?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Only electrons within about k_B T of the Fermi energy have empty states nearby to move into; they are a fraction of order T/T_F, about 0.004 in copper, of all the electrons.",
+        "correct": true,
+        "feedback": "Right. An electron deep in the Fermi sea cannot take up an energy k_B T, because every state within k_B T of its own is full. Only the top shell can respond, so C_el ~ N k_B T/T_F -- (pi^2/2) N k_B T/T_F exactly -- linear in T and tiny compared with (3/2) N k_B while T << T_F = 82 000 K."
+      },
+      {
+        "answer": "Very few electrons are free -- far fewer than one per atom -- and each carries (3/2) k_B T as usual.",
+        "correct": false,
+        "feedback": "This is the classical repair that does not work. Copper has one conduction electron per atom -- that density is what its conductivity, its Hall effect and its Fermi energy all measure -- and with (3/2) k_B each they would add 50% to Dulong-Petit. The number is right; the energy per electron is what the classical theory gets wrong."
+      },
+      {
+        "answer": "Electron-electron repulsion locks the electrons in place, so they cannot take up energy.",
+        "correct": false,
+        "feedback": "The ideal Fermi gas has no interactions at all, and it still gives a tiny, linear heat capacity. Nor are the electrons locked: they move at up to 1.6e6 m/s, which is why metals conduct. What limits the heat capacity is that the states around most electrons are occupied, not a force."
+      },
+      {
+        "answer": "The electrons are frozen out like a high-frequency oscillator in module 16, because a single quantum of their motion exceeds k_B T.",
+        "correct": false,
+        "feedback": "The levels of a metal's electrons are spaced far more finely than k_B T -- a continuum. Freeze-out here has a different cause: exclusion. The energies are available; the states they would lead to are taken."
+      }
+    ]
+  },
+  {
+    "question": "An ideal Bose gas is cooled to half its condensation temperature, and 65% of its atoms are now in the lowest single-particle state. Which describes the gas?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "It still exerts a pressure, P = 1.341 k_B T/lambda^3, carried by the 35% in excited states; adding more atoms at the same T would not change it.",
+        "correct": true,
+        "feedback": "Right. The excited states hold exactly as many atoms as they can at that temperature, 2.612 V/lambda^3, and those move and strike the walls as before. Only they carry energy, so P = (2/3) U/V = zeta(5/2) k_B T/lambda^3, which depends on T alone. Extra atoms join the condensate, which carries no momentum to the walls."
+      },
+      {
+        "answer": "All the atoms have stopped moving, so the pressure is zero.",
+        "correct": false,
+        "feedback": "This is the misconception that condensation is an arrest of motion. It is a statement about occupation: 65% of the atoms share one state, and the other 35% are spread over the excited states and moving. The pressure is 1.341 k_B T/lambda^3 -- at T_c, 51% of the classical n k_B T -- and falls to zero only as T -> 0."
+      },
+      {
+        "answer": "Its pressure is n k_B T, as for any ideal gas.",
+        "correct": false,
+        "feedback": "n k_B T is the pressure of a classical ideal gas. A degenerate Bose gas has less: its condensed atoms contribute nothing, and even the excited ones are crowded into low energies. Below T_c, P is independent of n altogether."
+      },
+      {
+        "answer": "Its pressure is larger than n k_B T, because bosons bunch together and push harder on the walls.",
+        "correct": false,
+        "feedback": "Bunching crowds bosons into low-energy states, which lowers the pressure, not raises it. The condensed atoms are in the state of zero kinetic energy and push on nothing."
+      }
+    ]
+  },
+  {
+    "question": "The ideal Fermi gas model predicts a pressure of 3.8e10 Pa for the electrons in copper even at absolute zero. In that model, what produces it?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Kinetic energy. Exclusion forces the electrons into states of high momentum -- up to the Fermi momentum -- and they carry that momentum to the walls exactly as module 04's molecules do. The model contains no forces between the electrons at all.",
+        "correct": true,
+        "feedback": "Right. P = (2/3) U/V for any ideal gas, and the Fermi sea has U = (3/5) N eps_F even at T = 0. Squeezing the sea raises every level, so it takes work, and that work is stored as kinetic energy. The model's Ignored line lists every interaction; the pressure survives anyway. It is counting plus kinetic energy, not a force."
+      },
+      {
+        "answer": "A repulsive \"Pauli force\" between electrons that keeps any two from sharing a state.",
+        "correct": false,
+        "feedback": "This is the misconception the module confronts. There is no such force in the model -- its Ignored line lists all interactions -- and the pressure is still there. The exclusion principle restricts which states may be occupied; the pressure is the kinetic energy of the states it forces the electrons into."
+      },
+      {
+        "answer": "Electrostatic repulsion between the electrons.",
+        "correct": false,
+        "feedback": "Real electrons do repel, but the ideal Fermi gas leaves the repulsion out and still predicts 3.8e10 Pa. In a real metal the electrons' repulsion is largely cancelled by the positive ions, which is why the free-electron model works as well as it does."
+      },
+      {
+        "answer": "The thermal motion of the electrons, as for a classical gas.",
+        "correct": false,
+        "feedback": "At absolute zero there is no thermal motion, and the classical pressure n k_B T would be zero. At 300 K it is 3.5e8 Pa, a hundred times smaller than the degeneracy pressure, which hardly changes with temperature while T << T_F."
+      }
+    ]
+  }
+]

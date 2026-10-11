@@ -27,6 +27,7 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    quantum,
     radiation,
     sampling,
 )
@@ -837,3 +838,84 @@ def test_the_einstein_solid_is_three_n_copies_of_module_12s_oscillator():
     per_atom = radiation.einstein_heat_capacity(t, 300.0, 1.0) / 3.0
     oscillator = partition.harmonic_heat_capacity(K_B * 300.0, t)
     assert np.max(np.abs(per_atom / oscillator - 1.0)) < 1e-14
+
+
+# ---------------------------------------------------------------------------
+# Module 17: quantum statistics
+# ---------------------------------------------------------------------------
+
+N_HE_17 = 0.1461087e3 / quantum.M_HELIUM4   # liquid helium-4 at the lambda point [1/m^3]
+N_CU_17 = 8.49e28                            # copper's conduction electrons [1/m^3]
+
+
+def _density_by_direct_integration(mu, temperature, mass, statistics, spin):
+    """n = (1/V) integral g(eps) n(eps) d eps, on a grid unrelated to `occupation_integral`'s.
+
+    Uses the library's density of states and occupations directly, with eps = k_B T y^2 and
+    Simpson's rule on 40 001 points, so it shares no code path with the quadrature that
+    `solve_mu` inverts.
+    """
+    kt = K_B * temperature
+    y = np.linspace(0.0, np.sqrt(max(mu / kt, 0.0) + 50.0), 40_001)
+    eps = kt * y**2
+    with np.errstate(divide="ignore", invalid="ignore"):
+        occupied = np.where(eps > 0, quantum.occupation(np.maximum(eps, 1e-300), mu, temperature,
+                                                         statistics), 0.0)
+    integrand = quantum.density_of_states_3d(eps, 1.0, mass, spin) * occupied * 2.0 * kt * y
+    return radiation.simpson(integrand, y)
+
+
+@pytest.mark.parametrize("statistics,ratios", [
+    ("mb", (1.2, 3.0, 30.0)),
+    ("be", (1.2, 2.0, 5.0, 20.0)),
+    ("fd", (0.02, 0.1, 0.5, 2.0, 10.0)),
+])
+def test_the_solved_chemical_potential_holds_exactly_the_particles_there_are(statistics, ratios):
+    """Particle number as code: the density at the solved mu, integrated afresh, is the input."""
+    if statistics == "fd":
+        mass, n, spin = quantum.M_ELECTRON, N_CU_17, 2
+        scale = float(quantum.fermi_temperature(n, mass))
+    else:
+        mass, n, spin = quantum.M_HELIUM4, N_HE_17, 1
+        scale = quantum.bec_tc(n, mass)
+    for ratio in ratios:
+        t = ratio * scale
+        mu = quantum.solve_mu(n, t, mass, statistics, spin)
+        direct = _density_by_direct_integration(mu, t, mass, statistics, spin)
+        assert relative_error(direct, n) < 1e-9
+
+
+def test_below_tc_the_condensate_and_the_excited_states_hold_every_particle():
+    t_c = quantum.bec_tc(N_HE_17, quantum.M_HELIUM4)
+    for ratio in (0.2, 0.5, 0.9, 0.999):
+        gas = quantum.ideal_quantum_gas(N_HE_17, ratio * t_c, quantum.M_HELIUM4, "be")
+        excited = quantum.ZETA_3_2 / gas.degeneracy_parameter
+        assert abs(gas.condensate_fraction + excited - 1.0) < 1e-12
+        assert relative_error(gas.condensate_fraction, 1.0 - ratio**1.5) < 1e-10
+
+
+def test_every_listed_many_particle_state_holds_exactly_n_particles():
+    for statistics in quantum.STATISTICS:
+        rows = quantum.enumerate_states(4, 3, statistics)
+        assert len(rows) == quantum.count_states(4, 3, statistics)
+        assert np.all(rows.sum(axis=1) == 3)
+        assert np.all(rows >= 0)
+    assert quantum.enumerate_states(4, 3, "fd").max() == 1
+    assert len({tuple(r) for r in quantum.enumerate_states(4, 3, "be")}) == 20   # no repeats
+
+
+def test_the_heat_capacity_is_the_temperature_derivative_of_the_energy():
+    """At fixed volume no work is done, so dU = dQ = C_V dT: the closed form must be dU/dT."""
+    t_c = quantum.bec_tc(N_HE_17, quantum.M_HELIUM4)
+    t_f = float(quantum.fermi_temperature(N_CU_17, quantum.M_ELECTRON))
+    cases = [("be", quantum.M_HELIUM4, N_HE_17, 1, t_c, (0.5, 0.9, 1.1, 2.0)),
+             ("fd", quantum.M_ELECTRON, N_CU_17, 2, t_f, (0.02, 0.2, 1.0, 5.0)),
+             ("mb", quantum.M_HELIUM4, N_HE_17, 1, t_c, (1.0, 10.0))]
+    for statistics, mass, n, spin, scale, ratios in cases:
+        for ratio in ratios:
+            t = ratio * scale
+            step = 1e-4 * t
+            up, down, gas = (quantum.ideal_quantum_gas(n, temperature, mass, statistics, spin)
+                             for temperature in (t + step, t - step, t))
+            numeric = (up.energy_per_particle - down.energy_per_particle) / (2 * step)
+            assert relative_error(numeric, gas.heat_capacity_per_particle) < 1e-6
