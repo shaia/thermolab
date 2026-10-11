@@ -1,0 +1,188 @@
+[
+  {
+    "question": "A mode of the electromagnetic field has a quantum h nu = 3 k_B T. What is its mean energy above the ground state, in units of k_B T?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "3/(e^3 - 1) = 0.157 -- the mode is mostly in its ground state, because a whole quantum costs three times the typical thermal energy.",
+        "correct": true,
+        "feedback": "Right. <E> = h nu/(e^(h nu/(k_B T)) - 1) = 3 k_B T/(e^3 - 1) = 0.157 k_B T. The mode is not frozen solid -- about one time in twenty it holds a quantum -- but it holds far less than the classical k_B T, and modes of higher frequency hold exponentially less."
+      },
+      {
+        "answer": "1 -- every mode carries k_B T regardless of its frequency.",
+        "correct": false,
+        "feedback": "That is equipartition, the classical assumption this module overturns. It is the limit of the quantum result when h nu << k_B T; at h nu = 3 k_B T it overestimates the energy six-fold, and applied to every mode it gives the ultraviolet catastrophe."
+      },
+      {
+        "answer": "3 -- the mode holds exactly one quantum.",
+        "correct": false,
+        "feedback": "The number of quanta is not fixed; it fluctuates, and its mean is <n> = 1/(e^3 - 1) = 0.052. A mode holds one quantum only about 5% of the time at this temperature, and zero quanta most of the time."
+      },
+      {
+        "answer": "0 -- a quantum larger than k_B T can never be excited.",
+        "correct": false,
+        "feedback": "Large quanta are exponentially suppressed, not forbidden. The Boltzmann factor for one quantum is e^-3 = 0.05, small but not zero; freeze-out is a smooth exponential, not a hard cut-off."
+      }
+    ]
+  },
+  {
+    "question": "Classical physics predicts that the radiation in a warm cavity holds infinite energy. What, precisely, diverges?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "The number of modes per unit frequency grows as nu^2 without limit, and equipartition gives each one k_B T, so the integral of 8 pi nu^2 k_B T / c^3 over all frequencies is infinite.",
+        "correct": true,
+        "feedback": "Right. Mode counting in a cavity gives g(nu) = 8 pi V nu^2 / c^3: there is no shortest standing wave, so no last mode. Each mode is an oscillator holding k_B T classically. The quantum fix keeps the mode count and changes the energy per mode, which falls exponentially once h nu exceeds a few k_B T."
+      },
+      {
+        "answer": "Photons travel at the speed of light, so their energy is infinite.",
+        "correct": false,
+        "feedback": "A photon's energy is h nu, finite at every frequency. The divergence is a counting problem: infinitely many modes, each given the same finite classical energy."
+      },
+      {
+        "answer": "The walls absorb and re-emit without limit, so energy accumulates forever.",
+        "correct": false,
+        "feedback": "In equilibrium the walls emit exactly as much as they absorb; nothing accumulates. The classical catastrophe is a statement about the equilibrium state itself, not about a runaway process."
+      },
+      {
+        "answer": "The energy of each mode grows with its frequency, so the highest modes carry infinite energy.",
+        "correct": false,
+        "feedback": "Classically each mode carries the same k_B T, independent of its frequency. It is the number of modes, not the energy of each, that grows without bound."
+      }
+    ]
+  },
+  {
+    "question": "Plotted per unit wavelength, the Sun's spectrum (a blackbody near 5772 K) peaks at about 500 nm. Plotted per unit frequency, where does it peak?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "At about 340 THz, the frequency of 880 nm light -- a different photon, because u_nu and u_lambda are densities related by the Jacobian c / lambda^2, which moves the maximum.",
+        "correct": true,
+        "feedback": "Right. nu_max = 2.821 k_B T/h = 339 THz, and c/nu_max = 883 nm. The two peaks differ by nu_max lambda_max / c = 0.568 at every temperature. The energy in any band is the same in both descriptions; the location of \"the peak\" is a property of the graph, not of the light."
+      },
+      {
+        "answer": "At c / 500 nm = 600 THz -- same spectrum, same peak.",
+        "correct": false,
+        "feedback": "This is the misconception that the peak is a property of the radiation alone. u_nu and u_lambda are not the same function relabelled: u_lambda = u_nu c / lambda^2, and the factor c / lambda^2 changes from point to point, so the maxima fall at different photons. The explorer shows both markers; the mapped one never lands on the other."
+      },
+      {
+        "answer": "At 1200 THz, because frequency is inversely proportional to wavelength, so a peak at short wavelength is a peak at high frequency.",
+        "correct": false,
+        "feedback": "Inversion is right for converting one photon's wavelength into its frequency (500 nm is 600 THz, not 1200), but the question is where the density per unit frequency is largest, and that requires the Jacobian, not just the inversion."
+      },
+      {
+        "answer": "There is no peak per unit frequency; u_nu grows without bound.",
+        "correct": false,
+        "feedback": "That is the classical Rayleigh-Jeans curve. Planck's u_nu has a maximum at x = h nu / (k_B T) = 2.821 and falls exponentially beyond it."
+      }
+    ]
+  },
+  {
+    "question": "Sirius A has a surface temperature of about 9940 K. Treating it as a blackbody, at what wavelength, in nanometres, does its spectrum per unit wavelength peak? (Use lambda_max T = 2.898e-3 m K.)",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          290,
+          294
+        ],
+        "correct": true,
+        "feedback": "lambda_max = 2.898e-3 / 9940 = 2.92e-7 m = 292 nm, in the ultraviolet. Per unit frequency the peak is nu_max = 2.821 k_B T/h = 5.84e14 Hz, the frequency of 513 nm light; the ratio nu_max lambda_max / c = 0.568, as at every temperature. If you answered 513, you computed the frequency peak and converted it to a wavelength."
+      }
+    ]
+  },
+  {
+    "question": "The walls of an oven are heated from 300 K to 600 K. By what factor does the total power they radiate increase?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          15.9,
+          16.1
+        ],
+        "correct": true,
+        "feedback": "Power scales as sigma T^4, so the factor is 2^4 = 16. If you answered 2, you assumed that a hotter body radiates the same spectrum made brighter in proportion to its temperature: that is true only at the far low-frequency end. The spectrum also gains photons at frequencies the colder body could not afford, and its peak moves from 9.66 to 4.83 micrometres. If you answered 8, you counted photons (T^3) rather than energy."
+      }
+    ]
+  },
+  {
+    "question": "Why is the chemical potential of the photon gas in a cavity zero?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "The walls absorb and emit photons freely, so the photon number is not conserved; it adjusts to minimize the free energy at fixed T and V, where (dF/dN)_{T,V} = mu = 0.",
+        "correct": true,
+        "feedback": "Right. A conserved number is a constraint, and its chemical potential is the price of adding one more; an unconserved number is a variable that relaxes to the minimum of F. A checkable consequence: the photon number is not fixed but grows as T^3 when the cavity is heated, and U = TS - PV holds exactly."
+      },
+      {
+        "answer": "Photon number is conserved, so mu is fixed by it and happens to be zero.",
+        "correct": false,
+        "feedback": "Photon number is not conserved in a cavity with walls: heating the cavity creates photons (n grows as T^3), cooling destroys them. If it were conserved, mu would be whatever value fixed the number -- generally not zero -- as for the atoms of module 17."
+      },
+      {
+        "answer": "Photons are massless, and a chemical potential is an energy of mass.",
+        "correct": false,
+        "feedback": "The chemical potential is the free-energy cost of adding a particle at fixed T and V, not a rest energy. Masslessness alone does not set mu = 0; non-conservation does. Light in a box with perfect mirrors and nothing to absorb it would conserve photons."
+      },
+      {
+        "answer": "Photons do not interact with each other, and mu measures interactions.",
+        "correct": false,
+        "feedback": "A non-interacting gas of conserved particles, such as module 13's ideal gas, has a perfectly good nonzero mu = k_B T ln(n / n_Q). The reason is non-conservation, not the absence of interactions."
+      }
+    ]
+  },
+  {
+    "question": "In the Einstein model, what is the heat capacity at T = theta_E / 2, in units of the Dulong-Petit value 3 N k_B?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          0.719,
+          0.729
+        ],
+        "correct": true,
+        "feedback": "With x = theta_E / T = 2, C/(3 N k_B) = x^2 e^x/(e^x - 1)^2 = 4 e^2/(e^2 - 1)^2 = 0.724. At T = 5 theta_E (x = 0.2) it is 0.9967, matching the series 1 - x^2/12: Dulong-Petit is the high-temperature limit. If you answered 0.541, you used x^2 e^-x, the low-temperature approximation, outside its range."
+      }
+    ]
+  },
+  {
+    "question": "The heat capacity of an insulating crystal, measured below 10 K, falls with log-log slope 3. Which model survives, and why does C fall at all?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Debye -- the crystal has sound modes of arbitrarily low frequency, whose quanta remain affordable; as T falls, fewer modes (about V (k_B T / hbar c_s)^3 of them) can accept energy, so C falls as T^3.",
+        "correct": true,
+        "feedback": "Right. Debye's spectrum always contains modes with hbar omega < k_B T, and counting them gives T^3, as counting photons gives the T^3 of the photon number. C falls because quanta become unaffordable, mode by mode; the atoms keep their zero-point motion."
+      },
+      {
+        "answer": "Einstein -- both models vanish at T = 0, so either fits.",
+        "correct": false,
+        "feedback": "Both vanish, but Einstein's C falls as x^2 e^-x, exponentially, far faster than any power: its log-log slope is not constant and is about 19 between theta/40 and theta/10. The slope distinguishes the models, and the data choose Debye."
+      },
+      {
+        "answer": "Neither -- the atoms are frozen still at low temperature, so no energy can be stored and C drops to zero at once.",
+        "correct": false,
+        "feedback": "This is the misconception that cold atoms stop moving. Each oscillator keeps its zero-point energy hbar omega/2 at T = 0, and the heat capacity falls smoothly, as T^3, not suddenly. C is small because the bath rarely supplies a whole quantum, not because motion has stopped."
+      },
+      {
+        "answer": "Einstein, provided theta_E is chosen small enough.",
+        "correct": false,
+        "feedback": "A smaller theta_E delays the collapse but does not change its form: below about theta_E / 5 the Einstein curve still falls exponentially. No single frequency gives a power law."
+      }
+    ]
+  },
+  {
+    "question": "The temperature of a closed cavity is doubled. By what factor does the number of photons inside it change?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          7.95,
+          8.05
+        ],
+        "correct": true,
+        "feedback": "n = 16 pi zeta(3) (k_B T / h c)^3, so doubling T multiplies the photon number by 2^3 = 8. Photons are created by the walls, not conserved. The energy grows by 16 (T^4), so the mean energy per photon, 2.70 k_B T, doubles. If you answered 2, you treated photons like the molecules of a sealed gas, whose number heating cannot change."
+      }
+    ]
+  }
+]

@@ -1244,3 +1244,218 @@ terms:
   - key: curie-point
     en: Curie point
     he: נקודת קירי
+  - key: blackbody
+    en: blackbody
+    he: גוף שחור
+  - key: thermal-radiation
+    en: thermal radiation
+    he: קרינה תרמית
+  - key: planck-law
+    en: Planck's law
+    he: חוק פלאנק
+    he_reject: [חוק פלנק]
+  - key: spectral-energy-density
+    en: spectral energy density
+    he: צפיפות אנרגיה ספקטרלית
+  - key: spectrum
+    en: spectrum
+    he: ספקטרום
+  - key: photon
+    en: photon
+    he: פוטון
+  - key: photon-gas
+    en: photon gas
+    he: גז פוטונים
+  - key: phonon
+    en: phonon
+    he: פונון
+  - key: ultraviolet-catastrophe
+    en: ultraviolet catastrophe
+    he: הקטסטרופה האולטרה-סגולה
+  - key: rayleigh-jeans-law
+    en: Rayleigh–Jeans law
+    he: חוק ריילי–ג'ינס
+  - key: wien-displacement
+    en: Wien displacement law
+    he: חוק ההסחה של וין
+    he_reject: [וויין]
+  - key: stefan-boltzmann-law
+    en: Stefan–Boltzmann law
+    he: חוק סטפן–בולצמן
+    he_reject: [סטפן-בולטזמן, סטפן–בולטזמן]
+  - key: einstein-temperature
+    en: Einstein temperature
+    he: טמפרטורת איינשטיין
+    he_reject: [טמפרטורת אינשטיין]
+  - key: debye-model
+    en: Debye model
+    he: מודל דבאי
+    he_reject: [מודל דביי]
+  - key: density-of-modes
+    en: density of modes
+    he: צפיפות אופנים
+  - key: mode
+    en: mode
+    he: אופן
+  - key: standing-wave
+    en: standing wave
+    he: גל עומד
+  - key: polarization
+    en: polarization
+    he: קיטוב
+  - key: frequency
+    en: frequency
+    he: תדירות
+  - key: wavelength
+    en: wavelength
+    he: אורך גל
+  - key: cavity
+    en: cavity
+    he: חלל
+  - key: jacobian
+    en: Jacobian
+    he: יעקוביאן
+  - key: quantization
+    en: quantization
+    he: קוונטיזציה
+  - key: cosmic-microwave-background
+    en: cosmic microwave background
+    he: קרינת הרקע הקוסמית
+  - key: spectral-radiance
+    en: spectral radiance
+    he: רדיאנס ספקטרלי
+  - key: emissivity
+    en: emissivity
+    he: מקדם פליטה
+  - key: pyrometer
+    en: pyrometer
+    he: פירומטר
+  - key: incandescent-lamp
+    en: incandescent lamp
+    he: נורת ליבון
+  - key: infrared
+    en: infrared
+    he: אינפרה-אדום
+  - key: ultraviolet
+    en: ultraviolet
+    he: אולטרה-סגול
+  - key: visible-light
+    en: visible light
+    he: אור נראה
+  - key: speed-of-sound
+    en: speed of sound
+    he: מהירות הקול
+  - key: electronic-heat-capacity
+    en: electronic heat capacity
+    he: קיבול חום אלקטרוני
+  - key: anharmonicity
+    en: anharmonicity
+    he: אי-הרמוניות
+  - key: greenhouse-effect
+    en: greenhouse effect
+    he: אפקט החממה
+  - key: albedo
+    en: albedo
+    he: אלבדו
+  - key: solar-constant
+    en: solar constant
+    he: הקבוע הסולרי
+  - key: zeta-function
+    en: Riemann zeta function
+    he: פונקציית זטא של רימן
+  - key: residual
+    en: residual
+    he: שארית
+  - key: least-squares
+    en: least squares
+    he: ריבועים פחותים
+  - key: chi-squared
+    en: chi-squared
+    he: חי בריבוע
+  - key: simpson-rule
+    en: Simpson's rule
+    he: כלל סימפסון
+  - key: octant
+    en: octant
+    he: אוקטנט
+  - key: wave-vector
+    en: wave vector
+    he: וקטור גל
+  - key: wavenumber
+    en: wavenumber
+    he: מספר גל
+  - key: angular-frequency
+    en: angular frequency
+    he: תדירות זוויתית
+  - key: solid-angle
+    en: solid angle
+    he: זווית מרחבית
+  - key: isotropic
+    en: isotropic
+    he: איזוטרופי
+  - key: nonrelativistic
+    en: nonrelativistic
+    he: לא-יחסותי
+  - key: rest-energy
+    en: rest energy
+    he: אנרגיית מנוחה
+  - key: longitudinal
+    en: longitudinal
+    he: אורכי
+  - key: transverse
+    en: transverse
+    he: רוחבי
+  - key: phonon-dispersion
+    en: phonon dispersion
+    he: נפיצת פונונים
+  - key: zero-point-motion
+    en: zero-point motion
+    he: תנועת נקודת האפס
+  - key: conduction-electrons
+    en: conduction electrons
+    he: אלקטרוני הולכה
+  - key: insulator
+    en: insulator
+    he: מבדד
+  - key: thermal-expansion
+    en: thermal expansion
+    he: התפשטות תרמית
+  - key: molar-mass
+    en: molar mass
+    he: מסה מולרית
+  - key: calorimeter
+    en: calorimeter
+    he: קלורימטר
+  - key: calibration
+    en: calibration
+    he: כיול
+  - key: specific-intensity
+    en: specific intensity
+    he: עוצמה סגולית
+  - key: cmb-monopole
+    en: monopole
+    he: מונופול
+  - key: kirchhoff-law
+    en: Kirchhoff's law
+    he: חוק קירכהוף
+  - key: pyrometry
+    en: pyrometry
+    he: פירומטריה
+  - key: thermal-imaging
+    en: thermal imaging
+    he: הדמיה תרמית
+  - key: luminosity
+    en: luminosity
+    he: לומינוסיות
+  - key: effective-temperature
+    en: effective temperature
+    he: טמפרטורה אפקטיבית
+  - key: fermi-sea
+    en: Fermi sea
+    he: ים פרמי
+  - key: climate-sensitivity
+    en: climate sensitivity
+    he: רגישות האקלים
+  - key: convection
+    en: convection
+    he: הסעה

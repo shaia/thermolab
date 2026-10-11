@@ -46,6 +46,7 @@ Currently available:
 - **[Chemical potential](advanced/13-chemical-potential.md)** *(advanced)* — why particles can pile up where they are already crowded, and what the atmosphere, an adsorbing surface and a swelling cell have in common.
 - **[Phase coexistence](advanced/14-coexistence.md)** *(advanced)* — why a liquid and its vapour can share a cylinder at only one pressure, what picks that pressure, and why water boils at 71 °C on the summit of Everest.
 - **[Phase transitions and the Ising model](advanced/15-ising.md)** *(advanced)* — why a magnet cooled through its Curie point must pick a direction its equations do not prefer, and what a simulation of a few thousand spins can and cannot prove about it.
+- **[Thermal radiation and the heat capacity of solids](advanced/16-radiation-solids.md)** *(advanced)* — why a warm oven is not an ultraviolet lamp and a cold crystal stores almost no heat, and why "the colour at which the Sun shines brightest" has two right answers.
 
 Two reference pages sit outside the sequence and are meant to be returned to:
 [conventions](conventions.md) and the [mathematics refresher](foundations/math-refresher.md).
