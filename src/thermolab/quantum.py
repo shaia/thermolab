@@ -22,7 +22,7 @@ MODEL SPECIFICATION
                    eps_F), so a smooth density of states can replace the sum over levels; for
                    the condensation argument, N >> 1
     Failure modes: liquid helium-4, whose atoms interact strongly (the ideal-gas T_c is
-                   3.13 K, the measured lambda point 2.17 K); real metals, whose electrons feel
+                   3.15 K, the measured lambda point 2.18 K); real metals, whose electrons feel
                    the lattice (copper's measured gamma is 1.38 times the free-electron value);
                    a few hundred particles, where condensation is a smooth crossover rather than
                    a sharp transition; white dwarfs near the Chandrasekhar mass, where the
