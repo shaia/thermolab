@@ -28,6 +28,7 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    quantum,
     radiation,
     sampling,
 )
@@ -579,3 +580,43 @@ def test_a_debye_fit_to_noisy_synthetic_data_recovers_theta_across_seeds():
     assert study.agrees_with(theta)
     scatter = float(np.std(study.values, ddof=1))
     assert 0.6 < np.mean(reported) / scatter < 1.6
+
+
+# ---------------------------------------------------------------------------
+# Module 17: quantum statistics
+# ---------------------------------------------------------------------------
+#
+# Equilibrium occupations are deterministic. Two things here draw random numbers: sampling a
+# single state's occupation from its grand-canonical distribution, and the synthetic metal
+# data. A seed study asks of each what the laboratory relies on.
+
+
+@pytest.mark.parametrize("statistics", ["be", "fd", "mb"])
+def test_sampled_occupations_have_the_predicted_mean_and_variance(statistics):
+    """Geometric, yes-or-no and Poisson draws: variances n(1 + n), n(1 - n) and n."""
+    t, eps = 300.0, 0.5 * K_B * 300.0
+    mean = quantum.occupation(eps, 0.0, t, statistics)
+    variance = quantum.occupation_variance(eps, 0.0, t, statistics)
+    means = seed_study(lambda rng: quantum.sample_occupation(eps, 0.0, t, statistics, 20_000,
+                                                             rng).mean())
+    spreads = seed_study(lambda rng: quantum.sample_occupation(eps, 0.0, t, statistics, 20_000,
+                                                               rng).var())
+    assert means.agrees_with(mean)
+    assert spreads.agrees_with(variance)
+
+
+def test_a_metal_fit_to_noisy_synthetic_data_recovers_gamma_across_seeds():
+    temperatures = np.linspace(1.0, 6.0, 12)
+    reported = []
+
+    def measure(rng):
+        c = quantum.synthetic_metal_heat_capacity(temperatures, 0.64e-3, 226.0, rng, noise=0.01)
+        fit = quantum.fit_metal_heat_capacity(temperatures, c)
+        reported.append(fit.gamma_sigma)
+        return fit.gamma
+
+    study = seed_study(measure, n_seeds=16)
+    assert study.agrees_with(0.64e-3)
+    # The error bar each fit reports describes the scatter that fits actually show.
+    scatter = float(np.std(study.values, ddof=1))
+    assert 0.5 < float(np.mean(reported)) / scatter < 2.0

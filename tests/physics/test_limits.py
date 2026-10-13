@@ -27,11 +27,12 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    quantum,
     radiation,
     sampling,
 )
 from thermolab.constants import K_B
-from thermolab.validation import relative_error, seed_study
+from thermolab.validation import relative_error, scaling_exponent, seed_study
 
 pytestmark = pytest.mark.analytic_limit
 
@@ -2450,3 +2451,253 @@ def test_the_greenhouse_toy_reduces_to_the_bare_planet_and_adds_layers_as_fourth
     for n in (1, 2, 5):
         assert relative_error(radiation.greenhouse_surface_temperature(n),
                               bare * (n + 1) ** 0.25) < 1e-14
+
+
+# ---------------------------------------------------------------------------
+# Module 17: quantum statistics
+# ---------------------------------------------------------------------------
+
+M_HE_17 = quantum.M_HELIUM4
+M_E_17 = quantum.M_ELECTRON
+N_HE_17 = 0.1461087e3 / quantum.M_HELIUM4   # liquid helium-4 at the lambda point [1/m^3]
+N_CU_17 = 8.49e28                            # copper's conduction electrons [1/m^3]
+N_AG_17 = 10490.0 / 0.1078682 * 6.02214076e23   # silver, one electron per atom [1/m^3]
+
+
+def test_two_identical_particles_in_two_levels_have_four_three_or_one_states():
+    assert [quantum.count_states(2, 2, s) for s in ("mb", "be", "fd")] == [4, 3, 1]
+    assert sorted(map(tuple, quantum.enumerate_states(2, 2, "be"))) == [(0, 2), (1, 1), (2, 0)]
+    assert [tuple(r) for r in quantum.enumerate_states(2, 2, "fd")] == [(1, 1)]
+    # Classical counting lists the split pattern twice, once per labelling of the particles.
+    assert sorted(map(tuple, quantum.enumerate_states(2, 2, "mb"))) == [(0, 2), (1, 1), (1, 1),
+                                                                         (2, 0)]
+
+
+def test_with_many_more_levels_than_particles_all_counts_meet_the_corrected_classical_count():
+    """Bose and Fermi counts both approach M^N / N!, module 08's Gibbs-corrected count."""
+    gaps = []
+    for levels in (10, 100, 1000, 10_000):
+        classical = levels**3 / 6.0
+        bose = quantum.count_states(levels, 3, "be") / classical
+        fermi = quantum.count_states(levels, 3, "fd") / classical
+        assert fermi < 1.0 < bose
+        gaps.append(bose - fermi)
+    assert all(b < a / 9 for a, b in zip(gaps, gaps[1:], strict=False))
+    assert gaps[-1] < 1e-3
+
+
+@pytest.mark.parametrize("statistics", ["be", "fd", "mb"])
+def test_closed_form_occupations_equal_the_explicit_grand_sums(statistics):
+    t = 300.0
+    for x in (0.05, 0.5, 2.0, 10.0):
+        eps = x * K_B * t
+        mean, variance = quantum.explicit_occupation(eps, 0.0, t, statistics)
+        assert relative_error(mean, quantum.occupation(eps, 0.0, t, statistics)) < 1e-12
+        expected = quantum.occupation_variance(eps, 0.0, t, statistics)
+        assert relative_error(variance, expected) < 1e-11
+
+
+def test_all_three_occupations_merge_in_the_dilute_limit():
+    """Once exp((eps - mu)/kT) >= 100 the three agree within 1%; below, BE > MB > FD."""
+    t = 300.0
+    x = np.linspace(np.log(100.0), 40.0, 400)
+    eps = x * K_B * t
+    mb = quantum.maxwell_boltzmann(eps, 0.0, t)
+    assert np.max(np.abs(quantum.bose_einstein(eps, 0.0, t) / mb - 1.0)) <= 1.0 / 99.0 + 1e-15
+    assert np.max(np.abs(quantum.fermi_dirac(eps, 0.0, t) / mb - 1.0)) <= 1.0 / 101.0 + 1e-15
+    x = np.linspace(0.01, 5.0, 200)
+    eps = x * K_B * t
+    be, fd = quantum.bose_einstein(eps, 0.0, t), quantum.fermi_dirac(eps, 0.0, t)
+    mb = quantum.maxwell_boltzmann(eps, 0.0, t)
+    assert np.all(be > mb) and np.all(mb > fd)
+
+
+def test_module_13s_site_occupation_is_the_fermi_dirac_function():
+    """A site that holds at most one particle is a fermion state: one formula, two names."""
+    eps = np.linspace(-5.0, 5.0, 41) * K_B * 300.0
+    assert np.allclose(chemical.site_occupation(0.0, 300.0, eps),
+                       quantum.fermi_dirac(eps, 0.0, 300.0), rtol=1e-14, atol=0)
+
+
+def test_planck_spectrum_is_bose_einstein_occupation_at_zero_chemical_potential():
+    """Conflict C4b closed: module 16's u_nu rebuilt from module 17's occupation, mu = 0."""
+    for t in (2.725, 300.0, 5772.0):
+        nu = np.linspace(1e-3, 30.0, 3000) * K_B * t / radiation.PLANCK_H
+        quantum_of_light = radiation.PLANCK_H * nu
+        rebuilt = (radiation.mode_density(nu) * quantum_of_light
+                   * quantum.bose_einstein(quantum_of_light, 0.0, t))
+        assert np.max(np.abs(rebuilt / radiation.planck_u_nu(nu, t) - 1.0)) < 1e-13
+
+
+def test_radiation_never_imports_the_module_that_comes_after_it():
+    """The no-backward-import rule: 16 derives Planck inline; 17's tests close the loop."""
+    import ast
+    from pathlib import Path
+
+    tree = ast.parse(Path(radiation.__file__).read_text(encoding="utf-8"))
+    imported = {alias.name for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
+                for alias in node.names} | {node.module or "" for node in ast.walk(tree)
+                                              if isinstance(node, ast.ImportFrom)}
+    assert not any("quantum" in name for name in imported)
+
+
+def test_the_quadrature_reproduces_zeta_without_being_told():
+    """F_{3/2}(0) and F_{5/2}(0) are zeta(3/2) and zeta(5/2); the reference is summed here."""
+    for order, typed in ((1.5, quantum.ZETA_3_2), (2.5, quantum.ZETA_5_2)):
+        k = 100_000
+        partial = float(np.sum(np.arange(1, k + 1, dtype=float) ** -order))
+        # Euler-Maclaurin tail of sum_{n > K} n^-s.
+        tail = k ** (1 - order) / (order - 1) - k**-order / 2 + order * k ** (-order - 1) / 12
+        assert relative_error(typed, partial + tail) < 1e-13
+        assert relative_error(quantum.occupation_integral(0.0, "be", order), typed) < 1e-14
+
+
+def test_the_classical_occupation_integral_is_exactly_the_exponential():
+    for eta in (-30.0, -2.0, 0.0, 4.0):
+        for order in (0.5, 1.5, 2.5):
+            value = quantum.occupation_integral(eta, "mb", order)
+            assert relative_error(value, np.exp(eta)) < 1e-14
+
+
+def test_the_classical_solver_reproduces_module_13s_chemical_potential():
+    """mu = k_B T ln(n lambda^3) is module 13's k_B T ln(n / n_Q), with n_Q now derived."""
+    for n, t in ((1e25, 300.0), (N_HE_17 / 1e3, 10.0), (2.7e25, 4.2)):
+        mu = quantum.solve_mu(n, t, M_HE_17, "mb")
+        assert relative_error(mu, chemical.ideal_gas_mu(n, t, M_HE_17)) < 1e-13
+        assert relative_error(quantum.degeneracy_parameter(n, t, M_HE_17),
+                              n / chemical.quantum_concentration(t, M_HE_17)) < 1e-13
+
+
+def test_a_cold_fermi_gas_fills_its_sea_to_the_fermi_energy():
+    """mu -> eps_F (1 - (pi^2/12)(T/T_F)^2), U/N -> (3/5) eps_F (1 + (5 pi^2/12)(T/T_F)^2)."""
+    eps_f = float(quantum.fermi_energy(N_CU_17, M_E_17))
+    t_f = eps_f / K_B
+    for ratio in (1e-3, 3e-3, 1e-2):
+        gas = quantum.ideal_quantum_gas(N_CU_17, ratio * t_f, M_E_17, "fd", 2)
+        # The next terms of the Sommerfeld expansion are of order (T/T_F)^4, coefficients < 10.
+        tolerance = 10 * ratio**4 + 1e-13
+        assert relative_error(gas.mu, eps_f * (1 - np.pi**2 / 12 * ratio**2)) < tolerance
+        assert relative_error(gas.energy_per_particle,
+                              0.6 * eps_f * (1 + 5 * np.pi**2 / 12 * ratio**2)) < tolerance
+        assert relative_error(gas.pressure, quantum.fermi_gas_pressure(N_CU_17, M_E_17)
+                              * (1 + 5 * np.pi**2 / 12 * ratio**2)) < tolerance
+
+
+def test_the_fermi_dirac_occupation_hardens_into_a_step_as_t_falls():
+    eps_f = 1e-18
+    eps = np.array([0.9, 0.99, 1.01, 1.1]) * eps_f
+    for t in (1e3, 1e2, 10.0):
+        n = quantum.fermi_dirac(eps, eps_f, t)
+        assert np.all(n[:2] > 0.5) and np.all(n[2:] < 0.5)
+    # At 10 K the nearest offsets are 72 k_B T from the edge: a step, to within e^-72 = 4e-32.
+    cold = quantum.fermi_dirac(eps, eps_f, 10.0)
+    assert np.all(cold[:2] == 1.0) and np.all(cold[2:] < 1e-31)
+    assert quantum.fermi_dirac(eps_f, eps_f, 300.0) == 0.5
+
+
+def test_the_electronic_heat_capacity_is_linear_with_the_sommerfeld_coefficient():
+    t_f = float(quantum.fermi_temperature(N_CU_17, M_E_17))
+    for ratio in (1e-3, 3e-3):
+        t = ratio * t_f
+        gas = quantum.ideal_quantum_gas(N_CU_17, t, M_E_17, "fd", 2)
+        sommerfeld = quantum.electronic_heat_capacity(t, t_f)
+        assert relative_error(gas.heat_capacity_per_particle, sommerfeld) < 5 * ratio**2
+
+
+def test_a_hot_dilute_quantum_gas_is_classical():
+    """When n lambda^3 << 1 both quantum gases are classical: U/N = 3/2 k_B T, P = n k_B T."""
+    for statistics, mass, spin in (("be", M_HE_17, 1), ("fd", M_E_17, 2)):
+        n = 1e20
+        t = 1e4
+        gas = quantum.ideal_quantum_gas(n, t, mass, statistics, spin)
+        assert gas.degeneracy_parameter < 1e-3
+        tolerance = gas.degeneracy_parameter
+        assert relative_error(gas.energy_per_particle, 1.5 * K_B * t) < tolerance
+        assert relative_error(gas.pressure, gas.classical_pressure) < tolerance
+        assert relative_error(gas.heat_capacity_per_particle, 1.5 * K_B) < tolerance
+
+
+def test_the_bose_heat_capacity_has_its_cusp_at_tc():
+    t_c = quantum.bec_tc(N_HE_17, M_HE_17)
+    peak = 15 / 4 * quantum.ZETA_5_2 / quantum.ZETA_3_2   # 1.926
+    at_tc = quantum.ideal_quantum_gas(N_HE_17, t_c, M_HE_17, "be").heat_capacity_per_particle
+    assert relative_error(at_tc / K_B, peak) < 1e-12
+
+    def heat_capacity(ratio):
+        gas = quantum.ideal_quantum_gas(N_HE_17, ratio * t_c, M_HE_17, "be")
+        return gas.heat_capacity_per_particle
+
+    for ratio in (0.999, 1.001):
+        assert heat_capacity(ratio) < at_tc and relative_error(heat_capacity(ratio), at_tc) < 2e-3
+    below = [heat_capacity(r) for r in (0.2, 0.4)]
+    assert relative_error(below[1] / below[0], 2**1.5) < 1e-12
+
+
+def test_below_tc_the_bose_pressure_depends_on_the_temperature_alone():
+    """P = zeta(5/2) k_B T / lambda^3 for any density above n_c(T): the condensate adds nothing."""
+    t = 1.0
+    lam = partition.thermal_wavelength(t, M_HE_17)
+    expected = quantum.ZETA_5_2 * K_B * t / lam**3
+    for n in (N_HE_17, 2 * N_HE_17, 5 * N_HE_17):
+        gas = quantum.ideal_quantum_gas(n, t, M_HE_17, "be")
+        assert gas.condensate_fraction > 0.5
+        assert relative_error(gas.pressure, expected) < 1e-12
+        assert gas.pressure > 0.0
+
+
+def test_condensation_starts_where_the_degeneracy_parameter_reaches_zeta():
+    t_c = quantum.bec_tc(N_HE_17, M_HE_17)
+    assert relative_error(quantum.degeneracy_parameter(N_HE_17, t_c, M_HE_17),
+                          quantum.ZETA_3_2) < 1e-13
+    assert quantum.condensate_fraction(0.0, t_c) == 1.0
+    assert quantum.condensate_fraction(t_c, t_c) == 0.0
+    assert quantum.condensate_fraction(2 * t_c, t_c) == 0.0
+    assert quantum.solve_mu(N_HE_17, 0.99 * t_c, M_HE_17, "be") == 0.0
+    assert quantum.solve_mu(N_HE_17, 1.01 * t_c, M_HE_17, "be") < 0.0
+    assert abs(t_c - 3.15) < 0.01   # the ideal gas at helium's lambda-point density
+
+
+def test_free_electron_gamma_for_silver_and_copper_matches_the_tabulated_free_electron_values():
+    """Kittel's free-electron gammas (8th ed., p. 139): Ag 0.645, Cu 0.505 mJ mol^-1 K^-2."""
+    assert relative_error(quantum.free_electron_gamma(N_AG_17), 0.645e-3) < 0.01
+    assert relative_error(quantum.free_electron_gamma(N_CU_17), 0.505e-3) < 0.01
+
+
+def test_a_metal_fit_recovers_the_coefficients_of_a_noise_free_curve():
+    t = np.linspace(1.0, 6.0, 11)
+    rng = np.random.default_rng(0)
+    c = quantum.synthetic_metal_heat_capacity(t, 0.64e-3, 226.0, rng, noise=0.0)
+    fit = quantum.fit_metal_heat_capacity(t, c)
+    assert relative_error(fit.gamma, 0.64e-3) < 1e-10
+    assert relative_error(fit.debye_temperature, 226.0) < 1e-10
+
+
+def test_the_white_dwarf_radius_falls_as_the_cube_root_of_its_mass():
+    masses = np.array([0.4, 0.6, 0.8, 1.0]) * quantum.SOLAR_MASS
+    radii = [quantum.white_dwarf(m).radius for m in masses]
+    assert abs(scaling_exponent(masses, radii) + 1 / 3) < 1e-12
+    sirius_b = quantum.white_dwarf(1.018 * quantum.SOLAR_MASS)
+    measured = 0.008098 * 6.957e8   # Bond et al. 2017
+    assert 1.0 < sirius_b.radius / measured < 1.5   # an estimate, too large by about a quarter
+    assert 0.5 < sirius_b.relativity < 1.0          # already close to relativistic
+
+
+def test_every_function_that_takes_a_spin_degeneracy_refuses_one_below_one():
+    """g_s = 2s + 1 counts spin states, so zero, negative and fractional values are refused
+    up front rather than surfacing as a division by zero or a misleading density error."""
+    calls = [
+        lambda g: quantum.ideal_quantum_gas(N_HE_17, 2.0, M_HE_17, "be", g),
+        lambda g: quantum.solve_mu(N_HE_17, 2.0, M_HE_17, "be", g),
+        lambda g: quantum.bec_tc(N_HE_17, M_HE_17, g),
+        lambda g: quantum.density_of_states_3d(1e-22, 1e-6, M_HE_17, g),
+        lambda g: quantum.count_box_states(1e-6, M_HE_17, 1e-30, g),
+        lambda g: quantum.smooth_state_count(1e-6, M_HE_17, 1e-30, g),
+        lambda g: quantum.fermi_wavevector(N_CU_17, g),
+        lambda g: quantum.fermi_energy(N_CU_17, M_E_17, g),
+        lambda g: quantum.fermi_gas_pressure(N_CU_17, M_E_17, g),
+    ]
+    for call in calls:
+        for bad in (0, -2, 1.5):
+            with pytest.raises(ValueError, match="spin_degeneracy must be a whole number"):
+                call(bad)
+        call(2)  # a legitimate value still goes through

@@ -32,10 +32,11 @@ from thermolab import (
     phases,
     potentials,
     processes,
+    quantum,
     radiation,
     sampling,
 )
-from thermolab.constants import N_A
+from thermolab.constants import AMU, N_A
 from thermolab.units import K_B_Q, Quantity
 from thermolab.validation import relative_error
 
@@ -840,3 +841,89 @@ def test_radiation_functions_return_plain_si_floats_and_shaped_arrays():
     temps = np.array([10.0, 100.0, 1000.0])
     assert radiation.debye_heat_capacity(temps, 300.0, N_A).shape == (3,)
     assert radiation.planck_u_nu(np.linspace(0, 1e15, 5), 3000.0).shape == (5,)
+
+
+# ---------------------------------------------------------------------------
+# Module 17: quantum statistics
+# ---------------------------------------------------------------------------
+
+HBAR_Q = Quantity(partition.H_BAR, "J*s")
+M_E_Q = Quantity(quantum.M_ELECTRON, "kg")
+M_HE_Q = Quantity(quantum.M_HELIUM4, "kg")
+N_CU_17 = 8.49e28   # copper's conduction electrons, one per atom [1/m^3]
+
+
+def test_the_fermi_energy_is_an_energy_and_degeneracy_pressure_a_pressure():
+    n = Quantity(N_CU_17, "1/m**3")
+    k_f = (3 * np.pi**2 * n) ** (1 / 3)
+    eps_f = HBAR_Q**2 * k_f**2 / (2 * M_E_Q)
+    assert k_f.check("1 / [length]")
+    assert eps_f.check("[energy]")
+    assert (eps_f / K_B_Q).check("[temperature]")
+    assert (HBAR_Q * k_f / M_E_Q).check("[length] / [time]")
+    pressure = 2 / 5 * n * eps_f
+    assert pressure.check("[pressure]")
+    m_e = quantum.M_ELECTRON
+    assert relative_error(quantum.fermi_energy(N_CU_17, m_e), eps_f.to("J").magnitude) < 1e-12
+    assert relative_error(quantum.fermi_gas_pressure(N_CU_17, m_e),
+                          pressure.to("Pa").magnitude) < 1e-12
+    assert relative_error(quantum.fermi_velocity(N_CU_17, m_e),
+                          (HBAR_Q * k_f / M_E_Q).to("m/s").magnitude) < 1e-12
+
+
+def test_the_condensation_temperature_is_a_temperature():
+    n = Quantity(2.2e28, "1/m**3")
+    t_c = 2 * np.pi * HBAR_Q**2 / (M_HE_Q * K_B_Q) * (n / quantum.ZETA_3_2) ** (2 / 3)
+    assert t_c.check("[temperature]")
+    assert relative_error(quantum.bec_tc(2.2e28, quantum.M_HELIUM4), t_c.to("K").magnitude) < 1e-12
+
+
+def test_the_density_of_states_counts_states_per_joule():
+    volume, eps = Quantity(1e-6, "m**3"), Quantity(1e-22, "J")
+    g = volume * (2 * M_HE_Q / HBAR_Q**2) ** 1.5 * eps**0.5 / (4 * np.pi**2)
+    assert g.check("1 / [energy]")
+    assert relative_error(quantum.density_of_states_3d(1e-22, 1e-6, quantum.M_HELIUM4),
+                          g.to("1/J").magnitude) < 1e-12
+
+
+def test_the_degeneracy_parameter_and_every_occupation_exponent_are_pure_numbers():
+    n, t = Quantity(2.2e28, "1/m**3"), Quantity(2.0, "K")
+    h = Quantity(radiation.PLANCK_H, "J*s")
+    lam = h / (2 * np.pi * M_HE_Q * K_B_Q * t) ** 0.5
+    assert lam.check("[length]")
+    assert (n * lam**3).check("[]")
+    assert relative_error(quantum.degeneracy_parameter(2.2e28, 2.0, quantum.M_HELIUM4),
+                          (n * lam**3).to("dimensionless").magnitude) < 1e-12
+    exponent = (Quantity(3e-23, "J") - Quantity(-1e-23, "J")) / (K_B_Q * t)
+    assert exponent.check("[]")
+
+
+def test_a_metals_electronic_coefficient_is_an_energy_per_mole_per_kelvin_squared():
+    t_f = Quantity(float(quantum.fermi_temperature(N_CU_17, quantum.M_ELECTRON)), "K")
+    gamma = np.pi**2 / 2 * Quantity(N_A, "1/mol") * K_B_Q / t_f
+    assert gamma.check("[energy] / [temperature]**2 / [substance]")
+    assert relative_error(quantum.free_electron_gamma(N_CU_17),
+                          gamma.to("J/mol/K**2").magnitude) < 1e-12
+
+
+def test_the_white_dwarf_radius_is_a_length():
+    mass = Quantity(quantum.SOLAR_MASS, "kg")
+    g = Quantity(quantum.GRAVITATIONAL_CONSTANT, "m**3/kg/s**2")
+    n_e = (0.5 * mass / Quantity(AMU, "kg")).to("dimensionless")
+    radius = HBAR_Q**2 / M_E_Q * (9 * np.pi / 4) ** (2 / 3) * n_e ** (5 / 3) / (g * mass**2)
+    assert radius.check("[length]")
+    assert relative_error(quantum.white_dwarf(quantum.SOLAR_MASS).radius,
+                          radius.to("m").magnitude) < 1e-12
+
+
+def test_quantum_functions_return_plain_si_floats_and_shaped_arrays():
+    t = 300.0
+    assert isinstance(quantum.bose_einstein(1e-20, 0.0, t), float)
+    assert isinstance(quantum.fermi_dirac(1e-20, 0.0, t), float)
+    assert isinstance(quantum.fermi_energy(N_CU_17, quantum.M_ELECTRON), float)
+    assert isinstance(quantum.solve_mu(1e25, t, quantum.M_HELIUM4, "be"), float)
+    assert isinstance(quantum.occupation_integral(-1.0, "fd"), float)
+    eps = np.linspace(1e-21, 1e-19, 7)
+    for statistics in quantum.STATISTICS:
+        assert quantum.occupation(eps, -1e-21, t, statistics).shape == (7,)
+    assert quantum.condensate_fraction(np.array([0.1, 0.5, 2.0]), 1.0).shape == (3,)
