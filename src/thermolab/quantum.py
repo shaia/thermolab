@@ -129,6 +129,13 @@ def _check_statistics(statistics: str) -> None:
         raise ValueError(f"statistics must be one of {STATISTICS}, got {statistics!r}")
 
 
+def _check_spin(spin_degeneracy) -> None:
+    """g_s = 2s + 1 counts spin states: a whole number, at least one. Every public function
+    that takes it checks it here, so a zero or negative value never reaches a division."""
+    if spin_degeneracy < 1 or int(spin_degeneracy) != spin_degeneracy:
+        raise ValueError("spin_degeneracy must be a whole number, at least 1")
+
+
 def _positive(name: str, value) -> np.ndarray:
     array = np.asarray(value, dtype=float)
     if np.any(array <= 0):
@@ -327,6 +334,7 @@ def count_box_states(side: float, mass: float, eps_max: float, spin_degeneracy: 
     overshoots by the states it pretends lie on the octant's faces, a relative error of order
     1 / |n|.
     """
+    _check_spin(spin_degeneracy)
     radius = math.sqrt(eps_max / box_level_unit(side, mass)) if eps_max > 0 else 0.0
     n_top = int(math.floor(radius))
     if n_top > 4000:
@@ -342,6 +350,7 @@ def count_box_states(side: float, mass: float, eps_max: float, spin_degeneracy: 
 def smooth_state_count(side: float, mass: float, eps_max: float, spin_degeneracy: int = 1) -> float:
     """The continuum count N(eps) = g_s V (2 m eps / hbar^2)^(3/2) / (6 pi^2) that
     `count_box_states` tests."""
+    _check_spin(spin_degeneracy)
     if side <= 0 or mass <= 0 or eps_max < 0:
         raise ValueError("side and mass must be positive and eps_max non-negative")
     return spin_degeneracy * side**3 * (2.0 * mass * eps_max / H_BAR**2) ** 1.5 / (6.0 * math.pi**2)
@@ -353,8 +362,9 @@ def density_of_states_3d(eps, volume: float, mass: float, spin_degeneracy: int =
     The derivative of `smooth_state_count`. The spin degeneracy is an explicit argument, never
     a hidden factor: 1 for spinless bosons such as helium-4, 2 for electrons.
     """
-    if volume <= 0 or mass <= 0 or spin_degeneracy < 1:
-        raise ValueError("volume and mass must be positive, spin_degeneracy at least 1")
+    _check_spin(spin_degeneracy)
+    if volume <= 0 or mass <= 0:
+        raise ValueError("volume and mass must be positive")
     eps = np.asarray(eps, dtype=float)
     if np.any(eps < 0):
         raise ValueError("eps must be non-negative")
@@ -515,8 +525,7 @@ def solve_mu(number_density: float, temperature: float, mass: float, statistics:
     eps_F as T -> 0.
     """
     t = float(_positive("temperature", temperature))
-    if spin_degeneracy < 1:
-        raise ValueError("spin_degeneracy must be at least 1")
+    _check_spin(spin_degeneracy)
     reduced = float(degeneracy_parameter(number_density, t, mass)) / spin_degeneracy
     return K_B * t * solve_eta(reduced, statistics, n_points)
 
@@ -560,6 +569,7 @@ def ideal_quantum_gas(number_density: float, temperature: float, mass: float, st
     C_V / (N k_B) = (15/4) g_s zeta(5/2) / (n lambda^3).
     """
     _check_statistics(statistics)
+    _check_spin(spin_degeneracy)
     t = float(_positive("temperature", temperature))
     d = float(degeneracy_parameter(number_density, t, mass))
     eta = solve_eta(d / spin_degeneracy, statistics, n_points)
@@ -593,8 +603,9 @@ def bec_tc(number_density: float, mass: float, spin_degeneracy: int = 1) -> floa
     Where n lambda^3 reaches g_s zeta(3/2): the temperature at which the excited states,
     filled to capacity, just hold every particle.
     """
-    if number_density <= 0 or mass <= 0 or spin_degeneracy < 1:
-        raise ValueError("number_density and mass must be positive, spin_degeneracy at least 1")
+    _check_spin(spin_degeneracy)
+    if number_density <= 0 or mass <= 0:
+        raise ValueError("number_density and mass must be positive")
     return (2.0 * math.pi * H_BAR**2 / (mass * K_B)
             * (number_density / (spin_degeneracy * ZETA_3_2)) ** (2.0 / 3.0))
 
@@ -679,6 +690,7 @@ def finite_box_condensate_fraction(n_particles: int, t_over_tc, x_cut: float = 3
 
 def fermi_wavevector(number_density, spin_degeneracy: int = 2):
     """k_F = (6 pi^2 n / g_s)^(1/3) [1/m]: (3 pi^2 n)^(1/3) for electrons."""
+    _check_spin(spin_degeneracy)
     n = _positive("number_density", number_density)
     return _as_float_or_array((6.0 * math.pi**2 * n / spin_degeneracy) ** (1.0 / 3.0))
 

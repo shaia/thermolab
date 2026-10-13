@@ -2680,3 +2680,24 @@ def test_the_white_dwarf_radius_falls_as_the_cube_root_of_its_mass():
     measured = 0.008098 * 6.957e8   # Bond et al. 2017
     assert 1.0 < sirius_b.radius / measured < 1.5   # an estimate, too large by about a quarter
     assert 0.5 < sirius_b.relativity < 1.0          # already close to relativistic
+
+
+def test_every_function_that_takes_a_spin_degeneracy_refuses_one_below_one():
+    """g_s = 2s + 1 counts spin states, so zero, negative and fractional values are refused
+    up front rather than surfacing as a division by zero or a misleading density error."""
+    calls = [
+        lambda g: quantum.ideal_quantum_gas(N_HE_17, 2.0, M_HE_17, "be", g),
+        lambda g: quantum.solve_mu(N_HE_17, 2.0, M_HE_17, "be", g),
+        lambda g: quantum.bec_tc(N_HE_17, M_HE_17, g),
+        lambda g: quantum.density_of_states_3d(1e-22, 1e-6, M_HE_17, g),
+        lambda g: quantum.count_box_states(1e-6, M_HE_17, 1e-30, g),
+        lambda g: quantum.smooth_state_count(1e-6, M_HE_17, 1e-30, g),
+        lambda g: quantum.fermi_wavevector(N_CU_17, g),
+        lambda g: quantum.fermi_energy(N_CU_17, M_E_17, g),
+        lambda g: quantum.fermi_gas_pressure(N_CU_17, M_E_17, g),
+    ]
+    for call in calls:
+        for bad in (0, -2, 1.5):
+            with pytest.raises(ValueError, match="spin_degeneracy must be a whole number"):
+                call(bad)
+        call(2)  # a legitimate value still goes through
