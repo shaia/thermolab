@@ -23,7 +23,8 @@ $\int_0^\infty x^{3/2}(e^x - 1)^{-1}\,\mathrm{d}x = (3\sqrt{\pi}/4) \times 1.341
 
 (a) List every state of three particles in two single-particle states for classical (labelled)
 particles, identical bosons and identical fermions. If all states are equally likely, what is the
-probability that all three particles are in the same state, in each case?
+probability that all three particles are in the same state, for classical particles and for
+bosons? What does the count for fermions tell you?
 
 (b) Show that $N$ identical bosons can be arranged in $M$ single-particle states in
 $\binom{M+N-1}{N}$ ways and $N$ fermions in $\binom{M}{N}$ ways. Show that for $M \gg N$ both
