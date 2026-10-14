@@ -1,0 +1,41 @@
+# NOTE: byte-identical copies at notebooks/{en,he}/labs/data/18-perrin-projections.csv --
+# JupyterLite only bundles the notebooks/ tree (jupyter_lite_config.json: "contents":
+# ["notebooks"]), so each language's laboratory notebook needs its own co-located copy to
+# run in the browser. Keep all three in sync -- scripts/check_parity.py enforces it.
+#
+# Brownian displacements of gamboge granules, radius 0.212 micrometres, in water: how many
+# horizontal projections of the displacement in 30 seconds fell between successive
+# multiples of 1.7 micrometres ("multiples of 1.7 mu which correspond to 5 mm. of the
+# squared paper"), with the number Perrin calculated from the Gaussian law for each.
+#
+# Copied, digit for digit, from the table in J. Perrin, "Mouvement brownien et realite
+# moleculaire", Annales de Chimie et de Physique, 8e serie, 18, 5-114 (1909), p. 82, and
+# checked against the English translation by F. Soddy, "Brownian Movement and Molecular
+# Reality" (Taylor and Francis, London, 1910), p. 65, and against Perrin's "Les Atomes"
+# (Alcan, Paris, 1913), p. 168. All three agree. Public domain.
+#
+# Measured by M. Chaudesaigues, who "has made this calculation, relatively to an arbitrary
+# horizontal axis, for the displacements suffered in 30 seconds by the granules of gamboge"
+# of the two series of the memoir's No. 29 (p. 77; Soddy pp. 59-61): two series of 50
+# granules, each dotted in the camera lucida every 30 seconds for 2 minutes, "the viscosity
+# being 0.011 for the first series (water at 17 deg) and 0.012 for the second" (poise).
+# The temperature of the second series is not stated.
+#
+# The bins start at zero, so the table counts the size of each projection, |x|, without its
+# sign; that reading is ours, consistent with each series' total (221 and 205) being close
+# to the number of displacements observed. On p. 77 Perrin gives, for the same two series at
+# 30 s, xi^2 = 50.2 and 45 (x 10^-8 cm^2, i.e. square micrometres) and N = 66 and 68 x 10^22.
+#
+# Columns: lower and upper edge of |x| [micrometres]; first series found, calculated;
+# second series found, calculated.
+low_um,high_um,first_found,first_calc,second_found,second_calc
+0.0,1.7,38,48,48,44
+1.7,3.4,44,43,38,40
+3.4,5.1,33,40,36,35
+5.1,6.8,33,30,29,28
+6.8,8.5,35,23,16,21
+8.5,10.2,11,16,15,15
+10.2,11.9,14,11,8,10
+11.9,13.6,6,6,7,5
+13.6,15.3,5,4,4,4
+15.3,17.0,2,2,4,2

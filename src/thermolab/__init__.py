@@ -24,6 +24,7 @@ Modules:
     radiation            Planck's law, the photon gas, and the Einstein and Debye solids
     quantum              identical particles: Bose-Einstein and Fermi-Dirac gases, BEC, metals
     processes            the named process families, heat capacities, and irreversible change
+    transport            fluctuations at work: diffusion, Green-Kubo, viscosity, Perrin's atoms
     multiplicity         microstate counting, entropy, and why equilibrium wins
     validation           the reusable accuracy checks (seeds, convergence, scaling)
 """
@@ -49,6 +50,7 @@ from . import (
     quantum,
     radiation,
     sampling,
+    transport,
     units,
     validation,
 )
@@ -78,6 +80,7 @@ __all__ = [
     "quantum",
     "radiation",
     "sampling",
+    "transport",
     "units",
     "validation",
 ]

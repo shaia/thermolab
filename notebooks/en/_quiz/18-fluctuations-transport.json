@@ -1,0 +1,240 @@
+[
+  {
+    "question": "A simulation of a small crystal in contact with a heat bath records its total energy, and the energy scatters by about 2% from sample to sample. A colleague proposes running the simulation ten times longer to make the scatter go away. What will the longer run do?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "The scatter stays at about 2%; what shrinks, by about sqrt(10), is the uncertainty of the mean energy and of the scatter itself.",
+        "correct": true,
+        "feedback": "Right. The scatter is sigma_E = sqrt(k_B T^2 C_V), a property of a crystal on a bath: module 12's identity. More samples measure it more precisely -- the standard error of the mean energy falls as one over the square root of the number of samples -- but they do not change it. In the laboratory, a thousandfold longer run left sigma_E at 8.80 gap while the error of the mean fell thirtyfold. The scatter is a heat-capacity measurement, not an error."
+      },
+      {
+        "answer": "The scatter falls by about sqrt(10), because random errors average out as one over the square root of the number of samples.",
+        "correct": false,
+        "feedback": "That is true of the uncertainty of the mean, not of the scatter. The standard deviation of the samples is a property of the distribution they are drawn from; the standard error of their average is that deviation divided by sqrt(n). The distribution here is the canonical one, whose width is sqrt(k_B T^2 C_V) however long it is sampled."
+      },
+      {
+        "answer": "The scatter falls by about a factor of 10, since ten times as many samples are averaged.",
+        "correct": false,
+        "feedback": "Averaging shrinks the uncertainty of an average as one over the square root of the number of samples, not as one over the number -- and in any case the scatter of the individual samples is not an average at all. It stays at sqrt(k_B T^2 C_V)."
+      },
+      {
+        "answer": "The scatter grows, because a longer run accumulates more rounding error.",
+        "correct": false,
+        "feedback": "Rounding error in a sampler like this one is about one part in 10^16 per number and does not accumulate into a 2% scatter. The scatter is physical: draw the same crystal with its energy fixed (microcanonically) and it vanishes; put it on a bath and it returns, at exactly the size its heat capacity fixes."
+      }
+    ]
+  },
+  {
+    "question": "One thousand independent two-level systems with gap Delta = 1.0e-21 J sit on a heat bath at T = 30.4 K. Their total energy is sampled many times and has a standard deviation of 8.80 Delta. What heat capacity per system does this imply, in units of k_B? (Give two decimal places.)",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          0.43,
+          0.45
+        ],
+        "correct": true,
+        "feedback": "C_V = sigma_E^2/(k_B T^2) = (8.80e-21 J)^2 / (1.381e-23 J/K x 30.4^2 K^2) = 7.74e-41 / 1.276e-20 = 6.07e-21 J/K for the thousand, or 0.44 k_B per system. Module 12's closed form at Delta/(k_B T) = 2.38 gives k_B x^2 e^x/(e^x + 1)^2 = 0.439 k_B: near the top of the Schottky peak, measured from one temperature with nothing heated."
+      }
+    ]
+  },
+  {
+    "question": "A canonical system of N independent subsystems has a relative energy fluctuation sigma_E/<E>. You double N at the same temperature. What happens to sigma_E/<E>, and what does that say about the canonical and microcanonical descriptions of a macroscopic body?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "It falls by a factor sqrt(2) -- sigma_E grows as sqrt(N) while <E> grows as N -- so for macroscopic N the energy is sharp and the two descriptions agree.",
+        "correct": true,
+        "feedback": "Right. Var(E) = k_B T^2 C_V and C_V is extensive, so sigma_E grows as N^(1/2) while <E> grows as N: the ratio goes as N^(-1/2). For a mole of two-level systems at k_B T = Delta it is 2e-12, and no measurement can tell an energy fixed exactly from one that fluctuates by a part in 10^12. That is the equivalence of ensembles."
+      },
+      {
+        "answer": "It halves, because the fluctuations of independent subsystems cancel in proportion to their number.",
+        "correct": false,
+        "feedback": "Independent fluctuations do not cancel in proportion to their number; their variances add. N subsystems have N times the variance, so sigma_E grows as sqrt(N), and the ratio to <E> falls as N^(-1/2): by sqrt(2) when N doubles, not by 2."
+      },
+      {
+        "answer": "It does not change -- both sigma_E and <E> are proportional to N.",
+        "correct": false,
+        "feedback": "<E> is proportional to N, but sigma_E is not: it is the variance that adds. If sigma_E grew in proportion to N, the relative fluctuation of a macroscopic body would be as large as that of a single molecule, and no thermometer would ever settle."
+      },
+      {
+        "answer": "It grows by a factor sqrt(2), because a larger system has more energy to fluctuate.",
+        "correct": false,
+        "feedback": "The absolute fluctuation sigma_E does grow, by sqrt(2). The relative one falls, because <E> doubles. Large bodies look steady because the relative fluctuation is what an instrument sees."
+      }
+    ]
+  },
+  {
+    "question": "A layer of dye at the bottom of a tall jar of set gelatin, in which nothing can flow, has one day after it was laid down coloured the gelatin up to 1 cm above the layer. How long after it was laid down will the same shade reach 2 cm?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "4 days -- every feature of a diffusion front advances as sqrt(D t), so twice the distance takes four times as long.",
+        "correct": true,
+        "feedback": "Right. The dye-layer solution, c/c_0 = (1/2) erfc(x / (2 sqrt(D t))), depends on x and t only through x/sqrt(D t), so any contour of fixed shade sits at a fixed multiple of sqrt(D t). To double x, t must be multiplied by 4. In a jar of plain water the experiment rarely works: small temperature differences drive convection that carries the dye far faster. Gelatin stops the flow and leaves the diffusion."
+      },
+      {
+        "answer": "2 days -- the dye moves up at a steady 1 cm per day.",
+        "correct": false,
+        "feedback": "Nothing in diffusion moves at a steady speed. A dye molecule does move fast -- over a hundred metres per second -- but its velocity is forgotten after about 1e-13 s, so its displacements add like a random walk's, as sqrt(t). The front decelerates: it covered the first centimetre in a day and needs three more days for the second."
+      },
+      {
+        "answer": "About 1.4 days -- a diffusion front advances as t^2, faster and faster.",
+        "correct": false,
+        "feedback": "Spreading as t^2 is ballistic motion, which a molecule shows only for times shorter than its memory of its velocity -- about 1e-13 s in water. Over days the mean squared displacement grows as t, and distances as sqrt(t)."
+      },
+      {
+        "answer": "8 days -- the volume to be filled grows as the cube of the distance.",
+        "correct": false,
+        "feedback": "The jar is a one-dimensional problem: the dye spreads upward from a layer that fills the whole cross-section. Even for a point source in three dimensions the width of the cloud grows as sqrt(6 D t), so doubling a distance still takes four times as long."
+      }
+    ]
+  },
+  {
+    "question": "On a log-log plot, the mean squared displacement of tracer particles has slope 2 at short times and slope 1 at long times. What does this tell you?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "At short times the tracers move ballistically, x = v t, keeping their velocities; at long times their velocities have been randomised and they diffuse, <x^2> = 2 D t.",
+        "correct": true,
+        "feedback": "Right. <x^2> = <v^2> t^2 while a velocity is remembered, slope 2; long after, the displacement is a sum of many independent pieces and grows as 2 D t, slope 1. The crossover marks the memory time -- for a gas, the time between collisions. The laboratory's persistent walkers show both regimes in one curve."
+      },
+      {
+        "answer": "The tracers move twice as fast at short times as at long times.",
+        "correct": false,
+        "feedback": "A slope on a log-log plot is an exponent, not a speed. Slope 2 means <x^2> grows as t^2, slope 1 that it grows as t. The tracers' speed does not change at all; what changes is whether their successive displacements are correlated."
+      },
+      {
+        "answer": "At long times the tracers have slowed to a constant speed, because x grows linearly in t.",
+        "correct": false,
+        "feedback": "Slope 1 means <x^2> grows linearly in t, so x itself grows as sqrt(t) -- no constant speed. Steady-speed motion would give slope 2, the short-time regime."
+      },
+      {
+        "answer": "The slope-2 part is a numerical artefact of having too few tracers.",
+        "correct": false,
+        "feedback": "Too few tracers make the curve noisy, not steeper. Slope 2 at short times is physics: over times shorter than its velocity memory a particle simply flies. It is the regime module 04's collisionless gas never leaves until it reaches a wall."
+      }
+    ]
+  },
+  {
+    "question": "Treat nitrogen molecules as hard spheres of diameter d = 0.31 nm. At 0 C and one atmosphere the number density is n = 2.69e25 per cubic metre. Using lambda = 1/(sqrt(2) n sigma) with sigma = pi d^2, what is the mean free path, in nanometres?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          82,
+          92
+        ],
+        "correct": true,
+        "feedback": "sigma = pi (0.31e-9 m)^2 = 3.02e-19 m^2, so lambda = 1/(1.414 x 2.69e25 x 3.02e-19) = 8.7e-8 m = 87 nm: about 280 molecular diameters and 26 mean spacings. With a mean speed of 454 m/s the collision rate is vbar/lambda = 5.2e9 per second. The diameter here comes from the van der Waals b, which module 02 obtained from the critical point; a diameter inferred from viscosity is about 20% larger, which is the honest size of the uncertainty."
+      }
+    ]
+  },
+  {
+    "question": "A sealed container of nitrogen at room temperature and one atmosphere is pumped down to half an atmosphere, at the same temperature. What happens to the gas's viscosity?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "It stays the same -- half as many molecules carry momentum, but each flies twice as far between collisions.",
+        "correct": true,
+        "feedback": "Right. eta = (1/3) n m vbar lambda and lambda = 1/(sqrt(2) n sigma), so the density cancels: eta = m vbar/(3 sqrt(2) sigma). Maxwell predicted this in 1860 and confirmed it with swinging discs in 1866; NIST's reference data for nitrogen at 300 K change by less than 1% between 1 kPa and 1 MPa. It fails only when the mean free path becomes comparable with the container, in a vacuum."
+      },
+      {
+        "answer": "It halves -- with half as many molecules there is half as much to rub.",
+        "correct": false,
+        "feedback": "Gas viscosity is not rubbing. It is momentum carried across a plane by molecules flying from a faster layer to a slower one. Halving their number halves the carriers but doubles the distance each flies, so each brings twice the momentum difference. The two effects cancel exactly in the dilute gas."
+      },
+      {
+        "answer": "It doubles -- the molecules fly twice as far between collisions.",
+        "correct": false,
+        "feedback": "The mean free path does double, but there are half as many molecules to fly it. The viscosity is the product of the two, and it does not change."
+      },
+      {
+        "answer": "It falls by a factor sqrt(2), like the mean speed of a gas whose density is halved.",
+        "correct": false,
+        "feedback": "The mean speed of the molecules depends on the temperature alone, vbar = sqrt(8 k_B T/(pi m)), not on the density. At fixed temperature nothing in eta = m vbar/(3 sqrt(2) sigma) changes."
+      }
+    ]
+  },
+  {
+    "question": "Every transport coefficient in this module assumes local equilibrium. Where does that description fail first?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "Where the temperature, density or flow speed changes appreciably over a mean free path -- the Knudsen number lambda/L is not small, as in a vacuum chamber, a nanometre pore or a shock wave.",
+        "correct": true,
+        "feedback": "Right. A parcel of gas has a temperature only if its molecules collide many times before meeting any appreciable change. When lambda/L is not small, molecules fly from wall to wall carrying conditions from far away, and viscosity and conductivity stop being properties of the gas. At 1e-4 Pa the mean free path of nitrogen is about a hundred metres, larger than any vacuum chamber."
+      },
+      {
+        "answer": "At low temperature, because the molecules move too slowly to carry anything.",
+        "correct": false,
+        "feedback": "Slow molecules still collide, and a cold dilute gas still has local equilibrium as long as its mean free path is short compared with its gradients. Cold matters only when quantum effects set in (module 17), which is a different failure."
+      },
+      {
+        "answer": "At high density, because then the molecules collide too often to carry anything.",
+        "correct": false,
+        "feedback": "Frequent collisions are what local equilibrium needs. A dense gas or a liquid is closer to local equilibrium, not further. What fails at high density is the dilute-gas estimate of the coefficients themselves -- molecules no longer fly freely between collisions -- not the assumption that each parcel has a temperature."
+      },
+      {
+        "answer": "Whenever there is any gradient at all, since a system with a gradient is not in equilibrium.",
+        "correct": false,
+        "feedback": "The whole system is not in equilibrium, but each small parcel can be, very nearly. That is the content of local equilibrium, and it holds whenever the gradients are gentle on the scale of a mean free path -- which at room conditions is 0.1 micrometre."
+      }
+    ]
+  },
+  {
+    "question": "Two spherical beads, one twice the radius of the other, wander in the same water at the same temperature. How do their diffusion coefficients compare?",
+    "type": "multiple_choice",
+    "answers": [
+      {
+        "answer": "The larger bead's D is half the smaller one's -- the drag 6 pi eta a doubles, and D = k_B T / zeta.",
+        "correct": true,
+        "feedback": "Right. The Einstein relation ties D to the friction coefficient, D = k_B T/zeta, and Stokes drag makes zeta proportional to the radius. The mass, which grows eightfold, does not enter: a heavier bead remembers its velocity longer but has a smaller thermal velocity, and the two compensate exactly."
+      },
+      {
+        "answer": "The larger bead's D is an eighth of the smaller one's, since it is eight times as heavy.",
+        "correct": false,
+        "feedback": "Mass cancels out of D. Green-Kubo gives D = <v_x^2> tau_c with <v_x^2> = k_B T/m and tau_c = m/zeta: the heavier bead moves more slowly but keeps its velocity longer. Only the drag remains, and it grows as the radius."
+      },
+      {
+        "answer": "They are the same -- D depends only on the temperature.",
+        "correct": false,
+        "feedback": "The temperature sets the size of the kicks, but how far a kick carries a bead depends on how strongly the water resists it: D = k_B T/zeta, with zeta = 6 pi eta a."
+      },
+      {
+        "answer": "The larger bead's D is a quarter of the smaller one's, since the drag on a sphere grows as its cross-sectional area.",
+        "correct": false,
+        "feedback": "For slow, smooth flow -- which a micrometre bead in water is, by a factor of a million -- Stokes drag grows as the radius, not as the area. Drag proportional to the area is the fast, turbulent regime of a falling raindrop."
+      }
+    ]
+  },
+  {
+    "question": "A bead of radius 0.50 micrometres in water of viscosity 1.00e-3 Pa s at 293 K is tracked, and its displacements along one axis over 30 s have a mean square of 25.8 square micrometres. Using the Stokes-Einstein relation and R = 8.314 J/(mol K), what value of Avogadro's number does this imply, in units of 1e23 per mole? (One decimal place.)",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          5.85,
+          6.15
+        ],
+        "correct": true,
+        "feedback": "D = <x^2>/(2t) = 25.8e-12 m^2 / 60 s = 4.30e-13 m^2/s. Then k_B = 6 pi eta a D/T = 9.42e-9 kg/s x 4.30e-13 m^2/s / 293 K = 1.38e-23 J/K, and N_A = R/k_B = 6.0e23 per mole. Perrin did this with gamboge grains in 1908-1909 and found values near 7e23; the gas constant came from balances and pressure gauges, so the beads weighed a molecule."
+      }
+    ]
+  },
+  {
+    "question": "A walker steps +/-l every tau. With probability q = 0.5 it repeats its previous step, and otherwise it takes a fresh step, left or right with equal probability (module 03's persistent walk). By what factor is its diffusion coefficient larger than the independent-step value l^2/(2 tau)?",
+    "type": "numeric",
+    "answers": [
+      {
+        "range": [
+          2.95,
+          3.05
+        ],
+        "correct": true,
+        "feedback": "Its velocity is correlated with the one k steps later by q^k (a fresh step is uncorrelated with everything before it), so the Green-Kubo sum is tau (l/tau)^2 (1/2 + q + q^2 + ...) = (l^2/(2 tau)) (1 + q)/(1 - q) = 3 l^2/(2 tau). The formula l^2/(2 tau) assumed independent steps; with memory it is wrong by exactly the factor module 03 found in the persistent walk's variance."
+      }
+    ]
+  }
+]

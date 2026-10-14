@@ -30,6 +30,7 @@ from thermolab import (
     quantum,
     radiation,
     sampling,
+    transport,
 )
 from thermolab.constants import K_B
 from thermolab.validation import relative_error
@@ -919,3 +920,60 @@ def test_the_heat_capacity_is_the_temperature_derivative_of_the_energy():
                              for temperature in (t + step, t - step, t))
             numeric = (up.energy_per_particle - down.energy_per_particle) / (2 * step)
             assert relative_error(numeric, gas.heat_capacity_per_particle) < 1e-6
+
+
+# ---------------------------------------------------------------------------
+# Module 18: fluctuations and transport
+# ---------------------------------------------------------------------------
+
+
+def test_the_box_gas_trace_is_module_04s_dynamics_and_conserves_every_speed():
+    """Recording the trace step by step changes nothing: same final state, same energy."""
+    rng = np.random.default_rng(18)
+    mass = 39.948 * 1.66053906660e-27
+    state = kinetics.initialise_gas(60, (1e-6, 2e-6), 300.0, mass, rng)
+    dt = kinetics.max_stable_dt(state)
+    positions, velocities = transport.box_gas_trace(state, dt, 300)
+    # Specular walls only flip signs, so every velocity component keeps its magnitude exactly.
+    assert np.array_equal(np.abs(velocities), np.broadcast_to(np.abs(velocities[0]),
+                                                               velocities.shape))
+    assert np.all((positions >= 0.0) & (positions <= state.box))
+    one_run = kinetics.simulate(state, dt, 300).final_state
+    assert np.allclose(positions[-1], one_run.positions, rtol=1e-12, atol=0.0)
+    assert np.array_equal(velocities[-1], one_run.velocities)
+
+
+def test_every_walker_counts_exactly_once_in_the_mean_squared_displacement():
+    rng = np.random.default_rng(1801)
+    a = transport.walker_trajectories(300, 60, 1.0, rng)
+    b = transport.walker_trajectories(700, 60, 1.0, rng, persistence=0.5)
+    joined = transport.msd(np.vstack([a, b]))
+    assert np.allclose(joined, (300 * transport.msd(a) + 700 * transport.msd(b)) / 1000,
+                       rtol=1e-13, atol=0.0)
+    # More walkers than one internal block: still each one counted once, from its own start.
+    big = transport.walker_trajectories(2500, 30, 1.0, rng) + rng.normal(size=(2500, 1))
+    direct = np.mean((big - big[:, :1]) ** 2, axis=0)
+    assert np.allclose(transport.msd(big), direct, rtol=1e-12, atol=0.0)
+
+
+def test_a_spreading_cloud_keeps_every_walker_and_a_spreading_layer_all_its_dye():
+    d = 2.0e-9
+    for t in (1.0, 30.0, 900.0):
+        width = np.sqrt(2 * d * t)
+        x = np.linspace(-15 * width, 15 * width, 60_001)
+        assert abs(np.trapezoid(transport.diffusion_greens_function(x, t, d), x) - 1) < 1e-10
+        # What leaves the layer (x < 0) arrives in the clear water (x > 0), and nothing else.
+        half = np.linspace(0.0, 15 * width, 60_001)
+        arrived = np.trapezoid(transport.step_profile(half, t, d), half)
+        left = np.trapezoid(1 - transport.step_profile(-half, t, d), half)
+        assert relative_error(arrived, left) < 1e-10
+
+
+def test_the_heat_capacity_from_fluctuations_ignores_where_zero_energy_is():
+    """Var(E) is blind to a constant shift of every energy, so C_V must be too."""
+    rng = np.random.default_rng(1802)
+    energies = transport.two_level_energy_samples(500, 1e-21, 60.0, 4000, rng)
+    plain = transport.energy_fluctuation_cv(energies, 60.0)
+    shifted = transport.energy_fluctuation_cv(energies + 1e-19, 60.0)
+    assert relative_error(shifted.value, plain.value) < 1e-6
+    assert relative_error(shifted.error, plain.error) < 1e-4

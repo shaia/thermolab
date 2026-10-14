@@ -35,6 +35,7 @@ from thermolab import (
     quantum,
     radiation,
     sampling,
+    transport,
 )
 from thermolab.constants import AMU, N_A
 from thermolab.units import K_B_Q, Quantity
@@ -927,3 +928,96 @@ def test_quantum_functions_return_plain_si_floats_and_shaped_arrays():
     for statistics in quantum.STATISTICS:
         assert quantum.occupation(eps, -1e-21, t, statistics).shape == (7,)
     assert quantum.condensate_fraction(np.array([0.1, 0.5, 2.0]), 1.0).shape == (3,)
+
+
+# ---------------------------------------------------------------------------
+# Module 18: fluctuations and transport
+# ---------------------------------------------------------------------------
+
+M_N2_18 = 28.0134 * AMU
+N_STP_18 = 101325.0 / (1.380649e-23 * 273.15)   # number density at 0 C and one atmosphere [1/m^3]
+SIGMA_N2_18 = np.pi * (3.7e-10) ** 2            # hard-sphere cross-section [m^2]
+R_GAS_Q = Quantity(8.314462618, "J/(mol*K)")
+
+
+def test_a_random_walks_diffusion_coefficient_is_an_area_per_time():
+    step, tau = Quantity(1e-7, "m"), Quantity(1e-10, "s")
+    d = step**2 / (2 * tau)
+    assert d.check("[length]**2 / [time]")
+    assert relative_error(transport.persistent_walk_d(1e-7, 1e-10),
+                          d.to("m**2/s").magnitude) < 1e-12
+    x, t = Quantity(3e-6, "m"), Quantity(2e-3, "s")
+    exponent = x**2 / (4 * d * t)
+    assert exponent.check("[]")
+    density = (4 * np.pi * d * t) ** -0.5 * np.exp(-exponent.to("").magnitude)
+    assert density.check("1 / [length]")
+    assert relative_error(
+        transport.diffusion_greens_function(3e-6, 2e-3, d.to("m**2/s").magnitude),
+        density.to("1/m").magnitude) < 1e-12
+
+
+def test_the_mean_free_path_is_a_length_and_the_collision_rate_a_frequency():
+    n, sigma = Quantity(N_STP_18, "1/m**3"), Quantity(SIGMA_N2_18, "m**2")
+    m, t = Quantity(M_N2_18, "kg"), Quantity(273.15, "K")
+    path = 1 / (np.sqrt(2) * n * sigma)
+    vbar = (8 * K_B_Q * t / (np.pi * m)) ** 0.5
+    rate = vbar / path
+    assert path.check("[length]")
+    assert vbar.check("[length] / [time]")
+    assert rate.check("1 / [time]")
+    assert relative_error(kinetics.mean_free_path(N_STP_18, SIGMA_N2_18),
+                          path.to("m").magnitude) < 1e-12
+    assert relative_error(kinetics.mean_speed(273.15, M_N2_18), vbar.to("m/s").magnitude) < 1e-12
+    assert relative_error(kinetics.collision_rate(N_STP_18, SIGMA_N2_18, 273.15, M_N2_18),
+                          rate.to("1/s").magnitude) < 1e-12
+
+
+def test_the_transport_trio_has_the_units_of_a_diffusivity_a_viscosity_and_a_conductivity():
+    n, sigma = Quantity(N_STP_18, "1/m**3"), Quantity(SIGMA_N2_18, "m**2")
+    m, t = Quantity(M_N2_18, "kg"), Quantity(273.15, "K")
+    path = 1 / (np.sqrt(2) * n * sigma)
+    vbar = (8 * K_B_Q * t / (np.pi * m)) ** 0.5
+    d = vbar * path / 3
+    eta = n * m * d
+    kappa = n * (2.5 * K_B_Q) * d
+    assert d.check("[length]**2 / [time]")
+    assert eta.check("[pressure] * [time]")
+    assert kappa.check("[power] / [length] / [temperature]")
+    est = transport.kinetic_estimates(N_STP_18, 273.15, M_N2_18, SIGMA_N2_18, 2.5 * 1.380649e-23)
+    assert relative_error(est.diffusion, d.to("m**2/s").magnitude) < 1e-12
+    assert relative_error(est.viscosity, eta.to("Pa*s").magnitude) < 1e-12
+    assert relative_error(est.thermal_conductivity, kappa.to("W/(m*K)").magnitude) < 1e-12
+
+
+def test_a_heat_capacity_read_off_the_noise_is_an_energy_per_kelvin():
+    energies = np.array([0.0, 2e-21, 1e-21, 3e-21])
+    variance = Quantity(float(np.var(energies, ddof=1)), "J**2")
+    temperature = Quantity(300.0, "K")
+    c = variance / (K_B_Q * temperature**2)
+    assert c.check("[energy] / [temperature]")
+    assert relative_error(transport.energy_fluctuation_cv(energies, 300.0).value,
+                          c.to("J/K").magnitude) < 1e-12
+
+
+def test_the_einstein_relation_gives_a_diffusivity_and_perrin_a_count_per_mole():
+    eta, a, t = Quantity(1.0e-3, "Pa*s"), Quantity(0.5e-6, "m"), Quantity(293.0, "K")
+    zeta = 6 * np.pi * eta * a
+    d = K_B_Q * t / zeta
+    assert zeta.check("[mass] / [time]")
+    assert d.check("[length]**2 / [time]")
+    n_a = R_GAS_Q * t / (zeta * d)
+    assert n_a.check("1 / [substance]")
+    d_si = d.to("m**2/s").magnitude
+    zeta_si = transport.stokes_friction(1e-3, 0.5e-6)
+    assert relative_error(zeta_si, zeta.to("kg/s").magnitude) < 1e-12
+    assert relative_error(transport.einstein_diffusion(293.0, zeta_si), d_si) < 1e-12
+    assert relative_error(transport.avogadro_from_diffusion(d_si, 293.0, 1e-3, 0.5e-6),
+                          n_a.to("1/mol").magnitude) < 1e-9
+
+
+def test_a_molecular_diameter_from_the_van_der_waals_b_is_a_length():
+    b = Quantity(6.4e-29, "m**3")
+    d = (3 * b / (2 * np.pi)) ** (1 / 3)
+    assert d.check("[length]")
+    assert relative_error(transport.diameter_from_vdw_b(6.4e-29), d.to("m").magnitude) < 1e-12
+    assert transport.knudsen_number(1e-7, 1e-3) == pytest.approx(1e-4, rel=1e-12)

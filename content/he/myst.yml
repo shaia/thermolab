@@ -58,6 +58,8 @@ project:
         - file: advanced/16-radiation-solids-problems.md
         - file: advanced/17-quantum-gases.md
         - file: advanced/17-quantum-gases-problems.md
+        - file: advanced/18-fluctuations-transport.md
+        - file: advanced/18-fluctuations-transport-problems.md
 site:
   template: book-theme
   options:

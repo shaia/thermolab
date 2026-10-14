@@ -118,8 +118,9 @@ phase equilibrium, phase transitions, radiation & solids, quantum statistics, fl
 transport). Currently built: orientation, thermal equilibrium, equations of state, probability
 & emergence, the microscopic origin of pressure, work & thermodynamic paths, thermodynamic
 processes, the second law & heat engines, entropy & multiplicity, the fundamental relation,
-thermodynamic potentials, statistical ensembles, partition functions, and the first five
-advanced modules, the chemical potential, phase coexistence, phase transitions (the Ising
-model), thermal radiation & the heat capacity of solids, and quantum statistics (Bose–Einstein
-and Fermi–Dirac gases) — plus two reference pages, the course conventions and a mathematics
-refresher.
+thermodynamic potentials, statistical ensembles, partition functions, and all six advanced
+modules, the chemical potential, phase coexistence, phase transitions (the Ising model),
+thermal radiation & the heat capacity of solids, quantum statistics (Bose–Einstein and
+Fermi–Dirac gases), and fluctuations & transport (diffusion, Green–Kubo, the transport
+coefficients of gases, Brownian motion) — plus two reference pages, the course conventions and
+a mathematics refresher.

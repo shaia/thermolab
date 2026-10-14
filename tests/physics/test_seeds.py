@@ -31,6 +31,7 @@ from thermolab import (
     quantum,
     radiation,
     sampling,
+    transport,
 )
 from thermolab.constants import K_B
 from thermolab.validation import scaling_exponent, seed_study
@@ -620,3 +621,76 @@ def test_a_metal_fit_to_noisy_synthetic_data_recovers_gamma_across_seeds():
     # The error bar each fit reports describes the scatter that fits actually show.
     scatter = float(np.std(study.values, ddof=1))
     assert 0.5 < float(np.mean(reported)) / scatter < 2.0
+
+
+# ---------------------------------------------------------------------------
+# Module 18: fluctuations and transport
+# ---------------------------------------------------------------------------
+#
+# Every walker is random, so every D is a measurement. A seed study asks of each of the three
+# estimators what the laboratory relies on: does it find the D that was put in, does the error
+# bar it reports describe the scatter it really has, and do the three agree with one another.
+
+
+def _three_estimates(rng: np.random.Generator, persistence: float):
+    x = transport.walker_trajectories(2000, 400, 1.0, rng, persistence=persistence)
+    return (transport.d_from_msd(x, 1.0),
+            transport.d_from_histogram(x, 1.0, lattice=2.0),
+            transport.d_from_vacf(transport.walker_velocities(x, 1.0), 1.0))
+
+
+@pytest.mark.parametrize("which", [0, 1, 2], ids=["msd", "histogram", "vacf"])
+def test_each_estimator_of_d_finds_the_input_across_seeds(which):
+    q = 0.5
+    exact = transport.persistent_walk_d(1.0, 1.0, q)
+    study = seed_study(lambda rng: _three_estimates(rng, q)[which].value, n_seeds=8,
+                       base_seed=180 + which)
+    assert study.agrees_with(exact)
+
+
+def test_the_three_estimates_of_d_are_consistent_with_each_other_under_every_seed():
+    for seed in np.random.SeedSequence(1813).spawn(6):
+        msd_d, hist_d, vacf_d = _three_estimates(np.random.default_rng(seed), 0.6)
+        assert msd_d.consistent_with(hist_d, n_sigma=3.0)
+        assert msd_d.consistent_with(vacf_d, n_sigma=3.0)
+        assert hist_d.consistent_with(vacf_d, n_sigma=3.0)
+
+
+def test_the_batch_error_bar_describes_the_scatter_across_seeds():
+    reported = []
+
+    def measure(rng: np.random.Generator) -> float:
+        estimate = transport.d_from_msd(transport.walker_trajectories(1000, 300, 1.0, rng), 1.0)
+        reported.append(estimate.error)
+        return estimate.value
+
+    study = seed_study(measure, n_seeds=24, base_seed=1814)
+    assert study.agrees_with(0.5)
+    assert 0.6 < np.mean(reported) / np.std(study.values, ddof=1) < 1.6
+
+
+def test_the_heat_capacity_read_off_the_noise_is_the_same_under_every_seed():
+    gap, t, n_systems = 1e-21, 50.0, 300
+    exact = n_systems * partition.two_level_heat_capacity(gap, t)
+    study = seed_study(lambda rng: transport.energy_fluctuation_cv(
+        transport.two_level_energy_samples(n_systems, gap, t, 5000, rng), t).value,
+        n_seeds=10, base_seed=1815)
+    assert study.agrees_with(exact)
+    assert study.relative_spread < 0.05
+
+
+def test_the_bootstrap_error_bar_of_a_binned_fit_describes_its_scatter_across_seeds():
+    """Tables of 220 |x| values, Perrin's size: the resampled error matches the real scatter."""
+    sigma, edges = 7.0e-6, np.arange(0.0, 17.1e-6, 1.7e-6)
+    reported = []
+
+    def measure(rng: np.random.Generator) -> float:
+        sample = np.abs(rng.normal(0.0, sigma, size=220))
+        counts = np.histogram(sample[sample < edges[-1]], bins=edges)[0]
+        estimate = transport.binned_variance_estimate(edges, counts, rng, n_resamples=200)
+        reported.append(estimate.error)
+        return estimate.value
+
+    study = seed_study(measure, n_seeds=30, base_seed=1817)
+    assert study.agrees_with(sigma**2)
+    assert 0.6 < np.mean(reported) / np.std(study.values, ddof=1) < 1.6
