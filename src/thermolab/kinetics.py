@@ -16,7 +16,10 @@ MODEL SPECIFICATION
 
 Because the particles never collide with each other, this model cannot *establish* a
 Maxwell-Boltzmann distribution — it can only preserve one. That is the honest limit of the
-model, and the reason the distribution is imposed at t = 0.
+model, and the reason the distribution is imposed at t = 0. Nor can it diffuse: with nothing
+to randomise a velocity, a particle flies straight until a wall reverses it. Module 18 adds
+`mean_free_path` and `collision_rate` at the end of this file, which estimate the collisions
+the model leaves out without changing its dynamics.
 
 Pressure here is the time-averaged force per unit wall area, obtained by summing the momentum
 each wall collision transfers. In d dimensions the "area" of a wall is a (d-1)-dimensional
@@ -246,3 +249,42 @@ def mean_kinetic_energy(temperature: float, dimension: int = 2) -> float:
 def rms_speed(temperature: float, mass: float, dimension: int = 2) -> float:
     """Root-mean-square speed, sqrt(d k_B T / m)."""
     return float(np.sqrt(dimension * K_B * temperature / mass))
+
+
+# ---------------------------------------------------------------------------
+# Module 18: the collisions this model leaves out
+# ---------------------------------------------------------------------------
+#
+# The failure-modes line above names the regime this model cannot reach: a gas dense enough
+# that particles collide with one another. These three functions put a number on that regime
+# for a dilute gas of hard spheres in three dimensions. They *estimate* the collisions; they
+# do not add any. `simulate` is untouched, and still never lets two particles meet.
+
+
+def mean_speed(temperature: float, mass: float) -> float:
+    """Mean speed of the three-dimensional Maxwell-Boltzmann distribution, sqrt(8 k_B T/(pi m)).
+
+    Not the root-mean-square speed: averaging |v| weights the slow molecules more than
+    averaging v^2 does, so vbar = sqrt(8/(3 pi)) v_rms = 0.921 v_rms.
+    """
+    if temperature <= 0 or mass <= 0:
+        raise ValueError("temperature and mass must be positive")
+    return float(np.sqrt(8.0 * K_B * temperature / (np.pi * mass)))
+
+
+def mean_free_path(n_density: float, sigma: float) -> float:
+    """lambda = 1 / (sqrt(2) n sigma) [m]: the mean distance a molecule flies between collisions.
+
+    sigma = pi d^2 is the collision cross-section of hard spheres of diameter d: a molecule
+    sweeps out a cylinder of that cross-section and hits every centre inside it. The sqrt(2)
+    is there because the targets move too -- the mean relative speed of two Maxwell molecules
+    is sqrt(2) times the mean speed of one.
+    """
+    if n_density <= 0 or sigma <= 0:
+        raise ValueError("number density and cross-section must be positive")
+    return float(1.0 / (np.sqrt(2.0) * n_density * sigma))
+
+
+def collision_rate(n_density: float, sigma: float, temperature: float, mass: float) -> float:
+    """nu = vbar / lambda = sqrt(2) n sigma vbar [1/s]: collisions per molecule per second."""
+    return mean_speed(temperature, mass) / mean_free_path(n_density, sigma)

@@ -1578,3 +1578,115 @@ terms:
   - key: single-particle-state
     en: single-particle state
     he: מצב חד-חלקיקי
+  - key: diffusion-coefficient
+    en: diffusion coefficient
+    he: מקדם דיפוזיה
+  - key: diffusion-equation
+    en: diffusion equation
+    he: משוואת הדיפוזיה
+  - key: self-diffusion
+    en: self-diffusion
+    he: דיפוזיה עצמית
+  - key: mean-squared-displacement
+    en: mean squared displacement
+    he: ממוצע ריבוע ההעתק
+    he_reject: [העתק ריבועי ממוצע]
+  - key: greens-function
+    en: Green's function
+    he: פונקציית גרין
+  - key: velocity-autocorrelation
+    en: velocity autocorrelation
+    he: מתאם עצמי של המהירות
+    he_reject: [אוטוקורלציית המהירות]
+  - key: green-kubo-relation
+    en: Green–Kubo relation
+    he: יחס גרין–קובו
+  - key: ballistic-motion
+    en: ballistic motion
+    he: תנועה בליסטית
+  - key: persistent-walk
+    en: persistent walk
+    he: הילוך מתמיד
+  - key: master-equation
+    en: master equation
+    he: משוואת מאסטר
+  - key: continuum-limit
+    en: continuum limit
+    he: גבול הרצף
+  - key: viscosity
+    en: viscosity
+    he: צמיגות
+  - key: thermal-conductivity
+    en: thermal conductivity
+    he: מוליכות חום
+  - key: heat-conduction
+    en: heat conduction
+    he: הולכת חום
+  - key: response-function
+    en: response function
+    he: פונקציית תגובה
+  - key: fluctuation-dissipation-relation
+    en: fluctuation–dissipation relation
+    he: יחס פלוקטואציה–דיסיפציה
+  - key: local-equilibrium
+    en: local equilibrium
+    he: שיווי משקל מקומי
+  - key: collision-rate
+    en: collision rate
+    he: קצב התנגשויות
+  - key: collision-cross-section
+    en: collision cross-section
+    he: חתך פעולה להתנגשות
+  - key: knudsen-number
+    en: Knudsen number
+    he: מספר קנודסן
+  - key: ficks-law
+    en: Fick's law
+    he: חוק פיק
+  - key: fouriers-law
+    en: Fourier's law
+    he: חוק פורייה
+  - key: brownian-motion
+    en: Brownian motion
+    he: תנועה בראונית
+    he_reject: [תנועת בראון]
+  - key: einstein-relation
+    en: Einstein relation
+    he: יחס איינשטיין
+    he_reject: [יחס אינשטיין]
+  - key: stokes-drag
+    en: Stokes drag
+    he: גרר סטוקס
+  - key: friction-coefficient
+    en: friction coefficient
+    he: מקדם חיכוך
+  - key: sedimentation-equilibrium
+    en: sedimentation equilibrium
+    he: שיווי משקל שקיעה
+  - key: drift-velocity
+    en: drift velocity
+    he: מהירות סחיפה
+  - key: transport
+    en: transport
+    he: הובלה
+  - key: transport-coefficient
+    en: transport coefficient
+    he: מקדם הובלה
+  - key: gradient
+    en: gradient
+    he: גרדיאנט
+  - key: nonequilibrium-statistical-mechanics
+    en: nonequilibrium statistical mechanics
+    he: מכניקה סטטיסטית מחוץ לשיווי משקל
+  - key: stokes-einstein-relation
+    en: Stokes–Einstein relation
+    he: יחס סטוקס–איינשטיין
+  - key: boltzmann-transport-equation
+    en: Boltzmann transport equation
+    he: משוואת ההובלה של בולצמן
+  - key: linear-response-theory
+    en: linear response theory
+    he: תורת התגובה הלינארית
+  - key: onsager-reciprocal-relations
+    en: Onsager reciprocal relations
+    he: יחסי ההדדיות של אונסגר

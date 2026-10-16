@@ -203,3 +203,15 @@ misconceptions:
     statement: "A Pauli 'force' pushes fermions apart, and that force is what causes degeneracy pressure."
     assigned_module: 17-quantum-gases
     status: addressed
+  - id: diffusion-steady-speed
+    statement: "Diffusion carries particles at a steady speed, so the spread grows in proportion to the time."
+    assigned_module: 18-fluctuations-transport
+    status: addressed
+  - id: fluctuations-are-error
+    statement: "Fluctuations in a simulation are numerical error, which a longer run would remove."
+    assigned_module: 18-fluctuations-transport
+    status: addressed
+  - id: viscosity-vanishes-dilute
+    statement: "A rarefied gas is less viscous, because there is less of it to rub."
+    assigned_module: 18-fluctuations-transport
+    status: addressed

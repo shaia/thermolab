@@ -48,6 +48,7 @@ Currently available:
 - **[Phase transitions and the Ising model](advanced/15-ising.md)** *(advanced)* — why a magnet cooled through its Curie point must pick a direction its equations do not prefer, and what a simulation of a few thousand spins can and cannot prove about it.
 - **[Thermal radiation and the heat capacity of solids](advanced/16-radiation-solids.md)** *(advanced)* — why a warm oven is not an ultraviolet lamp and a cold crystal stores almost no heat, and why "the colour at which the Sun shines brightest" has two right answers.
 - **[Quantum statistics](advanced/17-quantum-gases.md)** *(advanced)* — why the electrons in a copper wire store almost no heat while helium atoms pile into a single quantum state, and why "quantum" is decided by density as much as by cold.
+- **[Fluctuations and transport](advanced/18-fluctuations-transport.md)** *(advanced)* — why a dye molecule moving at a hundred metres per second needs a day to cross a centimetre, why thinning a gas leaves its viscosity unchanged, and how a heat capacity, and the weight of an atom, can be read off random noise.
 
 Two reference pages sit outside the sequence and are meant to be returned to:
 [conventions](conventions.md) and the [mathematics refresher](foundations/math-refresher.md).

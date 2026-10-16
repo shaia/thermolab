@@ -8,6 +8,8 @@ the binomial multiplicity.
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import pytest
 
@@ -30,6 +32,7 @@ from thermolab import (
     quantum,
     radiation,
     sampling,
+    transport,
 )
 from thermolab.constants import K_B
 from thermolab.validation import relative_error, scaling_exponent, seed_study
@@ -2701,3 +2704,203 @@ def test_every_function_that_takes_a_spin_degeneracy_refuses_one_below_one():
             with pytest.raises(ValueError, match="spin_degeneracy must be a whole number"):
                 call(bad)
         call(2)  # a legitimate value still goes through
+
+
+# ---------------------------------------------------------------------------
+# Module 18: fluctuations and transport
+# ---------------------------------------------------------------------------
+
+STEP_18, TAU_18 = 2e-9, 1e-12   # a walker's step [m] and step time [s]
+
+
+def test_the_persistent_walks_msd_is_the_double_sum_of_its_step_correlations():
+    for q in (0.0, 0.5, 0.9):
+        for n in (1, 2, 5, 40):
+            i = np.arange(n)
+            brute = float(np.sum(q ** np.abs(i[:, None] - i[None, :])))
+            assert relative_error(transport.persistent_walk_msd(n, 1.0, q), brute) < 1e-12
+    # Independent steps: n l^2 at every n. Long memory: ballistic, n^2 l^2, at short times.
+    n = np.arange(1, 50)
+    assert np.allclose(transport.persistent_walk_msd(n, 3.0), 9.0 * n, rtol=1e-13, atol=0)
+    assert relative_error(transport.persistent_walk_msd(5, 1.0, 0.999), 25.0) < 0.01
+
+
+def test_the_integral_of_the_exact_velocity_memory_is_the_persistent_walks_d():
+    """Green-Kubo on the exact autocorrelation (l/tau)^2 q^k is module 03's geometric series."""
+    for q in (0.0, 0.3, 0.8):
+        vacf = (STEP_18 / TAU_18) ** 2 * q ** np.arange(400)
+        running = transport.green_kubo_running(vacf, TAU_18)
+        assert relative_error(running[-1], transport.persistent_walk_d(STEP_18, TAU_18, q)) < 1e-12
+    assert relative_error(transport.persistent_walk_d(STEP_18, TAU_18),
+                          STEP_18**2 / (2 * TAU_18)) < 1e-15
+
+
+def test_three_measurements_recover_l_squared_over_two_tau_for_independent_steps():
+    rng = np.random.default_rng(18)
+    x = transport.walker_trajectories(4000, 400, STEP_18, rng)
+    exact = STEP_18**2 / (2 * TAU_18)
+    estimates = (transport.d_from_msd(x, TAU_18),
+                 transport.d_from_histogram(x, TAU_18, lattice=2 * STEP_18),
+                 transport.d_from_vacf(transport.walker_velocities(x, TAU_18), TAU_18))
+    for estimate in estimates:
+        assert estimate.agrees_with(exact)
+        assert estimate.error < 0.05 * exact
+
+
+def test_three_measurements_find_the_inflated_d_of_a_persistent_walk():
+    """Independence broken: l^2/(2 tau) is wrong by (1 + q)/(1 - q), and all three see it."""
+    q = 0.8
+    rng = np.random.default_rng(1803)
+    x = transport.walker_trajectories(3000, 800, STEP_18, rng, persistence=q)
+    exact = transport.persistent_walk_d(STEP_18, TAU_18, q)
+    naive = STEP_18**2 / (2 * TAU_18)
+    estimates = (transport.d_from_msd(x, TAU_18),
+                 transport.d_from_histogram(x, TAU_18, lattice=2 * STEP_18),
+                 transport.d_from_vacf(transport.walker_velocities(x, TAU_18), TAU_18))
+    for estimate in estimates:
+        assert estimate.agrees_with(exact)
+        assert abs(estimate.value - naive) > 10 * estimate.error
+
+
+def test_a_persistent_walkers_velocity_memory_decays_as_q_to_the_k():
+    q = 0.7
+    rng = np.random.default_rng(1804)
+    x = transport.walker_trajectories(3000, 600, 1.0, rng, persistence=q)
+    vacf = transport.velocity_autocorrelation(transport.walker_velocities(x, 1.0), 15)
+    assert vacf[0] == pytest.approx(1.0, abs=1e-12)   # every step is +/-1, so C(0) is exact
+    assert np.max(np.abs(vacf / vacf[0] - q ** np.arange(16))) < 0.01
+
+
+def test_the_greens_function_has_variance_2dt_and_solves_the_diffusion_equation():
+    d, t = 1.5e-9, 40.0
+    width = np.sqrt(2 * d * t)
+    x = np.linspace(-14 * width, 14 * width, 40_001)
+    p = transport.diffusion_greens_function(x, t, d)
+    assert relative_error(np.trapezoid(x**2 * p, x), 2 * d * t) < 1e-9
+    # dP/dt = D d2P/dx2, by centred differences, everywhere the density is not negligible.
+    h, k = x[1] - x[0], 1e-4 * t
+    dpdt = (transport.diffusion_greens_function(x, t + k, d)
+            - transport.diffusion_greens_function(x, t - k, d)) / (2 * k)
+    d2pdx2 = (p[2:] - 2 * p[1:-1] + p[:-2]) / h**2
+    residual = dpdt[1:-1] - d * d2pdx2
+    assert np.max(np.abs(residual)) < 1e-5 * np.max(np.abs(dpdt))
+
+
+def test_a_diffusion_front_advances_as_the_square_root_of_time():
+    d = 4e-10
+    x = np.linspace(1e-4, 5e-3, 50)
+    # Four times as long, twice as far: the profile depends on x / sqrt(D t) alone.
+    assert np.allclose(transport.step_profile(2 * x, 4 * 3600.0, d),
+                       transport.step_profile(x, 3600.0, d), rtol=1e-14, atol=0)
+    assert transport.step_profile(0.0, 3600.0, d) == pytest.approx(0.5, rel=1e-15)
+    # Dye past the boundary: the integral of (1/2) erfc(x / 2 sqrt(D t)) is sqrt(D t / pi).
+    t = 3600.0
+    grid = np.linspace(0.0, 30 * np.sqrt(d * t), 60_001)
+    assert relative_error(np.trapezoid(transport.step_profile(grid, t, d), grid),
+                          np.sqrt(d * t / np.pi)) < 1e-7
+
+
+def test_the_histogram_fit_recovers_the_variance_of_a_gaussian_and_of_a_lattice_walk():
+    rng = np.random.default_rng(1805)
+    sample = rng.normal(0.0, 3.0, size=400_000)
+    assert relative_error(transport.fit_gaussian_variance(sample), 9.0) < 0.01
+    walk = transport.walker_trajectories(200_000, 64, 1.0, rng)[:, -1]
+    assert relative_error(transport.fit_gaussian_variance(walk, lattice=2.0), 64.0) < 0.01
+
+
+def test_fluctuations_measure_the_schottky_heat_capacity_of_two_level_systems():
+    gap, n_systems = 1e-21, 400
+    rng = np.random.default_rng(1806)
+    for ratio in (0.25, 0.42, 1.0, 3.0):   # k_B T / gap, across the Schottky peak
+        t = ratio * gap / K_B
+        energies = transport.two_level_energy_samples(n_systems, gap, t, 20_000, rng)
+        estimate = transport.energy_fluctuation_cv(energies, t)
+        assert estimate.agrees_with(n_systems * partition.two_level_heat_capacity(gap, t))
+        assert estimate.error < 0.02 * estimate.value
+
+
+def test_fluctuations_measure_equipartition_and_count_the_degrees_of_freedom_frozen():
+    """(3/2) N k_B canonically; (3/2)(N - 1) k_B with the drift removed; nothing if fixed."""
+    mass, t, n = 39.948 * 1.66053906660e-27, 300.0, 8
+    rng = np.random.default_rng(1807)
+    free = transport.energy_fluctuation_cv(
+        transport.gas_energy_samples(n, t, mass, 20_000, rng), t)
+    no_drift = transport.energy_fluctuation_cv(
+        transport.gas_energy_samples(n, t, mass, 20_000, rng, remove_drift=True), t)
+    fixed = transport.energy_fluctuation_cv(
+        transport.gas_energy_samples(n, t, mass, 200, rng, fix_temperature=True), t)
+    assert free.agrees_with(1.5 * n * K_B)
+    assert no_drift.agrees_with(1.5 * (n - 1) * K_B)
+    assert not no_drift.consistent_with(free, n_sigma=5.0)
+    # Microcanonical: every copy has the same energy, so the noise says C_V = 0.
+    assert fixed.value < 1e-20 * n * K_B
+
+
+def test_kinetic_viscosity_and_conductivity_do_not_depend_on_the_density():
+    mass, t, sigma = 39.948 * 1.66053906660e-27, 300.0, np.pi * (3.4e-10) ** 2
+    dense = transport.kinetic_estimates(2.4e27, t, mass, sigma)
+    dilute = transport.kinetic_estimates(2.4e23, t, mass, sigma)
+    assert relative_error(dilute.viscosity, dense.viscosity) < 1e-12
+    assert relative_error(dilute.thermal_conductivity, dense.thermal_conductivity) < 1e-12
+    assert relative_error(dilute.mean_free_path, 1e4 * dense.mean_free_path) < 1e-12
+    assert relative_error(dilute.diffusion, 1e4 * dense.diffusion) < 1e-12
+    vbar = kinetics.mean_speed(t, mass)
+    assert relative_error(dense.viscosity, mass * vbar / (3 * np.sqrt(2) * sigma)) < 1e-12
+    # One random flight carries all three: eta / (n m) = kappa / (n c_v) = D.
+    assert relative_error(dense.viscosity / (2.4e27 * mass), dense.diffusion) < 1e-12
+    assert relative_error(dense.thermal_conductivity / (2.4e27 * 1.5 * K_B), dense.diffusion) \
+        < 1e-12
+
+
+def test_the_mean_speed_is_root_8_over_3_pi_of_the_rms_speed():
+    mass = 28.0134 * 1.66053906660e-27
+    for t in (77.0, 300.0, 1000.0):
+        assert relative_error(kinetics.mean_speed(t, mass) / kinetics.rms_speed(t, mass, 3),
+                              np.sqrt(8 / (3 * np.pi))) < 1e-12
+
+
+def test_the_einstein_relation_with_stokes_drag_inverts_to_avogadros_number():
+    for eta, radius, t in ((1.0e-3, 0.5e-6, 293.0), (2.5e-3, 0.2e-6, 310.0)):
+        d = transport.einstein_diffusion(t, transport.stokes_friction(eta, radius))
+        assert relative_error(transport.avogadro_from_diffusion(d, t, eta, radius),
+                              6.02214076e23) < 1e-12
+
+
+def test_the_van_der_waals_b_and_the_molecular_diameter_invert_each_other():
+    for diameter in (2.6e-10, 3.1e-10, 3.7e-10):
+        b = 2 * np.pi / 3 * diameter**3
+        assert relative_error(transport.diameter_from_vdw_b(b), diameter) < 1e-12
+
+
+def test_the_collisionless_box_gas_flies_saturates_and_never_diffuses():
+    """Module 04's gas: ballistic at first, then stuck at L^2/6, its velocity integral zero."""
+    mass, side = 39.948 * 1.66053906660e-27, 1e-6
+    rng = np.random.default_rng(1808)
+    state = kinetics.initialise_gas(400, (side, side), 300.0, mass, rng)
+    dt = kinetics.max_stable_dt(state)
+    positions, velocities = transport.box_gas_trace(state, dt, 2000)
+    x, vx = positions[:, :, 0].T, velocities[:, :, 0].T
+    spread = transport.msd(x)
+    # Free flight over the first step, short only by the few particles that meet a wall in it.
+    assert relative_error(spread[1], np.mean(vx[:, 0] ** 2) * dt**2) < 0.1
+    assert abs(np.mean(spread[-500:]) / (side**2 / 6) - 1) < 0.1             # saturated
+    running = transport.green_kubo_running(transport.velocity_autocorrelation(vx, 1500), dt)
+    assert abs(running[-1]) < 0.02 * kinetics.mean_speed(300.0, mass) * side
+
+
+def test_a_binned_fit_recovers_the_variance_behind_exact_bin_counts():
+    """Signed or folded, whole or cut short: a table of exact Gaussian counts gives sigma^2 back."""
+    sigma = 7.0e-6
+    edges = np.arange(0.0, 17.1e-6, 1.7e-6)
+    cumulative = np.array([math.erf(e / (np.sqrt(2) * sigma)) for e in edges])
+    folded = 1e6 * np.diff(cumulative)               # counts of |x| -- Perrin's table, truncated
+    assert relative_error(transport.fit_binned_gaussian_variance(edges, folded), sigma**2) < 1e-6
+    signed_edges = np.concatenate([-edges[:0:-1], edges])
+    signed_cumulative = np.array([math.erf(e / (np.sqrt(2) * sigma)) for e in signed_edges])
+    signed = 1e6 * 0.5 * np.diff(signed_cumulative)
+    assert relative_error(transport.fit_binned_gaussian_variance(signed_edges, signed),
+                          sigma**2) < 1e-6
+    # Cut short at 2.4 sigma, an unconditional fit would read the missing tail as empty and come
+    # out narrow; normalising over the covered range is what keeps the answer exact.
+    assert relative_error(transport.fit_binned_gaussian_variance(edges[:6], folded[:5]),
+                          sigma**2) < 1e-6

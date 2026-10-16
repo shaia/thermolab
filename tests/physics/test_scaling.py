@@ -27,6 +27,7 @@ from thermolab import (
     quantum,
     radiation,
     sampling,
+    transport,
 )
 from thermolab.constants import K_B
 from thermolab.validation import relative_error, scaling_exponent
@@ -810,3 +811,56 @@ def test_the_condensate_exponent_approaches_three_halves_as_the_box_grows():
     assert all(e > 1.5 for e in exponents)
     assert exponents[-1] - 1.5 < 0.05
     assert abs(scaling_exponent(t, 1 - quantum.condensate_fraction(t, 1.0)) - 1.5) < 1e-12
+
+
+# ---------------------------------------------------------------------------
+# Module 18: fluctuations and transport
+# ---------------------------------------------------------------------------
+
+
+def test_the_mean_squared_displacement_grows_as_t_to_the_first_power():
+    rng = np.random.default_rng(18)
+    x = transport.walker_trajectories(4000, 1000, 1.0, rng)
+    lags = np.unique(np.geomspace(10, 1000, 20).astype(int))
+    assert abs(scaling_exponent(lags, transport.msd(x)[lags]) - 1.0) < 0.02
+
+
+def test_a_persistent_walker_spreads_ballistically_then_diffusively():
+    """Slope 2 on a log-log plot while it remembers its velocity, slope 1 long after."""
+    q = 0.98   # a velocity remembered for about 1 / (1 - q) = 50 steps
+    rng = np.random.default_rng(1809)
+    x = transport.walker_trajectories(2000, 4000, 1.0, rng, persistence=q)
+    measured = transport.msd(x)
+    short, late = np.arange(1, 6), np.arange(1500, 4001, 250)
+    assert abs(scaling_exponent(short, measured[short]) - 2.0) < 0.05
+    assert abs(scaling_exponent(late, measured[late]) - 1.0) < 0.05
+    exact = transport.persistent_walk_msd(np.arange(4001), 1.0, q)
+    assert abs(scaling_exponent(short, exact[short]) - 2.0) < 0.05
+    # The exact curve's late slope is a little above 1 -- its straight line is offset below the
+    # origin -- and closes in on 1 as the lags outgrow the memory.
+    assert abs(scaling_exponent(late, exact[late]) - 1.0) < 0.03
+    far = np.arange(50_000, 100_001, 5000)
+    assert abs(scaling_exponent(far, transport.persistent_walk_msd(far, 1.0, q)) - 1.0) < 1e-3
+
+
+def test_relative_energy_fluctuations_fall_as_n_to_the_minus_one_half():
+    gap, t = 1e-21, 72.0
+    rng = np.random.default_rng(1810)
+    sizes = 2 ** np.arange(4, 13)
+    relative = []
+    for n in sizes:
+        energies = transport.two_level_energy_samples(int(n), gap, t, 4000, rng)
+        relative.append(energies.std(ddof=1) / energies.mean())
+    assert abs(scaling_exponent(sizes, relative) + 0.5) < 0.03
+    # From the identity itself: sigma_E / <E> = sqrt(k_B T^2 C_V) / U, both extensive.
+    exact = (np.sqrt(K_B * t**2 * sizes * partition.two_level_heat_capacity(gap, t))
+             / (sizes * partition.two_level_energy(gap, t)))
+    assert abs(scaling_exponent(sizes, exact) + 0.5) < 1e-12
+
+
+def test_the_error_bar_on_d_falls_as_one_over_root_n_walkers():
+    rng = np.random.default_rng(1811)
+    walkers = np.array([500, 2000, 8000])
+    errors = [transport.d_from_msd(transport.walker_trajectories(int(n), 200, 1.0, rng), 1.0).error
+              for n in walkers]
+    assert abs(scaling_exponent(walkers, errors) + 0.5) < 0.15

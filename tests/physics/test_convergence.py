@@ -31,6 +31,7 @@ from thermolab import (
     quantum,
     radiation,
     sampling,
+    transport,
 )
 from thermolab.constants import K_B
 from thermolab.validation import convergence_study, relative_error, seed_study
@@ -852,3 +853,52 @@ def test_the_finite_box_result_does_not_depend_on_its_level_cutoff():
         base = float(quantum.finite_box_condensate_fraction(10_000, t, x_cut=30.0))
         wider = float(quantum.finite_box_condensate_fraction(10_000, t, x_cut=45.0))
         assert abs(base - wider) < 1e-10
+
+
+# ---------------------------------------------------------------------------
+# Module 18: fluctuations and transport
+# ---------------------------------------------------------------------------
+
+
+def test_the_green_kubo_integral_converges_on_d_as_its_cut_off_grows():
+    """Cut off too early and memory is missed; the shortfall dies as q^K."""
+    q = 0.9
+    vacf = q ** np.arange(400)
+    exact = transport.persistent_walk_d(1.0, 1.0, q)
+    study = convergence_study(lambda k: transport.green_kubo_running(vacf[:k + 1], 1.0)[-1],
+                              [10, 20, 40, 80, 160], exact)
+    assert np.all(np.diff(study.errors) < 0)
+    assert study.errors[-1] < 1e-6
+    # The missing tail is exactly the geometric remainder q^(K+1) / (1 - q), relative to D.
+    for k, error in zip(study.refinements, study.errors, strict=True):
+        assert relative_error(error, q ** (k + 1) / (1 - q) / exact) < 1e-9
+
+
+def test_the_histogram_fit_closes_in_on_the_true_d_as_walkers_are_added():
+    exact = transport.persistent_walk_d(1.0, 1.0)
+
+    def mean_error(n_walkers: int) -> float:
+        values = seed_study(lambda rng: transport.d_from_histogram(
+            transport.walker_trajectories(n_walkers, 200, 1.0, rng), 1.0, lattice=2.0,
+            n_batches=4).value, n_seeds=6, base_seed=n_walkers).values
+        return float(np.mean(np.abs(values / exact - 1)))
+
+    study = convergence_study(mean_error, [100, 400, 1600, 6400], 0.0)
+    # Errors are absolute here (exact = 0 scales by 1): they fall roughly as n^(-1/2).
+    assert study.values[-1] < study.values[0] / 3
+    assert 0.25 < study.observed_order < 0.8
+
+
+def test_a_longer_run_sharpens_the_fluctuation_but_never_shrinks_it():
+    """More samples: the error bar on C_V falls as n^(-1/2); the C_V it measures does not move."""
+    gap, t, n_systems = 1e-21, 72.0, 200
+    exact = n_systems * partition.two_level_heat_capacity(gap, t)
+    rng = np.random.default_rng(1812)
+    samples = np.array([300, 3000, 30_000, 300_000])
+    estimates = [transport.energy_fluctuation_cv(
+        transport.two_level_energy_samples(n_systems, gap, t, int(n), rng), t) for n in samples]
+    for estimate in estimates:
+        assert estimate.agrees_with(exact)
+    errors = np.array([e.error for e in estimates])
+    slope = np.polyfit(np.log(samples), np.log(errors), 1)[0]
+    assert abs(slope + 0.5) < 0.05

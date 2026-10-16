@@ -1,0 +1,154 @@
+# NOTE: byte-identical copies at notebooks/{en,he}/labs/data/18-gas-transport.csv --
+# JupyterLite only bundles the notebooks/ tree (jupyter_lite_config.json: "contents":
+# ["notebooks"]), so each language's laboratory notebook needs its own co-located copy to
+# run in the browser. Keep all three in sync -- scripts/check_parity.py enforces it.
+#
+# Viscosity and thermal conductivity of helium, nitrogen and argon at 300 K, from 0.001 MPa to
+# 10 MPa, with the density and the isochoric heat capacity at the same state points.
+#
+# Reference values, not a measurement made for this course. Each row is copied, digit for
+# digit, from the NIST Chemistry WebBook's isothermal fluid-property tables (Digits=5), as
+# returned on 2026-10-13 by
+#   https://webbook.nist.gov/cgi/fluid.cgi?Action=Data&Wide=on&ID=<ID>&Type=IsoTherm&Digits=5
+#     &PLow=..&PHigh=..&PInc=..&T=300&RefState=DEF&TUnit=K&PUnit=MPa&DUnit=kg%2Fm3
+#     &HUnit=kJ%2Fkg&WUnit=m%2Fs&VisUnit=uPa*s&STUnit=N%2Fm
+# with ID C7440597 (He), C7727379 (N2) and C7440371 (Ar), over the four ranges 0.001-0.01,
+# 0.01-0.1, 0.1-1 and 1-10 MPa. Only the columns used here are kept; a point that appears in
+# two adjacent ranges, and the point the WebBook repeats where the isotherm crosses the
+# critical pressure (labelled "vapor" once and "supercritical" twice, with identical numbers),
+# are kept once.
+#
+# Source: E. W. Lemmon, I. H. Bell, M. L. Huber and M. O. McLinden, "Thermophysical
+# Properties of Fluid Systems", in NIST Chemistry WebBook, NIST Standard Reference Database
+# Number 69, eds. P. J. Linstrom and W. G. Mallard, https://doi.org/10.18434/T4D303. The
+# WebBook evaluates published correlations:
+#   N2, Ar  viscosity and thermal conductivity: E. W. Lemmon and R. T. Jacobsen, Int. J.
+#           Thermophys. 25, 21-69 (2004); stated uncertainty 0.5% (viscosity) and 2% (thermal
+#           conductivity) in the dilute gas. Equations of state: Span et al., J. Phys. Chem.
+#           Ref. Data 29, 1361 (2000) for N2; Tegeler, Span and Wagner, ibid. 28, 779 (1999)
+#           for Ar.
+#   He      viscosity: V. D. Arp, R. D. McCarty and D. G. Friend, NIST Technical Note 1334
+#           (revised, 1998), stated uncertainty 10%; thermal conductivity: B. A. Hands and
+#           V. D. Arp, Cryogenics 21, 697-703 (1981), 5%. Equation of state: Ortiz-Vega et al.
+#           (2018).
+#
+# Read these as equations fitted to many measurements, not as raw data. In particular, the
+# flatness of the viscosity below about 0.1 MPa is the dilute-gas form the correlations
+# assume, not an independent test of it: the pressures where the correlations rest on
+# measurements are the honest test of Maxwell's prediction. Nothing here describes the
+# rarefied regime, where the mean free path reaches the size of the apparatus.
+#
+# Columns: gas, pressure [MPa], density [kg/m^3], cv [J/(g K)], viscosity [uPa s],
+# thermal conductivity [W/(m K)]. Temperature 300 K throughout.
+gas,pressure_MPa,density_kg_m3,cv_J_gK,viscosity_uPa_s,thermal_conductivity_W_mK
+He,0.0010000,0.0016047,3.1159,19.926,0.15590
+He,0.0020000,0.0032093,3.1159,19.926,0.15590
+He,0.0030000,0.0048140,3.1159,19.926,0.15590
+He,0.0040000,0.0064186,3.1159,19.926,0.15590
+He,0.0050000,0.0080232,3.1159,19.926,0.15590
+He,0.0060000,0.0096278,3.1159,19.926,0.15590
+He,0.0070000,0.011232,3.1159,19.926,0.15590
+He,0.0080000,0.012837,3.1159,19.926,0.15590
+He,0.0090000,0.014441,3.1159,19.926,0.15590
+He,0.010000,0.016046,3.1159,19.927,0.15590
+He,0.020000,0.032090,3.1159,19.927,0.15591
+He,0.030000,0.048133,3.1160,19.927,0.15592
+He,0.040000,0.064175,3.1160,19.928,0.15593
+He,0.050000,0.080215,3.1160,19.928,0.15593
+He,0.060000,0.096253,3.1160,19.928,0.15594
+He,0.070000,0.11229,3.1161,19.929,0.15595
+He,0.080000,0.12833,3.1161,19.929,0.15596
+He,0.090000,0.14436,3.1161,19.929,0.15597
+He,0.10000,0.16039,3.1161,19.930,0.15597
+He,0.20000,0.32063,3.1164,19.933,0.15605
+He,0.30000,0.48072,3.1166,19.937,0.15613
+He,0.40000,0.64065,3.1169,19.940,0.15620
+He,0.50000,0.80044,3.1171,19.944,0.15628
+He,0.60000,0.96007,3.1174,19.947,0.15635
+He,0.70000,1.1196,3.1176,19.951,0.15643
+He,0.80000,1.2789,3.1178,19.954,0.15650
+He,0.90000,1.4381,3.1181,19.957,0.15657
+He,1.0000,1.5971,3.1183,19.961,0.15664
+He,2.0000,3.1792,3.1208,19.995,0.15735
+He,3.0000,4.7467,3.1232,20.029,0.15803
+He,4.0000,6.2997,3.1256,20.062,0.15868
+He,5.0000,7.8385,3.1280,20.095,0.15931
+He,6.0000,9.3633,3.1304,20.128,0.15992
+He,7.0000,10.874,3.1327,20.160,0.16052
+He,8.0000,12.372,3.1351,20.192,0.16111
+He,9.0000,13.856,3.1375,20.224,0.16169
+He,10.000,15.328,3.1398,20.255,0.16226
+N2,0.0010000,0.011231,0.74292,17.877,0.025936
+N2,0.0020000,0.022462,0.74292,17.877,0.025937
+N2,0.0030000,0.033692,0.74292,17.877,0.025937
+N2,0.0040000,0.044923,0.74293,17.878,0.025937
+N2,0.0050000,0.056154,0.74293,17.878,0.025938
+N2,0.0060000,0.067385,0.74293,17.878,0.025938
+N2,0.0070000,0.078616,0.74293,17.878,0.025938
+N2,0.0080000,0.089847,0.74294,17.878,0.025939
+N2,0.0090000,0.10108,0.74294,17.878,0.025939
+N2,0.010000,0.11231,0.74294,17.878,0.025939
+N2,0.020000,0.22462,0.74297,17.880,0.025942
+N2,0.030000,0.33694,0.74299,17.881,0.025946
+N2,0.040000,0.44926,0.74301,17.882,0.025949
+N2,0.050000,0.56159,0.74304,17.883,0.025952
+N2,0.060000,0.67392,0.74306,17.885,0.025955
+N2,0.070000,0.78625,0.74309,17.886,0.025959
+N2,0.080000,0.89859,0.74311,17.887,0.025962
+N2,0.090000,1.0109,0.74314,17.889,0.025965
+N2,0.10000,1.1233,0.74316,17.890,0.025968
+N2,0.20000,2.2470,0.74341,17.903,0.026001
+N2,0.30000,3.3710,0.74366,17.916,0.026035
+N2,0.40000,4.4954,0.74391,17.930,0.026069
+N2,0.50000,5.6202,0.74415,17.943,0.026104
+N2,0.60000,6.7453,0.74440,17.957,0.026140
+N2,0.70000,7.8707,0.74465,17.971,0.026177
+N2,0.80000,8.9965,0.74489,17.985,0.026214
+N2,0.90000,10.122,0.74514,17.999,0.026252
+N2,1.0000,11.249,0.74538,18.013,0.026291
+N2,2.0000,22.523,0.74779,18.166,0.026709
+N2,3.0000,33.808,0.75014,18.336,0.027177
+N2,4.0000,45.087,0.75243,18.523,0.027685
+N2,5.0000,56.344,0.75466,18.726,0.028222
+N2,6.0000,67.563,0.75682,18.944,0.028780
+N2,7.0000,78.726,0.75892,19.178,0.029355
+N2,8.0000,89.818,0.76097,19.426,0.029942
+N2,9.0000,100.82,0.76294,19.687,0.030538
+N2,10.000,111.73,0.76486,19.961,0.031141
+Ar,0.0010000,0.016015,0.31220,22.724,0.017805
+Ar,0.0020000,0.032031,0.31220,22.724,0.017805
+Ar,0.0030000,0.048047,0.31221,22.725,0.017805
+Ar,0.0040000,0.064063,0.31221,22.725,0.017806
+Ar,0.0050000,0.080079,0.31221,22.725,0.017806
+Ar,0.0060000,0.096096,0.31221,22.725,0.017806
+Ar,0.0070000,0.11211,0.31221,22.725,0.017807
+Ar,0.0080000,0.12813,0.31221,22.725,0.017807
+Ar,0.0090000,0.14415,0.31222,22.726,0.017807
+Ar,0.010000,0.16016,0.31222,22.726,0.017807
+Ar,0.020000,0.32035,0.31224,22.727,0.017811
+Ar,0.030000,0.48055,0.31225,22.729,0.017814
+Ar,0.040000,0.64077,0.31227,22.731,0.017817
+Ar,0.050000,0.80101,0.31229,22.732,0.017821
+Ar,0.060000,0.96127,0.31231,22.734,0.017824
+Ar,0.070000,1.1216,0.31233,22.736,0.017827
+Ar,0.080000,1.2819,0.31235,22.737,0.017830
+Ar,0.090000,1.4422,0.31236,22.739,0.017834
+Ar,0.10000,1.6025,0.31238,22.741,0.017837
+Ar,0.20000,3.2070,0.31257,22.758,0.017870
+Ar,0.30000,4.8133,0.31275,22.775,0.017903
+Ar,0.40000,6.4216,0.31293,22.792,0.017937
+Ar,0.50000,8.0319,0.31311,22.810,0.017970
+Ar,0.60000,9.6440,0.31330,22.827,0.018004
+Ar,0.70000,11.258,0.31348,22.845,0.018038
+Ar,0.80000,12.874,0.31366,22.864,0.018072
+Ar,0.90000,14.492,0.31384,22.882,0.018107
+Ar,1.0000,16.111,0.31402,22.901,0.018142
+Ar,2.0000,32.407,0.31582,23.102,0.018502
+Ar,3.0000,48.876,0.31759,23.326,0.018885
+Ar,4.0000,65.504,0.31934,23.576,0.019292
+Ar,5.0000,82.275,0.32105,23.850,0.019721
+Ar,6.0000,99.172,0.32273,24.149,0.020174
+Ar,7.0000,116.18,0.32437,24.473,0.020648
+Ar,8.0000,133.26,0.32597,24.820,0.021143
+Ar,9.0000,150.41,0.32753,25.191,0.021658
+Ar,10.000,167.60,0.32905,25.583,0.022192
