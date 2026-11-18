@@ -34,6 +34,17 @@ table {
   direction: rtl;
 }
 
+/* The theme holds the page outline off the article with a physical left margin. In this
+   build the outline is on the article's left, so that margin pushes it into the sheet;
+   move the gap to the side that faces the article. The margin is on the outline's unnamed
+   wrapper, and the outline is the only <nav> inside the article, hence :has. */
+@media (min-width: 1024px) {
+  .article.content > div:has(nav) {
+    margin-left: 0;
+    margin-right: 2.5rem;
+  }
+}
+
 /* Never break inline math across lines. KaTeX offers a line break after every relation and
    binary operator (`=`, `>`, `-`), and in an RTL paragraph the two halves then land on
    separate lines in the wrong reading order — the right-hand side of an equation printed
