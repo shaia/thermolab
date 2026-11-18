@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, save  # noqa: E402
+from _common import COLD, DPI, HOT, save  # noqa: E402
 from thermolab import kinetics  # noqa: E402
 
 ARGON_MASS = 39.948 * 1.66053906660e-27
@@ -56,15 +56,15 @@ def render_impacts_to_pressure(n_particles: int = 60, n_frames: int = 300) -> No
     fig, (left, right) = plt.subplots(1, 2, figsize=(8.5, 3.6), dpi=DPI)
     micron = 1e6
 
-    dots = left.scatter([], [], s=14, color="#2563eb")
+    dots = left.scatter([], [], s=14, color=COLD)
     left.set_xlim(0, BOX[0] * micron)
     left.set_ylim(0, BOX[1] * micron)
     left.set_xlabel("x (μm)")
     left.set_ylabel("y (μm)")
     left.set_title(f"{n_particles} particles, 300 K")
 
-    (trace,) = right.plot([], [], lw=1.4, color="#2563eb")
-    right.axhline(predicted, color="crimson", ls="--", lw=1.2)
+    (trace,) = right.plot([], [], lw=1.4, color=COLD)
+    right.axhline(predicted, color=HOT, ls="--", lw=1.2)
     right.set_xlim(0, times[-1] * 1e9)
     right.set_ylim(0, 2.2 * predicted)
     right.set_xlabel("time (ns)")
@@ -110,8 +110,8 @@ def render_fluctuations_shrink(n_frames: int = 180) -> None:
     fig, axes = plt.subplots(1, 3, figsize=(9.5, 3.0), dpi=DPI, sharey=True)
     lines = []
     for ax, n_particles, (t, _) in zip(axes, sizes, traces, strict=True):
-        (line,) = ax.plot([], [], lw=1.2, color="#2563eb")
-        ax.axhline(1.0, color="crimson", ls="--", lw=1.0)
+        (line,) = ax.plot([], [], lw=1.2, color=COLD)
+        ax.axhline(1.0, color=HOT, ls="--", lw=1.0)
         ax.set_xlim(0, t[-1])
         ax.set_ylim(0.4, 1.6)
         ax.set_title(f"N = {n_particles}")

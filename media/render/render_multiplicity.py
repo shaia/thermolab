@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, save  # noqa: E402
+from _common import COLD, DPI, HOT, MUTED, save  # noqa: E402
 from thermolab import multiplicity  # noqa: E402
 
 
@@ -41,13 +41,13 @@ def render_two_box_relaxation(n_objects: int = 200, n_frames: int = 224,
 
     fig, (left, right) = plt.subplots(1, 2, figsize=(8.5, 3.6), dpi=DPI)
 
-    bars = left.bar(["A", "B"], [n_objects, 0], color=["#2563eb", "#94a3b8"])
+    bars = left.bar(["A", "B"], [n_objects, 0], color=[COLD, MUTED])
     left.set_ylim(0, n_objects)
     left.set_ylabel("occupancy")
     left.set_title(f"N = {n_objects}")
 
-    (line,) = right.plot([], [], lw=1.4, color="#2563eb")
-    right.axhline(n_objects / 2.0, color="crimson", ls="--", lw=1.2)
+    (line,) = right.plot([], [], lw=1.4, color=COLD)
+    right.axhline(n_objects / 2.0, color=HOT, ls="--", lw=1.2)
     right.set_xlim(0, steps_axis[-1])
     right.set_ylim(0, n_objects)
     right.set_xlabel("step")
@@ -94,7 +94,7 @@ def render_peak_sharpens(n_frames: int = 160) -> None:
         frames_data.append((counts / n, relative))
 
     fig, ax = plt.subplots(figsize=(6.0, 4.2), dpi=DPI)
-    (line,) = ax.plot([], [], lw=1.6, color="#2563eb")
+    (line,) = ax.plot([], [], lw=1.6, color=COLD)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1.05)
     ax.set_xlabel("n / N")

@@ -22,7 +22,7 @@ import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 from mpl_toolkits.mplot3d import Axes3D  # noqa: E402,F401  (registers the 3D projection)
 
-from _common import DPI, save  # noqa: E402
+from _common import COLD, DPI, HEAT, HOT, save  # noqa: E402
 from thermolab import gases  # noqa: E402
 
 # CO2's van der Waals constants, fit from its measured critical point (NIST Chemistry
@@ -93,9 +93,9 @@ def render_isotherms(n_frames: int = 150) -> None:
     p_ref = gases.van_der_waals_pressure(v_grid, temperatures.max(), A_CO2, B_CO2)
 
     fig, ax = plt.subplots(figsize=(6.0, 4.5), dpi=DPI)
-    (line,) = ax.plot([], [], lw=1.6, color="#2563eb")
-    ax.axhline(p_c / 1e6, color="crimson", ls="--", lw=1.0, label="$P_c$")
-    ax.axvline(v_c * 1e6, color="crimson", ls="--", lw=1.0, label="$v_c$")
+    (line,) = ax.plot([], [], lw=1.6, color=COLD)
+    ax.axhline(p_c / 1e6, color=HOT, ls="--", lw=1.0, label="$P_c$")
+    ax.axvline(v_c * 1e6, color=HOT, ls="--", lw=1.0, label="$v_c$")
     ax.set_xlim(v_grid.min() * 1e6, v_grid.max() * 1e6)
     ax.set_ylim(-0.2 * p_c / 1e6, 1.0 * np.max(p_ref) / 1e6)
     ax.set_xlabel("v (1e-6 m^3)")
@@ -177,8 +177,8 @@ def render_shadows(n_frames: int = 180) -> None:
     ax.set_zlabel("P (kPa)")
     ax.set_title("A state point's shadows: isotherm, isochore, isobar")
 
-    (trace_3d,) = ax.plot([], [], [], color="#2563eb", lw=2.0)
-    (point_3d,) = ax.plot([], [], [], "o", color="#f97316", ms=6)
+    (trace_3d,) = ax.plot([], [], [], color=COLD, lw=2.0)
+    (point_3d,) = ax.plot([], [], [], "o", color=HEAT, ms=6)
     (shadow_pv,) = ax.plot([], [], [], color="0.4", lw=1.4)  # P-v wall (T = const)
     (shadow_pt,) = ax.plot([], [], [], color="0.4", lw=1.4)  # P-T wall (v = const)
     (shadow_vt,) = ax.plot([], [], [], color="0.4", lw=1.4)  # v-T floor (P = const)
