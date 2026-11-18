@@ -109,6 +109,23 @@ per-file `en_source_hash` staleness tracking, a canonical physics glossary
 (`glossary/terms.yml`), byte-identical equations and code cells across languages, and an
 RTL-aware build. `translation-pending.txt` must be empty for any release.
 
+## Look and feel
+
+The site wears the "living book" design of the newer courses (unimech, infilab): paper and
+ink, a rust accent, Frank Ruhl Libre / Heebo / Playpen Sans Hebrew, light and dark. It is a
+stylesheet over the stock mystmd book theme, not a different theme:
+
+- `theme/_tokens.css` holds the colours and fonts, copied from unimech's
+  `src/styles/tokens.css`. Keep the two in step.
+- `theme/_book.css` applies them to the theme's own elements; `theme/_rtl.css` adds the
+  Hebrew-only rules. `scripts/build_css.py` joins them into `content/<lang>/thermolab.css`.
+- `media/render/_common.py` holds the same palette for the figures, which are rendered once
+  on light paper and framed as plates so they also sit well on the dark theme.
+
+The book theme's version is pinned in each `myst.yml`, because the stylesheet targets its
+markup. After changing the pin, rebuild and look at a module page, `conventions.md` and
+`dev/bidi-test.md` in both languages and both themes.
+
 ## Course map
 
 Module 0 (orientation & prerequisites from zero) → 12 core modules (equilibrium, equations of
