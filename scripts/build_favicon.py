@@ -21,9 +21,10 @@ TARGET = ROOT / "theme" / "favicon.ico"
 SIZES = [16, 24, 32, 48, 64, 128, 256]
 SCALE = 16  # supersampling: grid units -> pixels
 
-BACKGROUND = "#1f3b63"
-GLASS = "#ffffff"
-MERCURY = "#e5483a"
+# The site's light-theme ink, paper and hot red; see theme/_tokens.css.
+BACKGROUND = "#1c2433"
+GLASS = "#fbf7ee"
+MERCURY = "#c8372d"
 
 
 def draw() -> Image.Image:

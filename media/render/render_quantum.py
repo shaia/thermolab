@@ -40,12 +40,24 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, ROOT, save, save_still  # noqa: E402
+from _common import (  # noqa: E402
+    COLD,
+    DPI,
+    ENERGY,
+    HOT,
+    INK,
+    MUTED,
+    ROOT,
+    save,
+    save_still,
+    shade,
+    tint,
+)
 from thermolab import quantum  # noqa: E402
 from thermolab.constants import K_B, N_A  # noqa: E402
 
-RED, BLUE, BLACK, GREY, AMBER = "#dc2626", "#2563eb", "#111827", "#94a3b8", "#d97706"
-LIGHT_BLUE, DARK_BLUE = "#93c5fd", "#1e3a8a"
+RED, BLUE, BLACK, GREY, AMBER = HOT, COLD, INK, MUTED, ENERGY
+LIGHT_BLUE, DARK_BLUE = tint(COLD, 0.45), shade(COLD, 0.5)
 SILVER_MOLAR_MASS = 0.1078682  # kg/mol
 SILVER_DENSITY = 10490.0       # kg/m^3
 

@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, save  # noqa: E402
+from _common import COLD, DPI, HOT, INK, MUTED, save  # noqa: E402
 from thermolab import equilibrium  # noqa: E402
 from thermolab.constants import K_B  # noqa: E402
 
@@ -49,10 +49,10 @@ def render_relaxation(n_frames: int = 240, steps_per_frame: int = 20) -> None:
     predicted = t_eq + equilibrium.predicted_relaxation(state, frame_steps)
 
     fig, ax = plt.subplots(figsize=(6.4, 4.2), dpi=DPI)
-    (line_a,) = ax.plot([], [], lw=1.8, color="#dc2626", label="body A")
-    (line_b,) = ax.plot([], [], lw=1.8, color="#2563eb", label="body B")
-    (line_pred,) = ax.plot([], [], lw=1.2, ls="--", color="black", label="predicted")
-    ax.axhline(t_eq, color="grey", ls=":", lw=1.0)
+    (line_a,) = ax.plot([], [], lw=1.8, color=HOT, label="body A")
+    (line_b,) = ax.plot([], [], lw=1.8, color=COLD, label="body B")
+    (line_pred,) = ax.plot([], [], lw=1.2, ls="--", color=INK, label="predicted")
+    ax.axhline(t_eq, color=MUTED, ls=":", lw=1.0)
     ax.set_xlim(0, float(frame_steps[-1]))
     ax.set_ylim(200, 550)
     ax.set_xlabel("step")
@@ -96,8 +96,8 @@ def render_fluctuations(n_frames: int = 180, steps_per_frame: int = 20) -> None:
     fig, axes = plt.subplots(1, 3, figsize=(9.5, 3.0), dpi=DPI, sharey=True)
     lines = []
     for ax, (n_a, n_b), (steps, _, predicted) in zip(axes, sizes, traces, strict=True):
-        (line,) = ax.plot([], [], lw=1.0, color="#2563eb")
-        ax.plot(steps, predicted, lw=1.2, ls="--", color="crimson")
+        (line,) = ax.plot([], [], lw=1.0, color=COLD)
+        ax.plot(steps, predicted, lw=1.2, ls="--", color=HOT)
         ax.set_xlim(0, float(steps[-1]))
         ax.set_ylim(-0.3, 1.1)
         ax.set_title(f"N = {n_a + n_b}")

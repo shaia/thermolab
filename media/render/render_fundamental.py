@@ -28,11 +28,11 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, save, save_still  # noqa: E402
+from _common import COLD, DPI, HOT, INK, MUTED, save, save_still  # noqa: E402
 from thermolab import equilibrium, fundamental  # noqa: E402
 from thermolab.constants import AMU, K_B  # noqa: E402
 
-RED, BLUE, BLACK, GREY = "#dc2626", "#2563eb", "#111827", "#94a3b8"
+RED, BLUE, BLACK, GREY = HOT, COLD, INK, MUTED
 QUANTUM = 5.0 * K_B
 
 

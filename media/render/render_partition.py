@@ -32,12 +32,12 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, save, save_still  # noqa: E402
+from _common import COLD, DPI, ENERGY, HOT, INK, MUTED, save, save_still  # noqa: E402
 from thermolab import equilibrium, partition  # noqa: E402
 from thermolab.constants import K_B  # noqa: E402
 from thermolab.validation import seed_study  # noqa: E402
 
-RED, BLUE, BLACK, GREY, AMBER = "#dc2626", "#2563eb", "#111827", "#94a3b8", "#d97706"
+RED, BLUE, BLACK, GREY, AMBER = HOT, COLD, INK, MUTED, ENERGY
 QUANTUM = 1.0e-21  # J: the oscillator's hbar omega
 MU = 9.274e-24  # J/T
 FIELD = 1.0  # T

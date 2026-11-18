@@ -49,12 +49,25 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, ROOT, save, save_still  # noqa: E402
+from _common import (  # noqa: E402
+    COLD,
+    DPI,
+    ENERGY,
+    HOT,
+    INK,
+    MUTED,
+    PAPER,
+    PAPER_3,
+    ROOT,
+    save,
+    save_still,
+    tint,
+)
 from thermolab import gases, sampling, transport  # noqa: E402
 from thermolab.constants import K_B, N_A  # noqa: E402
 
-RED, BLUE, BLACK, GREY, AMBER = "#dc2626", "#2563eb", "#111827", "#94a3b8", "#d97706"
-LIGHT_BLUE = "#93c5fd"
+RED, BLUE, BLACK, GREY, AMBER = HOT, COLD, INK, MUTED, ENERGY
+LIGHT_BLUE = tint(COLD, 0.45)
 
 
 def _style(ax) -> None:
@@ -74,7 +87,7 @@ def render_cloud() -> None:
 
     fig, (ax, ax_msd) = plt.subplots(1, 2, figsize=(11.0, 4.4), dpi=DPI,
                                      gridspec_kw={"width_ratios": [1.45, 1.0]})
-    bars = ax.bar([], [], color=LIGHT_BLUE, edgecolor="white", linewidth=0.3)
+    bars = ax.bar([], [], color=LIGHT_BLUE, edgecolor=PAPER, linewidth=0.3)
     (theory,) = ax.plot([], [], color=BLUE, lw=2.4)
     ax.set_xlim(*span)
     ax.set_ylim(0, 0.135)
@@ -108,7 +121,7 @@ def render_cloud() -> None:
         inside = np.mean((walkers[:, t] >= span[0]) & (walkers[:, t] <= span[1]))
         bars.remove()
         bars = ax.bar(centres, density * inside, width=centres[1] - centres[0],
-                      color=LIGHT_BLUE, edgecolor="white", linewidth=0.3)
+                      color=LIGHT_BLUE, edgecolor=PAPER, linewidth=0.3)
         theory.set_data(x, transport.diffusion_greens_function(x, t, d))
         curve.set_data(np.arange(10, t + 1), spread[10:t + 1])
         dot.set_data([t], [spread[t]])
@@ -276,7 +289,7 @@ def render_viscosity() -> None:
     """NIST viscosity against pressure at 300 K, flat over the dilute range, with the estimates."""
     nist = _read_table("18-gas-transport.csv")
     fig, ax = plt.subplots(figsize=(8.0, 4.4), dpi=DPI)
-    ax.axvspan(1e5, 1e6, color="#e5e7eb", zorder=0)
+    ax.axvspan(1e5, 1e6, color=PAPER_3, zorder=0)
     labels = {"He": "He", "N2": r"N$_2$", "Ar": "Ar"}
     for gas, colour in (("He", AMBER), ("N2", BLUE), ("Ar", BLACK)):
         rows = nist["gas"] == gas

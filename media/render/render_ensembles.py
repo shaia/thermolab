@@ -33,11 +33,11 @@ import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 from matplotlib.patches import Rectangle  # noqa: E402
 
-from _common import DPI, save, save_still  # noqa: E402
+from _common import COLD, CYCLE, DPI, ENERGY, HOT, INK, MUTED, PAPER, save, save_still  # noqa: E402
 from thermolab import ensembles  # noqa: E402
 from thermolab.constants import K_B  # noqa: E402
 
-RED, BLUE, BLACK, GREY, AMBER = "#dc2626", "#2563eb", "#111827", "#94a3b8", "#d97706"
+RED, BLUE, BLACK, GREY, AMBER = HOT, COLD, INK, MUTED, ENERGY
 QUANTUM = 1.0e-21
 N_SYSTEM = 3  # oscillators in the small solid
 # Levels drawn. The solid's ladder is capped here, which makes it a slightly different system:
@@ -58,7 +58,7 @@ def _level_colours(n_levels: int) -> list:
     A sequential map made neighbouring levels -- the only ones a small bath can reach -- almost
     indistinguishable, and those are exactly the blocks the joint panel asks the eye to compare.
     """
-    palette = plt.get_cmap("tab10").colors
+    palette = CYCLE
     return [palette[k] if k < len(palette) else GREY for k in range(n_levels)]
 
 
@@ -164,7 +164,7 @@ def render_joint_marginal(n_frames: int = 300) -> None:
             total = float(np.exp(joint.log_total_multiplicity))
             if total <= 220:
                 for edge in np.arange(1, round(total)) / total:
-                    left.plot([edge, edge], [0.0, 1.0], color="white", lw=0.7)
+                    left.plot([edge, edge], [0.0, 1.0], color=PAPER, lw=0.7)
             omega = rf"\Omega_{{\mathrm{{tot}}}} = {round(total)}"
         else:
             omega = rf"\Omega_{{\mathrm{{tot}}}} \approx 10^{{{exponent:.0f}}}"

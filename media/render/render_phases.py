@@ -45,12 +45,25 @@ import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 from matplotlib.patches import Rectangle  # noqa: E402
 
-from _common import DPI, ROOT, save, save_still  # noqa: E402
+from _common import (  # noqa: E402
+    COLD,
+    DPI,
+    ENERGY,
+    HOT,
+    INK,
+    MUTED,
+    PAPER,
+    PAPER_2,
+    ROOT,
+    save,
+    save_still,
+    tint,
+)
 from thermolab import gases, phases  # noqa: E402
 from thermolab.constants import K_B  # noqa: E402
 
-RED, BLUE, BLACK, GREY, AMBER = "#dc2626", "#2563eb", "#111827", "#94a3b8", "#d97706"
-LIGHT_BLUE, LIGHT_RED = "#bfdbfe", "#fecaca"
+RED, BLUE, BLACK, GREY, AMBER = HOT, COLD, INK, MUTED, ENERGY
+LIGHT_BLUE, LIGHT_RED = tint(COLD, 0.3), tint(HOT, 0.3)
 
 # CO2's constants from its critical point, as in modules 02 and the laboratory. Every axis
 # is reduced, so the choice of substance never shows.
@@ -160,7 +173,7 @@ def render_coexistence(n_frames: int = 330, hold: int = 60) -> None:
     v_grid = np.geomspace(0.36, 80.0, 2000)
 
     fig, (left, right) = plt.subplots(1, 2, figsize=(10.4, 4.6), dpi=DPI)
-    left.fill(dome_v, dome_p, color="#f1f5f9", lw=0)
+    left.fill(dome_v, dome_p, color=PAPER_2, lw=0)
     left.plot(dome_v, dome_p, color=GREY, lw=1.2)
     left.plot(sp_v / V_C, sp_p / P_C, color=AMBER, lw=1.0, ls=":")
     left.plot([1.0], [1.0], "o", color=BLACK, ms=5)
@@ -176,7 +189,7 @@ def render_coexistence(n_frames: int = 330, hold: int = 60) -> None:
 
     (curve,) = right.plot([], [], color=RED, lw=2.0)
     (point,) = right.plot([], [], "o", color=RED, ms=8)
-    right.plot([1.0], [1.0], "o", mfc="white", mec=BLACK, mew=1.5, ms=8, zorder=6)
+    right.plot([1.0], [1.0], "o", mfc=PAPER, mec=BLACK, mew=1.5, ms=8, zorder=6)
     right.axvline(1.0, color=GREY, lw=0.8, ls=":")
     right.set_xlim(0.45, 1.2)
     right.set_ylim(0.0, 1.2)
@@ -235,7 +248,7 @@ def render_lever(n_frames: int = 300, hold: int = 45, t_r: float = 0.85) -> None
     cyl.set_xticks([])
     cyl.set_ylabel(r"$v / v_c$")
     cyl.spines[["top", "right", "bottom"]].set_visible(False)
-    gas_box = Rectangle((0.15, 0.0), 0.7, 0.0, color="#fde68a", lw=0)
+    gas_box = Rectangle((0.15, 0.0), 0.7, 0.0, color=tint(ENERGY, 0.4), lw=0)
     liquid_box = Rectangle((0.15, 0.0), 0.7, 0.0, color=BLUE, alpha=0.75, lw=0)
     frame_box = Rectangle((0.15, 0.0), 0.7, 0.0, fill=False, lw=1.5, ec=BLACK)
     for patch in (gas_box, liquid_box, frame_box):
@@ -302,7 +315,7 @@ def render_around_critical(n_frames: int = 330, hold: int = 60) -> None:
 
     fig, (left, right) = plt.subplots(1, 2, figsize=(10.4, 4.6), dpi=DPI)
     left.plot(t_r, p_sat / P_C, color=BLACK, lw=2.0)
-    left.plot([1.0], [1.0], "o", mfc="white", mec=BLACK, mew=1.5, ms=8, zorder=6)
+    left.plot([1.0], [1.0], "o", mfc=PAPER, mec=BLACK, mew=1.5, ms=8, zorder=6)
     left.plot(path_a[:, 0], path_a[:, 1], color=RED, lw=1.0, ls=":")
     left.plot(path_b[:, 0], path_b[:, 1], color=BLUE, lw=1.0, ls=":")
     (dot_a,) = left.plot([], [], "o", color=RED, ms=9)
@@ -381,7 +394,7 @@ def render_water_diagram() -> None:
         ax.plot(t[sel], p[sel], color=color, lw=2.0)
     ax.plot(t_model, p_model, color=RED, lw=1.2, ls="--")
     ax.plot([273.16], [611.657], "o", color=BLACK, ms=6)
-    ax.plot([647.096], [22.064e6], "o", mfc="white", mec=BLACK, mew=1.5, ms=8)
+    ax.plot([647.096], [22.064e6], "o", mfc=PAPER, mec=BLACK, mew=1.5, ms=8)
     ax.text(230.0, 2e4, r"$\mathrm{s}$", fontsize=16, ha="center")
     ax.text(330.0, 3e7, r"$\ell$", fontsize=16, ha="center")
     ax.text(450.0, 2e3, r"$\mathrm{g}$", fontsize=16, ha="center")

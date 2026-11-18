@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, save  # noqa: E402
+from _common import COLD, DPI, ENERGY, ENTROPY, save, shade  # noqa: E402
 from thermolab import paths  # noqa: E402
 
 N_PARTICLES = 1000
@@ -44,7 +44,7 @@ def render_two_routes(n_frames: int = 180) -> None:
         cut = max(2, int(fraction * route.volumes.size))
         return paths.work_on_gas(route.volumes[:cut], route.pressures[:cut])
 
-    routes = [(isotherm, "#2563eb"), (two_leg, "#d97706")]
+    routes = [(isotherm, COLD), (two_leg, ENERGY)]
     fractions = np.linspace(0.02, 1.0, n_frames)
     works = [[partial_work(route, f) for f in fractions] for route, _ in routes]
 
@@ -96,8 +96,8 @@ def render_cycle(n_frames: int = 180) -> None:
     ax.set_ylim(0.85 * P2, 1.12 * P1)
     ax.set_xlabel("volume (L)")
     ax.set_ylabel("pressure (Pa)")
-    (curve,) = ax.plot([], [], lw=2.2, color="#7c3aed")
-    (marker,) = ax.plot([], [], "o", ms=9, color="#4c1d95")
+    (curve,) = ax.plot([], [], lw=2.2, color=ENTROPY)
+    (marker,) = ax.plot([], [], "o", ms=9, color=shade(ENTROPY, 0.5))
     shading = [ax.fill_between([], [], alpha=0.0)]
     fig.tight_layout()
 
@@ -110,7 +110,7 @@ def render_cycle(n_frames: int = 180) -> None:
         curve.set_data(volumes * 1e3, pressures)
         marker.set_data([volumes[-1] * 1e3], [pressures[-1]])
         shading[0].remove()
-        shading[0] = ax.fill(volumes * 1e3, pressures, alpha=0.18, color="#7c3aed")[0]
+        shading[0] = ax.fill(volumes * 1e3, pressures, alpha=0.18, color=ENTROPY)[0]
         return curve, marker, shading[0]
 
     save(FuncAnimation(fig, update, frames=n_frames, blit=False), fig, "paths-cycle")

@@ -35,12 +35,23 @@ import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 from matplotlib.colors import ListedColormap  # noqa: E402
 
-from _common import DPI, save, save_still  # noqa: E402
+from _common import (  # noqa: E402
+    COLD,
+    DPI,
+    ENERGY,
+    HOT,
+    INK,
+    MUTED,
+    WORK,
+    save,
+    save_still,
+    shade,
+    tint,
+)
 from thermolab import ising  # noqa: E402
 
-RED, BLUE, BLACK, GREY, AMBER, GREEN = ("#dc2626", "#2563eb", "#111827", "#94a3b8",
-                                        "#d97706", "#059669")
-SPINS = ListedColormap(["#e0f2fe", "#1e3a8a"])  # down light, up dark
+RED, BLUE, BLACK, GREY, AMBER, GREEN = HOT, COLD, INK, MUTED, ENERGY, WORK
+SPINS = ListedColormap([tint(COLD, 0.18), shade(COLD, 0.5)])  # down light, up dark
 SIZE_COLOURS = {8: GREEN, 16: AMBER, 32: RED, 64: BLUE}
 T_C = ising.onsager_tc()
 

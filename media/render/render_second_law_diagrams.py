@@ -28,18 +28,15 @@ import numpy as np  # noqa: E402
 from matplotlib.axes import Axes  # noqa: E402
 from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch  # noqa: E402
 
-from _common import save_still  # noqa: E402
+from _common import COLD, HOT, INK, MUTED, PAPER, PAPER_2, PAPER_3, save_still, tint  # noqa: E402
 from thermolab import engines, processes  # noqa: E402
 
-HOT = "#dc2626"
-HOT_FILL = "#fee2e2"
-COLD = "#2563eb"
-COLD_FILL = "#dbeafe"
-INK = "#0f172a"
-ADIABATIC = "#94a3b8"
-IMPOSSIBLE_FILL = "#f1f5f9"
-BOUNDARY = "#64748b"
-AREA_FILL = "#e2e8f0"
+HOT_FILL = tint(HOT, 0.14)
+COLD_FILL = tint(COLD, 0.14)
+ADIABATIC = MUTED
+IMPOSSIBLE_FILL = PAPER_2
+BOUNDARY = tint(INK, 0.6)
+AREA_FILL = PAPER_3
 
 LABEL_SIZE = 15
 SYMBOL_SIZE = 17
@@ -78,7 +75,7 @@ def machine(ax: Axes, x: float, y: float, label: str = "", impossible: bool = Fa
     ax.add_patch(
         Circle(
             (x, y), radius,
-            facecolor=IMPOSSIBLE_FILL if impossible else "white",
+            facecolor=IMPOSSIBLE_FILL if impossible else PAPER,
             edgecolor=INK, linewidth=1.8, linestyle=(0, (4, 3)) if impossible else "-",
         )
     )

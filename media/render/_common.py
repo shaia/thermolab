@@ -30,7 +30,9 @@ import shutil
 from pathlib import Path
 
 import matplotlib
+from cycler import cycler
 from matplotlib.animation import FFMpegWriter, FuncAnimation
+from matplotlib.colors import to_hex, to_rgb
 from matplotlib.figure import Figure
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -50,6 +52,74 @@ DPI = 150
 # bytes for no visible gain. faststart moves the index to the front so playback can begin before
 # the file has fully downloaded.
 ENCODER_ARGS = ["-crf", "23", "-preset", "slow", "-tune", "animation", "-movflags", "+faststart"]
+
+# THE PALETTE
+#     The site wears the "living book" design shared with the newer courses: warm paper, dark
+#     ink, a small fixed colour code. These constants mirror the light-theme values in
+#     theme/_tokens.css — change them together. Figures are rendered once, on light paper, and
+#     the stylesheet frames them as plates so they still sit well on the dark theme.
+#
+#     The colour code is by meaning, and every render script takes its colours from here rather
+#     than carrying its own hex values: HOT and COLD for the two sides of any temperature
+#     contrast, WORK and HEAT for the two ways energy crosses a boundary, ENTROPY, ENERGY.
+PAPER = "#fbf7ee"
+PAPER_2 = "#f3ecdd"
+PAPER_3 = "#e9e1cf"
+INK = "#1c2433"
+HOT = "#c8372d"
+COLD = "#2f55b4"
+WORK = "#1f8a5b"
+HEAT = "#d9622a"
+ENTROPY = "#7a5aa6"
+ENERGY = "#d99a12"
+TEAL = "#1f7fa6"
+MAGENTA = "#a8336e"
+LIME = "#5e9a2a"
+BROWN = "#9a5a3c"
+
+
+def tint(colour: str, amount: float) -> str:
+    """`colour` laid over paper at opacity `amount` — a pale fill that belongs to the page."""
+    pairs = zip(to_rgb(colour), to_rgb(PAPER), strict=True)
+    return to_hex([p + (c - p) * amount for c, p in pairs])
+
+
+def shade(colour: str, amount: float) -> str:
+    """`colour` darkened toward ink by `amount`, for a mark that must sit on top of `colour`."""
+    pairs = zip(to_rgb(colour), to_rgb(INK), strict=True)
+    return to_hex([c + (i - c) * amount for c, i in pairs])
+
+
+# Secondary ink, as solid colours: the site's --ink-3 and --rule are translucent, which a
+# video frame cannot be.
+MUTED = tint(INK, 0.42)
+RULE = tint(INK, 0.14)
+
+# Ten separable hues for categorical series, replacing matplotlib's default cycle.
+CYCLE = (COLD, HOT, WORK, ENERGY, ENTROPY, TEAL, HEAT, MAGENTA, LIME, BROWN)
+
+
+def apply_style() -> None:
+    """Paper background and ink axes for every figure. Runs once, when this module is imported."""
+    matplotlib.rcParams.update(
+        {
+            "figure.facecolor": PAPER,
+            "axes.facecolor": PAPER,
+            "savefig.facecolor": PAPER,
+            "text.color": INK,
+            "axes.labelcolor": INK,
+            "axes.edgecolor": INK,
+            "xtick.color": INK,
+            "ytick.color": INK,
+            "grid.color": RULE,
+            "legend.facecolor": PAPER,
+            "legend.edgecolor": RULE,
+            "axes.prop_cycle": cycler(color=CYCLE),
+        }
+    )
+
+
+apply_style()
 
 
 def ffmpeg_path() -> str:
@@ -134,7 +204,7 @@ def save_still(figure: Figure, name: str) -> None:
     targets = output_paths(name, ".png")
     first = targets[0]
     first.parent.mkdir(parents=True, exist_ok=True)
-    figure.savefig(first, dpi=DPI, facecolor="white", bbox_inches="tight", pad_inches=0.15)
+    figure.savefig(first, dpi=DPI, facecolor=PAPER, bbox_inches="tight", pad_inches=0.15)
     for other in targets[1:]:
         other.parent.mkdir(parents=True, exist_ok=True)
         other.write_bytes(first.read_bytes())

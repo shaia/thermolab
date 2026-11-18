@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, save  # noqa: E402
+from _common import COLD, DPI, ENERGY, HOT, INK, MUTED, save  # noqa: E402
 from thermolab import engines  # noqa: E402
 
 N_PARTICLES = 1000
@@ -31,11 +31,9 @@ T_COLD = 300.0
 V_START = 1.0e-3
 EXPANSION_RATIO = 2.5
 
-HOT = "#dc2626"
-COLD = "#2563eb"
-ADIABATIC = "#94a3b8"
-BOUND = "#0f172a"
-MAXPOWER = "#d97706"
+ADIABATIC = MUTED
+BOUND = INK
+MAXPOWER = ENERGY
 
 
 def render_carnot_cycle(n_frames: int = 240) -> None:

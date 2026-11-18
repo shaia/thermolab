@@ -25,11 +25,11 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, save  # noqa: E402
+from _common import COLD, DPI, HOT, save  # noqa: E402
 from thermolab import sampling  # noqa: E402
 
-BLUE = "#2563eb"
-RED = "crimson"
+BLUE = COLD
+RED = HOT
 
 
 def render_running_average(n_rolls: int = 600) -> None:

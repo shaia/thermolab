@@ -32,11 +32,11 @@ import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 from matplotlib.patches import Rectangle  # noqa: E402
 
-from _common import DPI, save, save_still  # noqa: E402
+from _common import COLD, DPI, ENERGY, HOT, INK, MUTED, save, save_still  # noqa: E402
 from thermolab import chemical  # noqa: E402
 from thermolab.constants import K_B  # noqa: E402
 
-RED, BLUE, BLACK, GREY, AMBER = "#dc2626", "#2563eb", "#111827", "#94a3b8", "#d97706"
+RED, BLUE, BLACK, GREY, AMBER = HOT, COLD, INK, MUTED, ENERGY
 T = 300.0
 KT = K_B * T
 

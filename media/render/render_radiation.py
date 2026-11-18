@@ -38,12 +38,12 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, ROOT, save, save_still  # noqa: E402
+from _common import COLD, DPI, ENERGY, HOT, INK, MUTED, ROOT, save, save_still, tint  # noqa: E402
 from thermolab import radiation  # noqa: E402
 from thermolab.constants import N_A, R_GAS  # noqa: E402
 
-RED, BLUE, BLACK, GREY, AMBER = "#dc2626", "#2563eb", "#111827", "#94a3b8", "#d97706"
-VISIBLE = "#fde68a"
+RED, BLUE, BLACK, GREY, AMBER = HOT, COLD, INK, MUTED, ENERGY
+VISIBLE = tint(ENERGY, 0.4)
 C = radiation.C_LIGHT
 VISIBLE_NM = (380.0, 750.0)
 SILVER_MOLAR_MASS = 0.1078682  # kg/mol

@@ -20,14 +20,14 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, save  # noqa: E402
+from _common import COLD, DPI, ENERGY, ENTROPY, HOT, INK, MUTED, TEAL, save  # noqa: E402
 from thermolab import sampling  # noqa: E402
 
 # One palette across the three animations, so a colour means the same thing in all of them.
-CLOUD = "#2563eb"
-THEORY = "crimson"
-BROKEN = "#7c3aed"
-STEP_COLOURS = {"pm1": "#2563eb", "uniform": "#0d9488", "heavy": "#d97706"}
+CLOUD = COLD
+THEORY = HOT
+BROKEN = ENTROPY
+STEP_COLOURS = {"pm1": COLD, "uniform": TEAL, "heavy": ENERGY}
 
 
 def render_walker_cloud(n_steps: int = 400, n_frames: int = 240) -> None:
@@ -60,12 +60,12 @@ def render_walker_cloud(n_steps: int = 400, n_frames: int = 240) -> None:
     )
 
     faint = [left.plot([], [], lw=0.7, color=CLOUD, alpha=0.10)[0] for _ in range(n_drawn)]
-    (solo,) = left.plot([], [], lw=1.6, color="#0f172a")
+    (solo,) = left.plot([], [], lw=1.6, color=INK)
     left.set_xlim(0, n_steps)
     left.set_ylim(-limit, limit)
     left.set_xlabel("steps")
     left.set_ylabel("position")
-    left.axhline(0.0, color="#94a3b8", lw=0.8, ls=":")
+    left.axhline(0.0, color=MUTED, lw=0.8, ls=":")
 
     # A +/-1 walk stands on sites two apart, and which sites are reachable flips parity with
     # every step, so `lattice=2` re-anchors the bins each frame. That means the bin centres
@@ -129,10 +129,10 @@ def render_sqrt_spread(n_steps: int = 900, n_frames: int = 200) -> None:
     fig, ax = plt.subplots(figsize=(7.2, 3.8), dpi=DPI)
     ax.plot(times, predicted, color=THEORY, ls="--", lw=1.3)
     ax.fill_between(times, -3.0 * standard_error, 3.0 * standard_error,
-                    color="#94a3b8", alpha=0.35, lw=0)
+                    color=MUTED, alpha=0.35, lw=0)
     (measured,) = ax.plot([], [], color=CLOUD, lw=1.8)
-    (average,) = ax.plot([], [], color="#0f172a", lw=1.4)
-    ax.axhline(0.0, color="#94a3b8", lw=0.8, ls=":")
+    (average,) = ax.plot([], [], color=INK, lw=1.4)
+    ax.axhline(0.0, color=MUTED, lw=0.8, ls=":")
     ax.set_xlim(0, n_steps)
     ax.set_ylim(-6.0, 1.15 * predicted[-1])
     ax.set_xlabel("steps")

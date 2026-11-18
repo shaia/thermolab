@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from matplotlib.animation import FuncAnimation  # noqa: E402
 
-from _common import DPI, save  # noqa: E402
+from _common import COLD, DPI, ENERGY, HOT, MUTED, WORK, save  # noqa: E402
 from thermolab import processes  # noqa: E402
 
 N_PARTICLES = 1000
@@ -31,10 +31,10 @@ START = processes.EquilibriumState.from_temperature(N_PARTICLES, TEMPERATURE, V1
 V2 = VOLUME_RATIO * V1
 
 # One colour per process family, reused in both animations and named in both captions.
-ISOCHORIC = "#2563eb"
-ISOBARIC = "#d97706"
-ISOTHERMAL = "#059669"
-ADIABATIC = "#dc2626"
+ISOCHORIC = COLD
+ISOBARIC = ENERGY
+ISOTHERMAL = WORK
+ADIABATIC = HOT
 
 
 def render_families(n_frames: int = 180) -> None:
@@ -84,7 +84,7 @@ def render_families(n_frames: int = 180) -> None:
     for axis, values, label in zip(ledger, series, labels, strict=True):
         span = max(abs(values.min()), abs(values.max()))
         axis.set_ylim(-1.15 * span, 1.15 * span)
-        axis.axhline(0.0, color="#94a3b8", lw=0.8)
+        axis.axhline(0.0, color=MUTED, lw=0.8)
         axis.set_xlim(-0.7, 3.7)
         axis.set_xticks([])
         axis.set_ylabel(label, fontsize=8)
