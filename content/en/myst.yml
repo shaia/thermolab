@@ -62,7 +62,9 @@ project:
         - file: advanced/18-fluctuations-transport.md
         - file: advanced/18-fluctuations-transport-problems.md
 site:
-  template: book-theme
+  # The book theme, pinned: mystmd 1.10.1 refuses newer releases, and theme/_book.css
+  # targets this version's markup. Bump it together with mystmd, then recheck the styling.
+  template: https://github.com/jupyter-book/myst-theme/releases/download/myst-to-react%401.4.1/book-theme.zip
   options:
     hide_outline: false
     folders: true
