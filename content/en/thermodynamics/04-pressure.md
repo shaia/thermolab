@@ -264,7 +264,7 @@ $$
 
 Measured across independently drawn microstates, the fitted exponent is $-0.5$ and the
 coefficient is $1$. The pressure of $100$ particles wobbles by about $10\%$; for a mole,
-$N^{-1/2} \approx 4 \times 10^{-13}$ — undetectable by any instrument ever built.
+$N^{-1/2} \approx 1.3 \times 10^{-12}$ — undetectable by any instrument ever built.
 :::
 
 That is the resolution. The collisions never became gentle. There are simply so many of them
