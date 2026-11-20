@@ -9,7 +9,7 @@
 Every individual molecular impact is violent, random and discrete — yet a barometer built in
 1643 still works. The module resolves the puzzle without making the collisions gentler: the
 relative jitter of a sum over $N$ independent events falls as $N^{-1/2}$, and a mole puts it at
-$4 \times 10^{-13}$, below the noise floor of reality. This is the course's **Prototype A**
+$1.3 \times 10^{-12}$, below the noise floor of reality. This is the course's **Prototype A**
 (brainstorm §10) and its first quantitative law of large numbers — a measured exponent and a
 measured coefficient of 1, explained via chi-square, not "the noise averages out".
 

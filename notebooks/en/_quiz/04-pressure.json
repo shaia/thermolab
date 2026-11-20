@@ -87,7 +87,7 @@
           0.012
         ],
         "correct": true,
-        "feedback": "sigma_P/<P> = N^(-1/2) = 1/100 = 0.01, i.e. 1%. Note how quickly this becomes unmeasurable: a mole gives about 4e-13."
+        "feedback": "sigma_P/<P> = N^(-1/2) = 1/100 = 0.01, i.e. 1%. Note how quickly this becomes unmeasurable: a mole gives about 1.3e-12."
       }
     ]
   },
